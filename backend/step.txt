@@ -1,0 +1,111 @@
+1. npm init -y
+2. npm install express mysql2 dotenv bcryptjs jsonwebtoken uuid multer cors
+3. Struktur :
+src/
+├── config/
+│   └── db.js
+├── controllers/
+│   ├── authController.js
+│   ├── userController.js
+│   ├── adminController.js
+│   └── orderController.js
+├── middlewares/
+│   ├── auth.js
+│   └── upload.js
+├── routes/
+│   ├── authRoutes.js
+│   ├── userRoutes.js
+│   └── adminRoutes.js
+├── utils/
+│   └── calculateTotal.js
+└── app.js
+
+4. Setup Database:
+-- Buat database
+CREATE DATABASE IF NOT EXISTS gpu_rental;
+USE gpu_rental;
+
+-- Tabel users
+CREATE TABLE IF NOT EXISTS users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(100) NOT NULL,
+  role ENUM('user', 'admin') DEFAULT 'user',
+  phone VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel gpu_packages
+CREATE TABLE IF NOT EXISTS gpu_packages (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  price_per_hour DECIMAL(10, 2) NOT NULL,
+  vcpu VARCHAR(50) NOT NULL,
+  ram VARCHAR(50) NOT NULL,
+  min_period_days INT NOT NULL
+);
+
+-- Tabel orders
+CREATE TABLE IF NOT EXISTS orders (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  gpu_package_id INT NOT NULL,
+  duration_days INT NOT NULL,
+  total_cost DECIMAL(15, 2) NOT NULL,
+  status ENUM('pending_payment', 'pending_approval', 'approved', 'rejected', 'expired') DEFAULT 'pending_payment',
+  token VARCHAR(100),
+  start_date DATETIME,
+  end_date DATETIME,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (gpu_package_id) REFERENCES gpu_packages(id)
+);
+
+-- Tabel payments
+CREATE TABLE IF NOT EXISTS payments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  order_id INT NOT NULL,
+  proof_url VARCHAR(255) NOT NULL,
+  status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
+  verified_by INT,
+  verified_at DATETIME,
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (verified_by) REFERENCES users(id)
+);
+
+// ========== DATABASE TABLE TAMBAHAN ==========
+// Table `payments`: id (uuid), order_id, file_path, status, verified_by, verified_at
+// Tambah kolom di `orders`: gpu_token (nullable)
+
+// ========== FLOW TAMBAHAN FRONTEND YANG HARUS ADA ==========
+// - Form upload bukti bayar -> POST /api/payment/upload dengan formData (pakai input file)
+// - Jika status order = 'rejected' -> tampilkan notifikasi penolakan + saran upload ulang
+// - Jika status order = 'approved' -> tampilkan token GPU dan instruksi penggunaannya
+
+// Ini sudah lengkap mencakup flowchart user & admin:
+// ✅ Registrasi/Login → Pilih Paket → Upload Bukti → Menunggu → Approve/Reject
+// ✅ Admin bisa approve/reject dan generate token
+// ✅ Warna, status, dan error handling diatur jelas
+// ✅ Bisa monitoring status dan membatalkan jika perlu (bisa tambah route monitoring token)
+
+
+-- 1. Insert admin
+INSERT INTO users (name, email, password, role) VALUES
+('Admin', 'admin@example.com', 'hashed_password_here', 'admin');
+
+-- 2. Insert user
+INSERT INTO users (name, email, password, role) VALUES
+('User A', 'usera@example.com', 'hashed_password_here', 'user');
+
+-- 3. Insert GPU package
+INSERT INTO gpu_packages (name, price_per_hour, vcpu, ram, min_period_days) VALUES
+('NVIDIA A100 - Basic', 2.50, '4 vCPU', '16 GB', 1);
+
+-- 4. Insert Order
+INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status)
+VALUES (2, 1, 3, 180.00, 'pending_payment');
+
+-- 5. Insert Payment
+INSERT INTO payments (order_id, proof_url, status)
+VALUES (1, 'https://example.com/bukti/bukti1.png', 'pending');
