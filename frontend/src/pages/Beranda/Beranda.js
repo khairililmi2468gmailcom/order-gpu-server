@@ -149,10 +149,11 @@ const Beranda = () => {
       </div>
     </div>
       {/* Bagian Produk & Layanan */}
-      <div ref={produkLayananRef} id="produk-layanan-section" className="mb-16">
-        <ProdukLayananSection />
-      </div>
-
+      <section ref={produkLayananRef} id="produk-layanan-section" className="py-16 bg-gray-100">
+        <div >
+          <ProdukLayananSection />
+        </div>
+      </section>
       {/* Bagian Solusi (Asumsi Anda akan menambahkan ini) */}
       <section ref={solusiRef} id="solusi-section" className="py-16 bg-gray-100">
         <div className="container mx-auto text-center">

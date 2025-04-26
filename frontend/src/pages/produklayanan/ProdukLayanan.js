@@ -21,7 +21,7 @@ const dummyGPUData = [
 
 const ProdukLayananSection = React.forwardRef((props, ref) => {
     return (
-        <section ref={ref} id="produk-layanan-section" className="py-16 px-4 lg:px-64 sm:px-6 lg:px-8">
+        <section ref={ref} id="produk-layanan-section" className="py-16 px-4  sm:px-6 lg:px-64">
             {/* Title dan Deskripsi Utama */}
             <div className="text-center mb-12">
                 <h2 className="lg:text-5xl text-3xl  font-bold text-black">Produk dan Layanan Kami</h2>
@@ -29,7 +29,7 @@ const ProdukLayananSection = React.forwardRef((props, ref) => {
             </div>
 
             {/* Daftar Produk GPU (2 Kolom) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 lg:px-48">
                 {dummyGPUData.map((gpu, index) => (
                     <div key={index} className="bg-white rounded-lg shadow-md p-6">
                         <img src={gpu.imageUrl} alt={gpu.nama} className="w-full rounded-md mb-4" />
@@ -50,7 +50,7 @@ const ProdukLayananSection = React.forwardRef((props, ref) => {
                 ))}
             </div>
 
-            <div className="relative rounded-lg overflow-hidden">
+            <div className="relative rounded-lg overflow-hidden lg:px-96">
                 {/* Background Image */}
                 <div
                     className="absolute inset-0 bg-cover bg-center"
@@ -69,7 +69,7 @@ const ProdukLayananSection = React.forwardRef((props, ref) => {
                         Tingkatkan Produktivitas Bisnis dengan Layanan Kami
                     </h2>
                     <p className="mb-8 max-w-2xl mx-auto select-none">
-                        GPU USK telah berdedikasi selama lebih dari 30 tahun dalam mengembangkan ragam produk dan layanan untuk memudahkan sistem informasi dan komunikasi korporat.
+                        GPU USK t elah berdedikasi selama lebih dari 30 tahun dalam mengembangkan ragam produk dan layanan untuk memudahkan sistem informasi dan komunikasi korporat.
                     </p>
                     <Link to="/tentang-kami">
                         <button className="bg-white text-primary-dark font-bold py-3 px-6 rounded-full hover:bg-gray-100 border border-primary transition duration-300">

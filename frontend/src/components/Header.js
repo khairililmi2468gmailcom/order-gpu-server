@@ -78,7 +78,7 @@ const Header = () => {
                     {/* Tombol & dropdown bahasa */}
                     <div className="hidden md:flex items-center space-x-6">
                         <button className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300">
-                            My LA Network
+                            Login
                         </button>
                         <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
                             Hubungi Kami

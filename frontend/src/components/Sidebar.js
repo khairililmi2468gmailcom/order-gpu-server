@@ -202,7 +202,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                     {/* Bagian bawah tetap */}
                     <Link to="/my-la-network" className="block px-4 py-2 text-gray-700 hover:text-blue-500 transition duration-300"
                         onClick={onClose}>
-                        My LA Network
+                        Login
                     </Link>
                     <Link to="/hubungi-kami" className="block px-4 py-2 text-blue-500 hover:text-blue-700 transition duration-300"
                         onClick={onClose}>
