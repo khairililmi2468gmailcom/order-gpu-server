@@ -51,10 +51,10 @@ const Header = () => {
                 {/* Desktop: Email & Telepon di kiri */}
                 <div className="w-full animate-slideDown flex flex-col md:flex-row items-start md:items-center justify-between">
                     {/* Kontak kiri desktop */}
-                    <div className="hidden md:flex items-center space-x-4 text-white">
+                    <div className="hidden md:flex items-center space-x-4 text-white font-bold">
                         <div className="flex items-center text-sm">
                             <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
-                            <span>info@lintasarta.co.id</span>
+                            <span>info@usk.ac.id</span>
                         </div>
                         <div className="flex items-center text-sm">
                             <FontAwesomeIcon icon={faPhone} className="mr-2" />
@@ -66,7 +66,7 @@ const Header = () => {
                     <div className="flex md:hidden items-center text-white">
                         <div className="flex items-center text-xs mr-2">
                             <FontAwesomeIcon icon={faEnvelope} className="mr-1" size="sm" />
-                            <span>info@lintasarta.co.id</span>
+                            <span>info@usk.ac.id</span>
                         </div>
                         <div className="flex items-center text-xs">
                             <FontAwesomeIcon icon={faPhone} className="mr-1" size="sm" />
