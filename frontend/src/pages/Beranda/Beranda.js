@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './css/Beranda.module.css';
 import ProdukLayananSection from '../produklayanan/ProdukLayanan';
+import { faArrowUpLong } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const slidesData = [
   {
@@ -44,6 +46,25 @@ const Beranda = () => {
   const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
   const solusiRef = useRef(null);
   const tentangKamiRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > window.innerHeight / 2) { // kalau sudah scroll lebih dari setengah layar
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   const goToPreviousSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
@@ -171,6 +192,15 @@ const Beranda = () => {
           <p>Lebih lanjut tentang perusahaan dan visi kami.</p>
         </div>
       </section>
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-5 right-5 bg-primary hover:bg-secondary text-white rounded-full lg:py-4 lg:px-5 py-2 px-3 shadow-lg transition-opacity duration-300"
+          aria-label="Scroll to top"
+        >
+          <FontAwesomeIcon icon={faArrowUpLong} />
+        </button>
+      )}
     </>
 
   );
