@@ -4,7 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import Gif from '../../assets/GIF/BGADMINLOGIN.gif'; 
+// import Gif from '../../assets/GIF/BGADMINLOGIN.gif'; 
 
 const LoginAdminPage = () => {
     const [email, setEmail] = useState('');

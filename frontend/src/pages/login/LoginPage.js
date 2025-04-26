@@ -1,21 +1,41 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
-const LoginPage = () => {
+const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai props
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.registeredEmail) {
+            setEmail(location.state.registeredEmail);
+        }
+    }, [location.state?.registeredEmail]);
 
     const validateEmail = (email) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
+    };
+
+    const validatePassword = (password) => {
+        if (password.length < 8) {
+            return 'Password minimal 8 karakter';
+        }
+        if (!/[A-Z]/.test(password)) {
+            return 'Password harus mengandung setidaknya satu huruf besar';
+        }
+        if (!/[0-9]/.test(password)) {
+            return 'Password harus mengandung setidaknya satu angka';
+        }
+        return ''; // Password valid
     };
 
     const handleLogin = async (e) => {
@@ -32,28 +52,31 @@ const LoginPage = () => {
             isValid = false;
         }
 
+        const passwordValidationError = validatePassword(password);
         if (!password) {
             setPasswordError('Password tidak boleh kosong');
             isValid = false;
-        } else if (password.length < 8) {
-            setPasswordError('Password minimal 8 karakter');
+        } else if (passwordValidationError) {
+            setPasswordError(passwordValidationError);
             isValid = false;
         }
 
         if (isValid) {
             try {
-                const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { email, password });
+                const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { email, password });
                 Swal.fire({
                     icon: 'success',
                     title: 'Login Berhasil',
                     text: response.data.message || 'Anda berhasil login',
+                }).then(() => {
+                    localStorage.setItem('token', response.data.token);
+                    onLoginSuccess(); // Panggil fungsi props untuk memperbarui state di App.js
+                    if (response.data.isAdmin) {
+                        navigate('/admin');
+                    } else {
+                        navigate('/');
+                    }
                 });
-                localStorage.setItem('token', response.data.token);
-                if (response.data.isAdmin) {
-                    navigate('/admin');
-                } else {
-                    navigate('/');
-                }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -94,7 +117,7 @@ const LoginPage = () => {
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 id="password"
-                                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${passwordError && 'border-red-500'}`}
+                                className={`shadow appearance-none border rounded w-full py-2 pr-10 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${passwordError && 'border-red-500'}`}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />

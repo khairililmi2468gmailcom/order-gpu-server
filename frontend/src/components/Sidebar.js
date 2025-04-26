@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretUp, faUser } from '@fortawesome/free-solid-svg-icons';
 
 const menuConfig = {
     produk: {
@@ -30,10 +30,10 @@ const menuConfig = {
         ]
     },
     tentang: {
-        parentPath: '/mengenal-lintasarta',
+        parentPath: '/mengenal-order-gpu',
         childPaths: [
-            '/mengenal-lintasarta',
-            '/mengapa-lintasarta',
+            '/mengenal-order-gpu',
+            '/mengapa-order-gpu',
             '/karir',
             '/csr',
             '/whistleblowing'
@@ -48,19 +48,26 @@ const berandaSections = [
     { id: 'solusi-section', label: 'Solusi' },
     { id: 'tentang-kami-section', label: 'Tentang Kami' },
 ];
-const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect }) => {
+const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect, scrollToSection, isLoggedIn, onLogout }) => {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const location = useLocation(); // Menggunakan hook useLocation
     const sidebarRef = useRef(null);
+    const navigate = useNavigate();
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const profileDropdownRef = useRef(null);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
                 onClose();
             }
+            // Tutup dropdown profil jika klik di luar
+            if (profileDropdownOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+                setProfileDropdownOpen(false);
+            }
         };
 
-        // Handle resize
         const handleResize = () => {
             if (window.innerWidth >= 768 && isOpen) {
                 onClose();
@@ -74,7 +81,8 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
             document.removeEventListener('mousedown', handleClickOutside);
             window.removeEventListener('resize', handleResize);
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, profileDropdownOpen]);
+
 
     const scrollbarStyle = {
         scrollbarWidth: 'none',
@@ -96,8 +104,9 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
         },
     });
     const linkClasses = (isActive) =>
-        `block px-4 py-2 transition-colors duration-200 ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100'
-        }`;
+        `block px-4 py-2 transition-colors duration-200 ${
+          isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100'
+        } rounded-md`;
 
     const isParentActive = (pathConfig) => {
         return location.pathname === pathConfig.parentPath ||
@@ -160,23 +169,27 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
 
 
     const handleBerandaNavigation = (id) => {
-        // Tutup sidebar
         onClose();
-
-        // Cek apakah sudah di halaman beranda
         if (location.pathname !== '/') {
-            // Jika tidak di beranda, navigasi dulu ke beranda
             window.location.href = `/${id ? `#${id}` : ''}`;
         } else {
-            // Jika sudah di beranda, scroll ke section
             const element = document.getElementById(id);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-
-            // Update URL dengan hash
             window.history.pushState(null, null, `#${id}`);
         }
+    };
+    const toggleProfileDropdown = () => {
+        setProfileDropdownOpen(!profileDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setProfileDropdownOpen(false);
+        navigate('/login');
+        onLogout();
+        onClose();
     };
     return (
         <>
@@ -256,10 +269,52 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                     <hr className="my-4 border-t border-gray-300" />
 
                     {/* Bagian bawah tetap */}
-                    <Link to="/my-la-network" className="block px-4 py-2 text-gray-700 hover:text-blue-500 transition duration-300"
-                        onClick={onClose}>
-                        Login
-                    </Link>
+                    {isLoggedIn ? ( 
+                        <div className="relative" ref={profileDropdownRef}>
+                            <button
+                                onClick={toggleProfileDropdown}
+                                className="flex items-center space-x-2 focus:outline-none text-gray-700 py-2 px-4 w-full text-left hover:bg-gray-100 rounded-md transition duration-300"
+                            >
+                                <FontAwesomeIcon icon={faUser} className="mr-2" />
+                                <span>Profile</span>
+                                <FontAwesomeIcon
+                                    icon={profileDropdownOpen ? faCaretUp : faCaretDown}
+                                    className="text-xs ml-auto"
+                                />
+                            </button>
+                            {profileDropdownOpen && (
+                                <div className="ml-4 mt-1 bg-white border border-gray-200 rounded-md shadow-sm">
+                                    <Link
+                                        to="/profile"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
+                                        onClick={onClose}
+                                    >
+                                        My Profile
+                                    </Link>
+                                    <button
+                                        onClick={() => alert('Settings')}
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left transition duration-300"
+                                    >
+                                        Settings
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left transition duration-300"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="block px-4 py-2 text-gray-700 hover:text-blue-500 transition duration-300"
+                            onClick={onClose}
+                        >
+                            Login
+                        </Link>
+                    )}
                     <Link to="/hubungi-kami" className="block px-4 py-2 text-blue-500 hover:text-blue-700 transition duration-300"
                         onClick={onClose}>
                         Hubungi Kami

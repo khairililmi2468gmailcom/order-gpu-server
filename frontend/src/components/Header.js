@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faPhone, faCaretDown, faArrowRightLong } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faCaretDown, faArrowRightLong, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from './Sidebar';
 
-const Header = () => {
+const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState('ID'); // Default language
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const toggleLanguageDropdown = () => setLanguageDropdownOpen(!languageDropdownOpen);
     const location = useLocation();
     const [hoveredMenu, setHoveredMenu] = useState(null);
     const [scrolled, setScrolled] = useState(false);
@@ -20,6 +19,33 @@ const Header = () => {
     const contactBarHeight = 64;
     const scrollThreshold = 40;
     const desktopBreakpoint = 1024;
+
+
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const navigate = useNavigate();
+    const [isLoggedInLocal, setIsLoggedInLocal] = useState(false);
+
+    const profileRef = useRef(null);
+    const langRef = useRef(null);
+
+    // Handle click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setProfileDropdownOpen(false);
+            }
+            if (langRef.current && !langRef.current.contains(event.target)) {
+                setLanguageDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        setIsLoggedInLocal(isLoggedIn);
+    }, [isLoggedIn]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -81,7 +107,12 @@ const Header = () => {
         setLanguageDropdownOpen(false);
         // Tambahkan logika untuk mengganti bahasa di sini
     };
-
+    const toggleProfileDropdown = () => {
+        if (languageDropdownOpen) {
+            setLanguageDropdownOpen(false);
+        }
+        setProfileDropdownOpen(!profileDropdownOpen);
+    };
 
     const navItemClass = (path) => `
     relative px-3 py-2
@@ -98,11 +129,26 @@ const Header = () => {
   hover:text-blue-500 hover:border-blue-500
   transition duration-200 cursor-pointer
 `;
+
+
+    const toggleLanguageDropdown = () => {
+        if (profileDropdownOpen) {
+            setProfileDropdownOpen(false);
+        }
+        setLanguageDropdownOpen(!languageDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setProfileDropdownOpen(false);
+        navigate('/login');
+        onLogout();
+    };
     return (
-        <header className="sticky top-0 z-40">
+        <header className="sticky top-0 z-50">
             {/* Kontak Bar */}
-            <div className={`bg-gradient-to-r from-primary-dark via-secondary to-primary py-2 text-base text-gray-900 flex items-center justify-between px-4 sm:px-8 md:px-16 lg:px-72 shadow-sm transition-all duration-300 ease-in-out
-            ${scrolled ? (contactBarVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'}`}>
+            <div className={`bg-gradient-to-r from-primary-dark via-secondary to-primary py-2 text-base text-gray-900 flex items-center justify-between px-4 sm:px-8 md:px-16 lg:px-72 shadow-sm transition-all duration-300 ease-in-out z-50 relative // [!code focus]
+  ${scrolled ? (contactBarVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'}`}>
                 {/* Desktop: Email & Telepon di kiri */}
                 <div className="w-full animate-slideDown flex flex-col md:flex-row items-start md:items-center justify-between">
                     {/* Kontak kiri desktop */}
@@ -131,13 +177,57 @@ const Header = () => {
 
                     {/* Tombol & dropdown bahasa */}
                     <div className="hidden md:flex items-center space-x-6">
-                        <button className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300">
-                            Login
-                        </button>
-                        <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
-                            Hubungi Kami
-                        </button>
-                        <div className="relative">
+                        {!isLoggedInLocal ? (
+                            <>
+                                <button className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300">
+                                    <NavLink to="/login" >
+                                        Login
+                                    </NavLink>
+                                </button>
+                                <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
+                                    Hubungi Kami
+                                </button>
+                            </>
+                        ) : (
+                            <div className="relative z-20" ref={profileRef}>
+                                <button
+                                    onClick={toggleProfileDropdown}
+                                    className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
+                                >
+                                    <FontAwesomeIcon icon={faUserCircle} className="text-xl" />
+                                    <span>Profile</span>
+                                    <FontAwesomeIcon
+                                        icon={faCaretDown}
+                                        className={`text-xs transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''
+                                            }`}
+                                    />
+                                </button>
+                                {profileDropdownOpen && (
+                                    <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-40 z-[1000]">
+                                        <button
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            onClick={() => alert('Settings')}
+                                        >
+                                            Settings
+                                        </button>
+                                        <button
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                        >
+                                            Token
+                                        </button>
+                                        <button
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            onClick={handleLogout}
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="relative" ref={langRef}
+                            onMouseLeave={() => setTimeout(() => setLanguageDropdownOpen(false), 1000)}>
                             <button
                                 onClick={toggleLanguageDropdown}
                                 className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
@@ -169,7 +259,7 @@ const Header = () => {
                 </div>
             </div>
             {/* Navbar */}
-            <nav className={`bg-white text-black shadow-md py-6 px-4 md:px-8 transition-transform duration-300 ease-in-out`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
+            <nav className={`bg-white text-black shadow-md py-6 px-4 md:px-8 transition-transform duration-300 ease-in-out z-10 relative`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
                 <div className="max-w-screen-lg mx-auto flex justify-between items-center">
                     {/* Logo */}
                     <Link to="/" className="flex-shrink-0">
@@ -479,6 +569,8 @@ const Header = () => {
                 setLanguageDropdownOpen={setLanguageDropdownOpen}
                 selectedLanguage={selectedLanguage}
                 handleLanguageSelect={handleLanguageSelect}
+                isLoggedIn={isLoggedIn}
+                onLogout={onLogout}
             />
         </header>
     );
