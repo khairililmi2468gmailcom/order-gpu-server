@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVenusMars, faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 
 const menuConfig = {
     produk: {
@@ -41,6 +41,13 @@ const menuConfig = {
     }
 };
 
+
+const berandaSections = [
+    { id: 'landing', label: 'Landing' },
+    { id: 'produk-layanan-section', label: 'Produk & Layanan' },
+    { id: 'solusi-section', label: 'Solusi' },
+    { id: 'tentang-kami-section', label: 'Tentang Kami' },
+];
 const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect }) => {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const location = useLocation(); // Menggunakan hook useLocation
@@ -151,6 +158,26 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
         );
     };
 
+
+    const handleBerandaNavigation = (id) => {
+        // Tutup sidebar
+        onClose();
+
+        // Cek apakah sudah di halaman beranda
+        if (location.pathname !== '/') {
+            // Jika tidak di beranda, navigasi dulu ke beranda
+            window.location.href = `/${id ? `#${id}` : ''}`;
+        } else {
+            // Jika sudah di beranda, scroll ke section
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // Update URL dengan hash
+            window.history.pushState(null, null, `#${id}`);
+        }
+    };
     return (
         <>
             {/* Overlay */}
@@ -171,13 +198,42 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                 </button> */}
                 <div className="p-8">
                     {/* Beranda */}
-                    <NavLink
-                        to="/"
-                        style={(props) => linkStyle(props)}
-                        onClick={onClose}
-                    >
-                        Beranda
-                    </NavLink>
+                    <div className="relative">
+                        <div
+                            className="flex justify-between items-center cursor-pointer hover:bg-gray-100 rounded-md"
+                            onClick={() => setExpandedMenu(expandedMenu === 'beranda' ? null : 'beranda')}
+                        >
+                            <NavLink
+                                to="/"
+                                style={(props) => linkStyle(props)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setExpandedMenu(expandedMenu === 'beranda' ? null : 'beranda');
+                                }}
+                                className="flex-1"
+                            >
+                                Beranda
+                            </NavLink>
+                            <FontAwesomeIcon
+                                icon={expandedMenu === 'beranda' ? faCaretUp : faCaretDown}
+                                className="text-xs mr-2"
+                            />
+                        </div>
+                        {expandedMenu === 'beranda' && (
+                            <div className="ml-4" style={scrollbarStyle}>
+                                {berandaSections.map((section, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleBerandaNavigation(section.id)}
+                                        className="block pl-6 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200 w-full text-left"
+                                    >
+                                        {section.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
 
                     {/* Produk & Layanan */}
                     {renderDropdownMenu('produk')}

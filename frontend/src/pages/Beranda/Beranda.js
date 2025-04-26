@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styles from './css/Beranda.module.css';
+// import styles from './css/Beranda.module.css';
 import ProdukLayananSection from '../produklayanan/ProdukLayanan';
 import { faArrowUpLong } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -98,77 +98,100 @@ const Beranda = () => {
   }, [currentIndex]);
 
 
-  const scrollToSection = (ref) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  return (
-    <><div className="relative w-full h-[700px] overflow-hidden">
-      {slidesData.map((slide, index) => (
-        <div
-          key={index}
-          className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-        >
-          {/* Lapisan Warna dengan Opasitas */}
-          {index === currentIndex && (
-            <div
-              className="absolute top-0 left-0 w-full h-full  opacity-20 z-1" // Ubah opacity sesuai keinginan Anda
-            />
-          )}
-          <div
-            className="absolute top-0 left-0 w-full h-[60vh] md:h-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${slide.imageUrl})`, filter: 'brightness(0.7)' }}
-          ></div>
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
 
-          <div className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 ${animate ? 'slide-in-left' : ''}`}>
-            <h2 className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none" ref={textRef}>
-              {slide.title}
-            </h2>
-            <p className="mt-2 select-none max-w-xs md:max-w-xl text-sm md:text-xl" ref={descriptionRef}>
-              {slide.description}
-            </p>
-            <button
-              className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition duration-300"
-              ref={buttonRef}
+    // Jalankan saat pertama load
+    handleHashChange();
+    
+    // Tambahkan event listener untuk perubahan hash
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+    
+  return (
+    <>
+      <section id="landing" className="relative w-full h-[700px] overflow-hidden">
+
+        <div className="relative w-full h-[700px] overflow-hidden">
+          {slidesData.map((slide, index) => (
+            <div
+              key={index}
+              className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
             >
-              {slide.buttonText}
+              {/* Lapisan Warna dengan Opasitas */}
+              {index === currentIndex && (
+                <div
+                  className="absolute top-0 left-0 w-full h-full  opacity-20 z-1" // Ubah opacity sesuai keinginan Anda
+                />
+              )}
+              <div
+                className="absolute top-0 left-0 w-full h-[60vh] md:h-full bg-cover bg-center"
+                style={{ backgroundImage: `url(${slide.imageUrl})`, filter: 'brightness(0.7)' }}
+              ></div>
+
+              <div className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 ${animate ? 'slide-in-left' : ''}`}>
+                <h2 className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none" ref={textRef}>
+                  {slide.title}
+                </h2>
+                <p className="mt-2 select-none max-w-xs md:max-w-xl text-sm md:text-xl" ref={descriptionRef}>
+                  {slide.description}
+                </p>
+                <button
+                  className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition duration-300"
+                  ref={buttonRef}
+                >
+                  {slide.buttonText}
+                </button>
+              </div>
+
+            </div>
+          ))}
+
+          {/* Tombol Navigasi */}
+          <div className="absolute bottom-5 left-5 flex space-x-4 z-20">
+            <button
+              onClick={goToPreviousSlide}
+              className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-left' : ''}`}
+              ref={prevButtonRef}
+            >
+              &lt;
+            </button>
+            <button
+              onClick={goToNextSlide}
+              className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-right' : ''}`}
+              ref={nextButtonRef}
+            >
+              &gt;
             </button>
           </div>
 
+          {/* Tanda Bulat Navigasi */}
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+            {slidesData.map((_, index) => (
+              <button
+                key={index}
+                className={`rounded-full w-3 h-3 focus:outline-none ${index === currentIndex ? 'bg-blue-500' : 'bg-gray-300 hover:bg-gray-400'
+                  } ${animate ? 'slide-in-bottom' : ''}`}
+                onClick={() => goToSlide(index)}
+                ref={(el) => (dotsRef[index] = el)}
+              ></button>
+            ))}
+          </div>
         </div>
-      ))}
-
-      {/* Tombol Navigasi */}
-      <div className="absolute bottom-5 left-5 flex space-x-4 z-20">
-        <button
-          onClick={goToPreviousSlide}
-          className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-left' : ''}`}
-          ref={prevButtonRef}
-        >
-          &lt;
-        </button>
-        <button
-          onClick={goToNextSlide}
-          className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-right' : ''}`}
-          ref={nextButtonRef}
-        >
-          &gt;
-        </button>
-      </div>
-
-      {/* Tanda Bulat Navigasi */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-        {slidesData.map((_, index) => (
-          <button
-            key={index}
-            className={`rounded-full w-3 h-3 focus:outline-none ${index === currentIndex ? 'bg-blue-500' : 'bg-gray-300 hover:bg-gray-400'
-              } ${animate ? 'slide-in-bottom' : ''}`}
-            onClick={() => goToSlide(index)}
-            ref={(el) => (dotsRef[index] = el)}
-          ></button>
-        ))}
-      </div>
-    </div>
+      </section>
       {/* Bagian Produk & Layanan */}
       <section ref={produkLayananRef} id="produk-layanan-section" className="py-16 bg-gray-100">
         <div >
@@ -195,7 +218,7 @@ const Beranda = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-5 right-5 bg-primary hover:bg-secondary text-white rounded-full lg:py-4 lg:px-5 py-2 px-3 shadow-lg transition-opacity duration-300"
+          className="fixed bottom-5 right-5 bg-primary hover:bg-secondary text-white rounded-full lg:py-3 lg:px-5 py-2 px-3 shadow-lg transition-opacity duration-300"
           aria-label="Scroll to top"
         >
           <FontAwesomeIcon icon={faArrowUpLong} />
