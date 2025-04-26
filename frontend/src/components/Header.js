@@ -169,10 +169,17 @@ const Header = () => {
 
                             {hoveredMenu === 'produk' && (
                                 <div
-                                    className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-md shadow-lg w-screen max-w-screen-lg z-20"
+                                    className="absolute top-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg 
+                                w-[90vw] max-w-2xl 
+                                lg:w-screen lg:max-w-screen-lg 
+                                left-0 right-0 mx-auto 
+                                lg:left-1/2 lg:-translate-x-1/2 lg:right-auto lg:mx-0
+                                z-20
+                              "
                                     onMouseEnter={() => setHoveredMenu('produk')}
                                     onMouseLeave={() => setHoveredMenu(null)}
                                 >
+
                                     <div className="px-8 py-8 grid grid-cols-3 gap-8 font-semibold">
                                         <div>
                                             <h3 className="text-4xl font-extrabold text-gray-700 mb-2">Produk & Layanan</h3>

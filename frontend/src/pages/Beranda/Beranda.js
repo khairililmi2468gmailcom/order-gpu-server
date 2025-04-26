@@ -87,26 +87,45 @@ const Beranda = () => {
             />
           )}
           <div
-            className="absolute top-0 left-0 w-full h-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${slide.imageUrl})`, filter: 'brightness(0.7)' }} // Membuat gambar lebih gelap
+            className="absolute top-0 left-0 w-full h-[60vh] md:h-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${slide.imageUrl})`, filter: 'brightness(0.7)' }}
           ></div>
-          <div className={`absolute top-1/2 left-10 -translate-y-1/2 text-white z-20 md:p-72 lg:p-72 ${animate ? 'slide-in-left' : ''}`}>
-            <h2 className="text-4xl md:text-7xl max-w-5xl font-bold select-none" ref={textRef}>{slide.title}</h2>
-            <p className="mt-2 select-none" ref={descriptionRef}>{slide.description}</p>
-            <button className="mt-4 bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300" ref={buttonRef}>
+
+          <div className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 ${animate ? 'slide-in-left' : ''}`}>
+            <h2 className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none" ref={textRef}>
+              {slide.title}
+            </h2>
+            <p className="mt-2 select-none max-w-xs md:max-w-xl text-sm md:text-xl" ref={descriptionRef}>
+              {slide.description}
+            </p>
+            <button
+              className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition duration-300"
+              ref={buttonRef}
+            >
               {slide.buttonText}
             </button>
           </div>
+
         </div>
       ))}
 
       {/* Tombol Navigasi */}
-      <button onClick={goToPreviousSlide} className={`absolute left-5 top-1/2 -translate-y-1/2 bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center z-20 cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-left' : ''}`} ref={prevButtonRef}>
-        &lt;
-      </button>
-      <button onClick={goToNextSlide} className={`absolute right-5 top-1/2 -translate-y-1/2 bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center z-20 cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-right' : ''}`} ref={nextButtonRef}>
-        &gt;
-      </button>
+      <div className="absolute bottom-5 left-5 flex space-x-4 z-20">
+        <button
+          onClick={goToPreviousSlide}
+          className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-left' : ''}`}
+          ref={prevButtonRef}
+        >
+          &lt;
+        </button>
+        <button
+          onClick={goToNextSlide}
+          className={`bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer opacity-75 hover:opacity-100 ${animate ? 'slide-in-right' : ''}`}
+          ref={nextButtonRef}
+        >
+          &gt;
+        </button>
+      </div>
 
       {/* Tanda Bulat Navigasi */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
