@@ -15,6 +15,7 @@ const Header = () => {
         if (path === '/') return location.pathname === '/';
         return location.pathname.startsWith(path);
     };
+
     const isActiveWithChildren = (path, childrenPaths = []) => {
         const currentPath = location.pathname;
         if (currentPath === path) return true;
@@ -142,7 +143,15 @@ const Header = () => {
                             onMouseLeave={() => setHoveredMenu(null)}
                         >
                             <NavLink
-                                to="/semua-layanan"
+                                to="#"
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default link behavior
+                                    const produkLayananSection = document.querySelector('#produk-layanan-section');
+                                    if (produkLayananSection) {
+                                        produkLayananSection.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                    setHoveredMenu(null); // Close dropdown on click
+                                }}
                                 className={parentNavItemClass('/semua-layanan', [
                                     '/connectivity',
                                     '/data-center',
@@ -299,14 +308,21 @@ const Header = () => {
                             onMouseLeave={() => setHoveredMenu(null)}
                         >
                             <NavLink
-                                to="/sumber-daya-alam"
+                                to="#"
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default link behavior
+                                    const produkLayananSection = document.querySelector('#solusi-section');
+                                    if (produkLayananSection) {
+                                        produkLayananSection.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                    setHoveredMenu(null); // Close dropdown on click
+                                }}
                                 className={parentNavItemClass('/sumber-daya-alam', [
                                     '/sumber-daya-alam',
                                     '/keuangan',
                                     '/manufaktur-ritel-distribusi',
                                     '/sektor-publik'
                                 ])}
-                                onClick={() => setActiveMenu('/sumber-daya-alam')}
                                 onMouseEnter={() => setHoveredMenu('solusi')}
                                 onMouseLeave={() => setHoveredMenu(null)}
 
@@ -348,14 +364,22 @@ const Header = () => {
                             onMouseLeave={() => setHoveredMenu(null)}
                         >
                             <NavLink
-                                to="/mengenal-lintasarta"
+                                to="#"
                                 className={parentNavItemClass('/mengenal-lintasarta', [
                                     '/mengenal-lintasarta',
                                     '/mengapa-lintasarta',
                                     '/karir',
                                     '/csr',
                                     '/whistleblowing'
-                                ])} onClick={() => setActiveMenu('/mengenal-lintasarta')}
+                                ])} 
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent default link behavior
+                                    const produkLayananSection = document.querySelector('#tentang-kami-section');
+                                    if (produkLayananSection) {
+                                        produkLayananSection.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                    setHoveredMenu(null); // Close dropdown on click
+                                }}
                                 onMouseEnter={() => setHoveredMenu('tentang')}
                                 onMouseLeave={() => setHoveredMenu(null)}
                             >

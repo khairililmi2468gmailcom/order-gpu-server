@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './css/Beranda.module.css';
+import ProdukLayananSection from '../produklayanan/ProdukLayanan';
 
 const slidesData = [
   {
@@ -40,6 +41,9 @@ const Beranda = () => {
   const prevButtonRef = useRef(null);
   const nextButtonRef = useRef(null);
   const dotsRef = useRef([]);
+  const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
+  const solusiRef = useRef(null);
+  const tentangKamiRef = useRef(null);
 
   const goToPreviousSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
@@ -72,8 +76,12 @@ const Beranda = () => {
     return () => clearTimeout(timeoutId);
   }, [currentIndex]);
 
+
+  const scrollToSection = (ref) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  };
   return (
-    <div className="relative w-full h-[650px] overflow-hidden">
+    <><div className="relative w-full h-[700px] overflow-hidden">
       {slidesData.map((slide, index) => (
         <div
           key={index}
@@ -140,6 +148,30 @@ const Beranda = () => {
         ))}
       </div>
     </div>
+      {/* Bagian Produk & Layanan */}
+      <div ref={produkLayananRef} id="produk-layanan-section" className="mb-16">
+        <ProdukLayananSection />
+      </div>
+
+      {/* Bagian Solusi (Asumsi Anda akan menambahkan ini) */}
+      <section ref={solusiRef} id="solusi-section" className="py-16 bg-gray-100">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-8">Solusi Kami</h2>
+          {/* Isi bagian solusi di sini */}
+          <p>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
+        </div>
+      </section>
+
+      {/* Bagian Tentang Kami (Asumsi Anda akan menambahkan ini) */}
+      <section ref={tentangKamiRef} id="tentang-kami-section" className="py-16">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-8">Tentang Kami</h2>
+          {/* Isi bagian tentang kami di sini */}
+          <p>Lebih lanjut tentang perusahaan dan visi kami.</p>
+        </div>
+      </section>
+    </>
+
   );
 };
 
