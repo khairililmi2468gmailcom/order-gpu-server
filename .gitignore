@@ -1,0 +1,9 @@
+backend/node_modules/
+backend/uploads/
+backend/.env
+backend/step.txt
+
+frontend/dist/
+frontend/.next/
+frontend/.vite/
+frontend/node_modules/
