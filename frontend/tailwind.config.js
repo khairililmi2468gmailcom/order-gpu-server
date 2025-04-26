@@ -39,6 +39,13 @@ module.exports = {
       animation: {
         slideDown: 'slideDown 0.6s ease-out',
       },
+      transitionProperty: {
+        'opacity-transform': 'opacity, transform',
+      },
+      transitionTimingFunction: {
+        'in-out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      
     },
   },
   plugins: [],

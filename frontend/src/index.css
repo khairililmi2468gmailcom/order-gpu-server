@@ -11,6 +11,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
 }
 
 code {
@@ -23,4 +24,62 @@ code {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Untuk animasi yang lebih smooth */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 700ms;
+}
+
+.translate-y-6 {
+  transform: translateY(1.5rem);
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.8s ease-out forwards;
+}
+
+.slide-content > * {
+  opacity: 0;
+}
+
+.slide-active .slide-content > * {
+  opacity: 1;
+}
+.mounted .slide-active .slide-content h2,
+.mounted .slide-active .slide-content p,
+.mounted .slide-active .slide-content button {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+.contact-bar-transition {
+  transition: all 0.3s ease-in-out;
+  transform: translateZ(0);
 }

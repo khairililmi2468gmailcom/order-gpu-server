@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ProdukLayananSection from '../produklayanan/ProdukLayanan';
 import { faArrowUpLong } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useFadeInOnScroll } from '../../hooks/useFadeInOnScrool';
 
 const slidesData = [
   {
@@ -37,16 +38,25 @@ const slidesData = [
 const Beranda = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animate, setAnimate] = useState(false);
-  const textRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const buttonRef = useRef(null);
+  // const textRef = useRef(null);
+  // const descriptionRef = useRef(null);
+  // const buttonRef = useRef(null);
   const prevButtonRef = useRef(null);
   const nextButtonRef = useRef(null);
   const dotsRef = useRef([]);
-  const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
-  const solusiRef = useRef(null);
-  const tentangKamiRef = useRef(null);
+  // const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
+  // const solusiRef = useRef(null);
+  // const tentangKamiRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [produkRef, isProdukVisible] = useFadeInOnScroll();
+  const [solusiRef, isSolusiVisible] = useFadeInOnScroll();
+  const [tentangRef, isTentangVisible] = useFadeInOnScroll();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,20 +121,19 @@ const Beranda = () => {
 
     // Jalankan saat pertama load
     handleHashChange();
-    
+
     // Tambahkan event listener untuk perubahan hash
     window.addEventListener('hashchange', handleHashChange);
-    
+
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
-    
+
   return (
     <>
-      <section id="landing" className="relative w-full h-[700px] overflow-hidden">
-
-        <div className="relative w-full h-[700px] overflow-hidden">
+      <section id="landing">
+        <div className={`relative w-full lg:h-[700px] h-[500px] overflow-hidden ${isMounted ? 'mounted' : ''}`}>
           {slidesData.map((slide, index) => (
             <div
               key={index}
@@ -142,16 +151,39 @@ const Beranda = () => {
                 style={{ backgroundImage: `url(${slide.imageUrl})`, filter: 'brightness(0.7)' }}
               ></div>
 
-              <div className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 ${animate ? 'slide-in-left' : ''}`}>
-                <h2 className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none" ref={textRef}>
+              <div
+                className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 slide-content ${index === currentIndex ? 'slide-active' : ''
+                  }`}
+              >
+                <h2
+                  className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none transition-all duration-700 delay-150"
+                  style={{
+                    opacity: index === currentIndex ? 1 : 0,
+                    transform: index === currentIndex ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                >
                   {slide.title}
                 </h2>
-                <p className="mt-2 select-none max-w-xs md:max-w-xl text-sm md:text-xl" ref={descriptionRef}>
+
+                <p
+                  className="mt-2 select-none max-w-xs md:max-w-xl text-sm md:text-xl transition-all duration-700 delay-300"
+                  style={{
+                    opacity: index === currentIndex ? 1 : 0,
+                    transform: index === currentIndex ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                >
                   {slide.description}
                 </p>
+
                 <button
-                  className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition duration-300"
-                  ref={buttonRef}
+                  className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition-all duration-700 delay-500"
+                  style={{
+                    opacity: index === currentIndex ? 1 : 0,
+                    transform: index === currentIndex ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
                 >
                   {slide.buttonText}
                 </button>
@@ -193,13 +225,19 @@ const Beranda = () => {
         </div>
       </section>
       {/* Bagian Produk & Layanan */}
-      <section ref={produkLayananRef} id="produk-layanan-section" className="py-16 bg-gray-100">
-        <div >
-          <ProdukLayananSection />
-        </div>
+      <section
+        ref={produkRef} // Gunakan ref dari hook
+        id="produk-layanan-section"
+        className={`py-16 bg-gray-100 transition-opacity duration-700 ${isProdukVisible ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <ProdukLayananSection />
       </section>
       {/* Bagian Solusi (Asumsi Anda akan menambahkan ini) */}
-      <section ref={solusiRef} id="solusi-section" className="py-16 bg-gray-100">
+      <section
+        ref={solusiRef} // Gunakan ref dari hook
+        id="solusi-section"
+        className={`py-16 bg-gray-100 transition-opacity duration-700 delay-200 ${isSolusiVisible ? 'opacity-100' : 'opacity-0'}`}
+      >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8">Solusi Kami</h2>
           {/* Isi bagian solusi di sini */}
@@ -208,7 +246,11 @@ const Beranda = () => {
       </section>
 
       {/* Bagian Tentang Kami (Asumsi Anda akan menambahkan ini) */}
-      <section ref={tentangKamiRef} id="tentang-kami-section" className="py-16">
+      <section
+        ref={tentangRef} // Gunakan ref dari hook
+        id="tentang-kami-section"
+        className={`py-16 transition-opacity duration-700 delay-300 ${isTentangVisible ? 'opacity-100' : 'opacity-0'}`}
+      >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8">Tentang Kami</h2>
           {/* Isi bagian tentang kami di sini */}

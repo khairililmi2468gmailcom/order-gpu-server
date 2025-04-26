@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faPhone, faCaretDown, faArrowRightLong } from '@fortawesome/free-solid-svg-icons';
@@ -11,6 +11,59 @@ const Header = () => {
     const toggleLanguageDropdown = () => setLanguageDropdownOpen(!languageDropdownOpen);
     const location = useLocation();
     const [hoveredMenu, setHoveredMenu] = useState(null);
+    const [scrolled, setScrolled] = useState(false);
+    const [contactBarVisible, setContactBarVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+    const [navbarTranslateY, setNavbarTranslateY] = useState(0);
+    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+    const contactBarHeight = 64;
+    const scrollThreshold = 40;
+    const desktopBreakpoint = 1024;
+
+    useEffect(() => {
+        const handleResize = () => {
+            setScreenWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            const isScrollingDown = currentScrollY > lastScrollY;
+            const isDesktop = screenWidth >= desktopBreakpoint;
+            const desktopTranslateY = -contactBarHeight;
+            const mobileTranslateY = -contactBarHeight + 25; // Contoh: sedikit offset untuk mobile
+
+            const translationValue = isDesktop ? desktopTranslateY : mobileTranslateY;
+
+            if (currentScrollY > scrollThreshold) {
+                setScrolled(true);
+                if (isScrollingDown && contactBarVisible) {
+                    setContactBarVisible(false);
+                    setNavbarTranslateY(translationValue);
+                } else if (!isScrollingDown && !contactBarVisible && currentScrollY < scrollThreshold) {
+                    setContactBarVisible(true);
+                    setNavbarTranslateY(0);
+                }
+            } else {
+                setScrolled(false);
+                if (!contactBarVisible) {
+                    setContactBarVisible(true);
+                    setNavbarTranslateY(0);
+                }
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY, contactBarVisible, contactBarHeight, screenWidth]);
+
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
         return location.pathname.startsWith(path);
@@ -46,9 +99,10 @@ const Header = () => {
   transition duration-200 cursor-pointer
 `;
     return (
-        <header>
+        <header className="sticky top-0 z-40">
             {/* Kontak Bar */}
-            <div className="bg-gradient-to-r from-primary-dark via-secondary to-primary py-2 text-base text-gray-900 flex items-center justify-between px-4 sm:px-8 md:px-16 lg:px-72 shadow-sm">
+            <div className={`bg-gradient-to-r from-primary-dark via-secondary to-primary py-2 text-base text-gray-900 flex items-center justify-between px-4 sm:px-8 md:px-16 lg:px-72 shadow-sm transition-all duration-300 ease-in-out
+            ${scrolled ? (contactBarVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'}`}>
                 {/* Desktop: Email & Telepon di kiri */}
                 <div className="w-full animate-slideDown flex flex-col md:flex-row items-start md:items-center justify-between">
                     {/* Kontak kiri desktop */}
@@ -115,7 +169,7 @@ const Header = () => {
                 </div>
             </div>
             {/* Navbar */}
-            <nav className="bg-white text-black shadow-md py-6 px-4 md:px-8">
+            <nav className={`bg-white text-black shadow-md py-6 px-4 md:px-8 transition-transform duration-300 ease-in-out`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
                 <div className="max-w-screen-lg mx-auto flex justify-between items-center">
                     {/* Logo */}
                     <Link to="/" className="flex-shrink-0">
@@ -371,7 +425,7 @@ const Header = () => {
                                     '/karir',
                                     '/csr',
                                     '/whistleblowing'
-                                ])} 
+                                ])}
                                 onClick={(e) => {
                                     e.preventDefault(); // Prevent default link behavior
                                     const produkLayananSection = document.querySelector('#tentang-kami-section');
