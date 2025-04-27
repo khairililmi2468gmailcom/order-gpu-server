@@ -3,8 +3,9 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faPhone, faCaretDown, faArrowRightLong, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from './Sidebar';
+import Swal from 'sweetalert2';
 
-const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
+const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState('ID'); // Default language
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,7 +65,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
             const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
             const desktopTranslateY = -contactBarHeight;
             const mobileTranslateY = -contactBarHeight + 15;
-            const mediumTranslateY = -contactBarHeight + 10; 
+            const mediumTranslateY = -contactBarHeight + 10;
 
             let translationValue = 0;
             if (isDesktop) {
@@ -148,10 +149,23 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setProfileDropdownOpen(false);
-        navigate('/login');
-        onLogout();
+        Swal.fire({
+            title: 'Apakah Anda yakin ingin keluar?',
+            text: `Selamat tinggal, ${user?.name}!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, keluar',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika konfirmasi "Ya, keluar"
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setProfileDropdownOpen(false);
+                navigate('/login');
+                onLogout();
+            }
+        });
     };
     return (
         <header className="sticky top-0 z-50">
@@ -213,17 +227,32 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
                                 </button>
                                 {profileDropdownOpen && (
                                     <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-40 z-[1000]">
-                                        <button
+                                        {user?.role === 'admin' && (
+                                            <Link
+                                                to="/admin"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                Dashboard
+                                            </Link>
+                                        )}
+                                        <Link
+                                            to="/profile"
                                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            onClick={() => alert('Settings')}
+                                        >
+                                            My Profile
+                                        </Link>
+                                        <Link
+                                            to="/token-server"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                        >
+                                            Token Server
+                                        </Link>
+                                        <Link
+                                            to="/settings"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
                                         >
                                             Settings
-                                        </button>
-                                        <button
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                        >
-                                            Token
-                                        </button>
+                                        </Link>
                                         <button
                                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
                                             onClick={handleLogout}
@@ -580,6 +609,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
                 handleLanguageSelect={handleLanguageSelect}
                 isLoggedIn={isLoggedIn}
                 onLogout={onLogout}
+                user={user}
             />
         </header>
     );

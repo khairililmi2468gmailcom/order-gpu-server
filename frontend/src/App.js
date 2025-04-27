@@ -103,6 +103,7 @@ function App() {
           scrollToSection={scrollToSectionFromSidebar}
           isLoggedIn={isLoggedInApp}
           onLogout={handleLogout}
+          user={user}
         >
           <Routes>
             <Route path="/" element={<Beranda />} />

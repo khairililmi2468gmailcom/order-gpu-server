@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretUp, faUser } from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
 
 const menuConfig = {
     produk: {
@@ -48,7 +49,7 @@ const berandaSections = [
     { id: 'solusi-section', label: 'Solusi' },
     { id: 'tentang-kami-section', label: 'Tentang Kami' },
 ];
-const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect, scrollToSection, isLoggedIn, onLogout }) => {
+const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect, scrollToSection, isLoggedIn, onLogout, user }) => {
     const [expandedMenu, setExpandedMenu] = useState(null);
     const location = useLocation(); // Menggunakan hook useLocation
     const sidebarRef = useRef(null);
@@ -104,8 +105,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
         },
     });
     const linkClasses = (isActive) =>
-        `block px-4 py-2 transition-colors duration-200 ${
-          isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100'
+        `block px-4 py-2 transition-colors duration-200 ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-100'
         } rounded-md`;
 
     const isParentActive = (pathConfig) => {
@@ -185,12 +185,25 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setProfileDropdownOpen(false);
-        navigate('/login');
-        onLogout();
-        onClose();
+        Swal.fire({
+            title: 'Apakah Anda yakin ingin keluar?',
+            text: `Selamat tinggal, ${user?.name}!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, keluar',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika konfirmasi "Ya, keluar"
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setProfileDropdownOpen(false);
+                navigate('/login');
+                onLogout();
+            }
+        });
     };
+
     return (
         <>
             {/* Overlay */}
@@ -269,7 +282,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                     <hr className="my-4 border-t border-gray-300" />
 
                     {/* Bagian bawah tetap */}
-                    {isLoggedIn ? ( 
+                    {isLoggedIn ? (
                         <div className="relative" ref={profileDropdownRef}>
                             <button
                                 onClick={toggleProfileDropdown}
@@ -283,7 +296,15 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                                 />
                             </button>
                             {profileDropdownOpen && (
-                                <div className="ml-4 mt-1 bg-white border border-gray-200 rounded-md shadow-sm">
+                                <div className="ml-4 mt-1 bg-white  rounded-md ">
+                                    {user?.role === 'admin' && (
+                                        <Link
+                                            to="/admin"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                        >
+                                            Dashboard
+                                        </Link>
+                                    )}
                                     <Link
                                         to="/profile"
                                         className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
@@ -291,12 +312,20 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                                     >
                                         My Profile
                                     </Link>
-                                    <button
-                                        onClick={() => alert('Settings')}
-                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left transition duration-300"
+                                    <Link
+                                        to="/token-server"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
+                                        onClick={onClose}
+                                    >
+                                        Token Server
+                                    </Link>
+                                    <Link
+                                        to="/settings"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
+                                        onClick={onClose}
                                     >
                                         Settings
-                                    </button>
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
                                         className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left transition duration-300"

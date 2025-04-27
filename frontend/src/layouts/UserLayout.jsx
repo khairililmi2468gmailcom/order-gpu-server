@@ -2,10 +2,10 @@ import React from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 
-const UserLayout = ({ children, toggleSidebar, isSidebarOpen, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect, scrollToSection, isLoggedIn, onLogout }) => {
+const UserLayout = ({ children, toggleSidebar, isSidebarOpen, languageDropdownOpen, setLanguageDropdownOpen, selectedLanguage, handleLanguageSelect, scrollToSection, isLoggedIn, onLogout ,user}) => {
   return (
     <div>
-      <Header toggleSidebar={toggleSidebar} isLoggedIn={isLoggedIn} onLogout={onLogout} />
+      <Header toggleSidebar={toggleSidebar} isLoggedIn={isLoggedIn} onLogout={onLogout} user={user} />
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={toggleSidebar}
