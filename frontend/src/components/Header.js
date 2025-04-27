@@ -118,11 +118,12 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
         // Tambahkan logika untuk mengganti bahasa di sini
     };
     const toggleProfileDropdown = () => {
+        setProfileDropdownOpen(!profileDropdownOpen);
         if (languageDropdownOpen) {
             setLanguageDropdownOpen(false);
         }
-        setProfileDropdownOpen(!profileDropdownOpen);
     };
+
 
     const navItemClass = (path) => `
     relative px-3 py-2
@@ -167,6 +168,18 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             }
         });
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setProfileDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [profileRef]);
     return (
         <header className="sticky top-0 z-50">
             {/* Kontak Bar */}

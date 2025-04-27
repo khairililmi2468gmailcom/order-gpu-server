@@ -146,3 +146,38 @@ export const getWebsiteStats = async (req, res) => {
     res.status(500).json({ error: 'Gagal mengambil statistik website' });
   }
 };
+
+
+export const getAllPayments = async (req, res) => {
+  try {
+    const [payments] = await pool.query(
+      `SELECT 
+          p.id AS payment_id,
+          p.order_id,
+          p.proof_url,
+          p.status AS payment_status,
+          p.verified_by,
+          p.verified_at,
+          o.id AS order_id,
+          o.user_id,
+          o.gpu_package_id,
+          o.duration_days,
+          o.total_cost,
+          o.status AS order_status,
+          o.start_date,
+          o.end_date,
+          o.created_at AS order_created_at,
+          u.name AS user_name,
+          u.email AS user_email
+       FROM payments p 
+       JOIN orders o ON p.order_id = o.id 
+       JOIN users u ON o.user_id = u.id`
+    );
+
+    res.json(payments);
+  } catch (err) {
+    console.error('Get Payments Error:', err);
+    res.status(500).json({ error: 'Gagal mengambil data pembayaran' });
+  }
+};
+

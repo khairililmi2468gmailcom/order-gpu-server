@@ -21,9 +21,19 @@ if (!process.env.UPLOAD_DIR) {
 }
 
 // Middleware
-app.use(cors());
-app.use(helmet());
+const corsOptions = {
+  origin: 'http://localhost:3000', // Mengizinkan akses hanya dari localhost:3000
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Izinkan berbagai metode HTTP
+  allowedHeaders: ['Content-Type', 'Authorization'], // Header yang diizinkan
+};
+
+app.use(cors(corsOptions));
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Izinkan cross-origin
+}));
 app.use(express.json());
+
 app.use('/uploads', express.static(process.env.UPLOAD_DIR));
 
 // Rate limiting

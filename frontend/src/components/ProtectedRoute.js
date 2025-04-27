@@ -1,27 +1,20 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
-// Cek apakah sudah login
-const isAuthenticated = () => {
-  return localStorage.getItem('token');
-};
+const ProtectedRoute = ({ children, isAdminRoute = false, isAuthenticated, isAdmin }) => {
+  const location = useLocation();
 
-// Cek apakah user punya role admin
-const isAdmin = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
-  return user?.role === 'admin';
-};
-
-function ProtectedRoute({ children }) {
-  if (!isAuthenticated()) {
-    return <Navigate to="/404" />; // Belum login
+  if (!isAuthenticated) {
+    // Jika tidak terotentikasi, redirect ke halaman login
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isAdmin()) {
-    return <Navigate to="/404" />; // Login tapi bukan admin
+  if (isAdminRoute && !isAdmin) {
+    // Jika rute admin dan bukan admin, redirect ke halaman yang tidak ditemukan atau halaman user
+    return <Navigate to="/404" replace />; // Atau redirect ke '/'
   }
 
   return children;
-}
+};
 
 export default ProtectedRoute;

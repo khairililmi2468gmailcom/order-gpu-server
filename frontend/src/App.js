@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Beranda from './pages/Beranda/Beranda';
 import ProdukLayanan from './pages/produklayanan/ProdukLayanan';
 import NotFound from './pages/NotFound';
@@ -10,6 +10,10 @@ import LoginAdminPage from './pages/loginadmin/LoginAdmin';
 
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
+import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
+import AdminPackages from './pages/admin/adminPackages/AdminPackages';
+import { setNavigator } from './hooks/apiClient'; // Pastikan path ini benar
+import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 function App() {
   const location = useLocation();
@@ -23,8 +27,10 @@ function App() {
   });
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdmin = user?.role === 'admin';
+  const navigate = useNavigate();
 
   useEffect(() => {
+    setNavigator(navigate);
     const checkLoginStatus = () => {
       setIsLoggedInApp(!!localStorage.getItem('token'));
       const updatedUser = localStorage.getItem('user');
@@ -32,17 +38,17 @@ function App() {
     };
     window.addEventListener('storage', checkLoginStatus);
     return () => window.removeEventListener('storage', checkLoginStatus);
-  }, []);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedInApp(false);
     setUser(null);
+    navigate('/login'); // Redirect ke login setelah logout
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const closeSidebar = () => setIsSidebarOpen(false);
   const handleLanguageSelect = (lang) => {
     setSelectedLanguage(lang);
     setLanguageDropdownOpen(false);
@@ -59,40 +65,51 @@ function App() {
     setUser(updatedUser ? JSON.parse(updatedUser) : null);
   };
 
-  // Middleware Strong di sini
-  if (isAdminRoute && !isAdmin) {
-    return (
-      <UserLayout
-        toggleSidebar={toggleSidebar}
-        isSidebarOpen={isSidebarOpen}
-        languageDropdownOpen={languageDropdownOpen}
-        setLanguageDropdownOpen={setLanguageDropdownOpen}
-        selectedLanguage={selectedLanguage}
-        handleLanguageSelect={handleLanguageSelect}
-        scrollToSection={scrollToSectionFromSidebar}
-        isLoggedIn={isLoggedInApp}
-        onLogout={handleLogout}
-      >
-        <Routes>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </UserLayout>
-    );
-  }
-
   return (
     <>
       {isAdminRoute ? (
-        isAdmin ? (
-          <AdminLayout>
-            <Routes>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AdminLayout>
-        ) : null // Jangan render apa-apa kalau bukan admin
+        <AdminLayout>
+          <Routes>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute
+                  isAuthenticated={isLoggedInApp}
+                  isAdmin={isAdmin}
+                  isAdminRoute={true}
+                >
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute
+                  isAuthenticated={isLoggedInApp}
+                  isAdmin={isAdmin}
+                  isAdminRoute={true}
+                >
+                  <AdminOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/packages"
+              element={
+                <ProtectedRoute
+                  isAuthenticated={isLoggedInApp}
+                  isAdmin={isAdmin}
+                  isAdminRoute={true}
+                >
+                  <AdminPackages />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AdminLayout>
       ) : (
-        // UserLayout dengan header dan sidebar
         <UserLayout
           toggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}

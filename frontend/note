@@ -1,0 +1,128 @@
+ini sidebaradin nya:
+
+import React from 'react';
+
+import { Link } from 'react-router-dom';
+
+
+
+const AdminSidebar = () => {
+
+  return (
+
+    <aside className="w-64 bg-secondary text-white h-screen p-4">
+
+      <nav>
+
+        <ul className="space-y-4">
+
+          <li>
+
+            <Link to="/admin" className="hover:underline">
+
+              Dashboard
+
+            </Link>
+
+          </li>
+
+        </ul>
+
+      </nav>
+
+    </aside>
+
+  );
+
+};
+
+
+
+export default AdminSidebar;
+
+
+
+ini adminheadernya:
+
+import React from 'react';
+
+
+
+const AdminHeader = () => {
+
+  return (
+
+    <header className="bg-primary text-white p-4">
+
+      <h1 className="text-xl font-bold">Admin Dashboard</h1>
+
+    </header>
+
+  );
+
+};
+
+
+
+export default AdminHeader;
+
+
+
+
+
+ini admindashboardnya:
+
+import React from 'react';
+
+
+
+function AdminDashboard() {
+
+    return (
+
+        <div className="p-8">
+
+            
+
+            <h1 className="text-3xl font-bold mb-4">Dashboard Admin</h1>
+
+            <p>Selamat datang di halaman admin!</p>
+
+        </div>
+
+    );
+
+}
+
+
+
+export default AdminDashboard;
+
+
+
+jadi coba buat menu di side bar nya pastikan ada dashboard sudah pasti sebagai /admin
+kemudian ada menu 
+selanjutnya menu pembayaran yang isinya nanti admin dapat melihat pembayaran yang baik yang status nya ada ('pending', 'verified', 'rejected') dari api nanti, jadi ada filter nya per status itu tapi default nya yang pending paling atas, sesuaikan order nya, kemudian nanti di situ ada untuk lihat icon buka gambar atau button untuk buka gambar, kalau kosong maka muncul modal nya dengan swealert kalau foto belum di upload, tetapi kalau sudah maka munculkan gambar nya, kemudian di sebelah button lihat gambar nya, maka admin bisa tolak dan terima, ada button tolak dan terima untuk yang mengubah status nya nanti, kemudian ada button juga kalau sudah mislanya di tolak maka cukup, tapi kalau di setujui atau diterima maka muncul button untuk kirim token , jadi ini untuk get data pembayarannya itu diambil dari http://localhost:4000/api/admin/payments nah itu get isinya begini nanti[
+    {
+        "id": 6,
+        "order_id": 6,
+        "proof_url": "https://example.com/bukti/bukti1.png",
+        "status": "rejected",
+        "verified_by": 27,
+        "verified_at": "2025-04-25T16:32:44.000Z",
+        "user_id": 28,
+        "gpu_package_id": 6,
+        "duration_days": 3,
+        "total_cost": "180.00",
+        "token": null,
+        "start_date": null,
+        "end_date": null,
+        "created_at": "2025-04-25T14:54:28.000Z",
+        "gpu_token": "278a5490-041d-4887-bee1-f2c652a5993f",
+        "is_active": 1,
+        "user_name": "Test User",
+        "user_email": "newuser2@test.com"
+    },
+
+
+
