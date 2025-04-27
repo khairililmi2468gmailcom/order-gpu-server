@@ -16,10 +16,10 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
     const [navbarTranslateY, setNavbarTranslateY] = useState(0);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
-    const contactBarHeight = 64;
+    const contactBarHeight = 50;
     const scrollThreshold = 40;
     const desktopBreakpoint = 1024;
-
+    const mediumBreakpoint = 768;
 
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const navigate = useNavigate();
@@ -61,17 +61,26 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
             const currentScrollY = window.scrollY;
             const isScrollingDown = currentScrollY > lastScrollY;
             const isDesktop = screenWidth >= desktopBreakpoint;
+            const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
             const desktopTranslateY = -contactBarHeight;
-            const mobileTranslateY = -contactBarHeight + 25; // Contoh: sedikit offset untuk mobile
+            const mobileTranslateY = -contactBarHeight + 15;
+            const mediumTranslateY = -contactBarHeight + 10; 
 
-            const translationValue = isDesktop ? desktopTranslateY : mobileTranslateY;
+            let translationValue = 0;
+            if (isDesktop) {
+                translationValue = desktopTranslateY;
+            } else if (isMedium) {
+                translationValue = mediumTranslateY;
+            } else {
+                translationValue = mobileTranslateY;
+            }
 
             if (currentScrollY > scrollThreshold) {
                 setScrolled(true);
                 if (isScrollingDown && contactBarVisible) {
                     setContactBarVisible(false);
                     setNavbarTranslateY(translationValue);
-                } else if (!isScrollingDown && !contactBarVisible && currentScrollY < scrollThreshold) {
+                } else if (!isScrollingDown && !contactBarVisible && currentScrollY <= scrollThreshold) {
                     setContactBarVisible(true);
                     setNavbarTranslateY(0);
                 }
@@ -259,7 +268,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout }) => {
                 </div>
             </div>
             {/* Navbar */}
-            <nav className={`bg-white text-black shadow-md py-6 px-4 md:px-8 transition-transform duration-300 ease-in-out z-10 relative`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
+            <nav className={`bg-white text-black shadow-md py-6 lg:py-5 px-4 md:px-8 transition-transform duration-300 ease-in-out z-10 relative`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
                 <div className="max-w-screen-lg mx-auto flex justify-between items-center">
                     {/* Logo */}
                     <Link to="/" className="flex-shrink-0">

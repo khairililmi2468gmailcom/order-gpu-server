@@ -67,21 +67,51 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
                 Swal.fire({
                     icon: 'success',
                     title: 'Login Berhasil',
-                    text: response.data.message || 'Anda berhasil login',
+                    text: `Selamat datang, ${response.data.user.name || 'Pengguna'}!`,
                 }).then(() => {
                     localStorage.setItem('token', response.data.token);
-                    onLoginSuccess(); // Panggil fungsi props untuk memperbarui state di App.js
-                    if (response.data.isAdmin) {
+                    localStorage.setItem('user', JSON.stringify(response.data.user)); // Kalau mau sekalian simpan user info
+                    onLoginSuccess(); // Panggil fungsi props untuk update App.js
+                    if (response.data.user.role === 'admin') { // Sesuaikan cek role kalau perlu
                         navigate('/admin');
                     } else {
                         navigate('/');
                     }
                 });
+
             } catch (error) {
+                let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+
+                if (error.response) {
+                    const { status, data } = error.response;
+
+                    switch (status) {
+                        case 400:
+                            errorMessage = data.message || 'Permintaan tidak valid. Periksa data Anda.';
+                            break;
+                        case 401:
+                            errorMessage = data.message || 'Email atau password salah.';
+                            break;
+                        case 403:
+                            errorMessage = data.message || 'Anda tidak memiliki izin untuk mengakses.';
+                            break;
+                        case 404:
+                            errorMessage = data.message || 'Endpoint tidak ditemukan.';
+                            break;
+                        case 500:
+                            errorMessage = 'Server sedang mengalami gangguan. Coba lagi nanti.';
+                            break;
+                        default:
+                            errorMessage = data.message || 'Terjadi kesalahan yang tidak diketahui.';
+                    }
+                } else if (error.request) {
+                    errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Login Gagal',
-                    text: error.response?.data?.message || 'Email atau password salah',
+                    text: errorMessage,
                 });
             }
         }
