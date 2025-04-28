@@ -1,9 +1,32 @@
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from './AuthContext';
+import { useContext, useEffect } from 'react';
 
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL + '/api', // Sesuaikan dengan base URL API Anda
 });
+
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL,
+});
+export const useApi = () => {
+    const { token } = useContext(AuthContext);
+
+    useEffect(() => {
+        api.interceptors.request.use(
+            (config) => {
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                return config;
+            },
+            (error) => Promise.reject(error)
+        );
+    }, [token]);
+
+    return api;
+};
 
 let navigate;
 

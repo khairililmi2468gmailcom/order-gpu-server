@@ -27,12 +27,25 @@ const AdminLayout = ({ children }) => {
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [token, setToken] = useState(() => localStorage.getItem('token'));
 
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
         localStorage.setItem('isSidebarOpen', !isSidebarOpen);
     };
-
+    useEffect(() => {
+        const checkAuth = () => {
+            const user = localStorage.getItem('user');
+            if (token && user && JSON.parse(user)?.role === 'admin') {
+                setIsAdminAuthenticated(true);
+            } else {
+                setIsAdminAuthenticated(false);
+            }
+        };
+    
+        checkAuth();
+    }, [token]);
+    
     // Props untuk Header dan Sidebar pengguna
     const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
     const [user, setUser] = useState(() => {
@@ -140,7 +153,7 @@ const AdminLayout = ({ children }) => {
                 className={`flex-1 flex flex-col overflow-hidden transition-padding duration-300 ease-in-out ${isSidebarOpen && !isMobile ? 'pl-64' : 'pl-0'
                     }`}
             >
-                <AdminHeader onToggleSidebar={toggleSidebar} />
+                <AdminHeader onToggleSidebar={toggleSidebar} setToken={setToken}/>
                 <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
                     {children}
                 </main>

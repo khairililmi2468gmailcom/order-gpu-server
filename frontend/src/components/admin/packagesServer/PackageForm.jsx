@@ -52,9 +52,20 @@ const PackageForm = forwardRef((props, ref) => {
         if (!pricePerHour) {
             pricePerHourErrorMsg = 'Harga per Jam harus diisi.';
             isValid = false;
-        } else if (isNaN(Number(pricePerHour)) || Number(pricePerHour) < 0) {
-            pricePerHourErrorMsg = 'Harga per Jam harus berupa angka positif.';
-            isValid = false;
+        } else {
+            const rawPrice = pricePerHour.replace(/\./g, '');
+            const numericPrice = parseInt(rawPrice, 10);
+        
+            if (isNaN(numericPrice)) {
+                pricePerHourErrorMsg = 'Harga per Jam harus berupa angka positif.';
+                isValid = false;
+            } else if (numericPrice < 0) {
+                pricePerHourErrorMsg = 'Harga per Jam harus berupa angka positif.';
+                isValid = false;
+            } else if (numericPrice > 99999999) { // Maksimal 99.999.999
+                pricePerHourErrorMsg = 'Harga per Jam tidak boleh melebihi Rp99.999.999';
+                isValid = false;
+            }
         }
         setPricePerHourError(pricePerHourErrorMsg);
 
@@ -147,8 +158,9 @@ const PackageForm = forwardRef((props, ref) => {
                     placeholder="Contoh: 100.000"
                     value={pricePerHour}
                     onChange={(e) => {
-                        const rawValue = e.target.value.replace(/\D/g, ''); // Hapus semua selain angka
-                        const formattedValue = new Intl.NumberFormat('id-ID').format(rawValue);
+                        const rawValue = e.target.value.replace(/\D/g, '');
+                        const truncatedRawValue = rawValue.slice(0, 8);
+                        const formattedValue = new Intl.NumberFormat('id-ID').format(truncatedRawValue);
                         setPricePerHour(formattedValue);
                         setPricePerHourError('');
                     }}

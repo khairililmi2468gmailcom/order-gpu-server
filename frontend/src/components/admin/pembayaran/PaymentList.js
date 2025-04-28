@@ -1,14 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import OrderItem from './PaymentItem';
 import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { Listbox, ListboxOption } from '@headlessui/react'; // Import komponen Headless UI
+import { Listbox, ListboxOption } from '@headlessui/react';
+
+const itemsPerPageOptions = [5, 10, 25, 50, 100]; // Opsi jumlah data per halaman
 
 const PaymentList = ({ orders, onVerifyPayment }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('pending');
     const [sortOrder, setSortOrder] = useState('asc');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+    const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageOptions[0]); // Set default items per page
 
     const sortOptions = [
         { value: 'pending', label: 'Status: Pending' },
@@ -86,20 +88,25 @@ const PaymentList = ({ orders, onVerifyPayment }) => {
         return pageNumbers;
     };
 
+    const handleItemsPerPageChange = (value) => {
+        setItemsPerPage(value);
+        setCurrentPage(1); // Reset ke halaman pertama saat jumlah item per halaman berubah
+    };
+
     return (
-        <div>
-            <div className="mb-4 flex items-center gap-4 md:gap-6 lg:gap-8"> {/* Responsif gap */}
-                <div className="relative w-1/2 md:max-w-xs"> {/* Lebar input pencarian responsif */}
+        <div className="p-4 md:p-6 lg:p-8"> {/* Tambahkan padding keseluruhan */}
+            <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-4"> {/* Tata letak responsif */}
+                <div className="relative w-full sm:w-1/2 md:max-w-xs">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                         type="text"
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2"
-                        placeholder="Cari..."
+                        placeholder="Cari pesanan..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                     <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
                     <Listbox value={sortBy} onChange={setSortBy}>
                         <div className="relative">
@@ -128,49 +135,33 @@ const PaymentList = ({ orders, onVerifyPayment }) => {
                         </div>
                     </Listbox>
                     {(sortBy === 'total_cost' || sortBy === 'user_name') && (
-                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2"> {/* Tambahkan margin kiri */}
+                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2 focus:outline-none">
                             <ArrowsUpDownIcon className={`h-5 w-5 text-gray-500 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
                         </button>
                     )}
                 </div>
             </div>
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 shadow-sm rounded-md">
-                    <thead className="bg-gray-50 items-center">
+            <div className="overflow-x-auto shadow-sm rounded-md">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <tr>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"> {/* Tambahkan w-24 */}
-                                Bukti Pembayaran
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
-                                Nama Pengguna
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                                Paket Pesanan
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                                Durasi Penyewaan
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                                Status Pesanan
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                                Status Pembayaran
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                                Total Biaya
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Aksi
-                            </th>
+                            <th scope="col" className="px-3 py-2">Bukti</th>
+                            <th scope="col" className="px-3 py-2">Pengguna</th>
+                            <th scope="col" className="px-3 py-2">Paket</th>
+                            <th scope="col" className="px-3 py-2">Durasi</th>
+                            <th scope="col" className="px-3 py-2">Status Pesanan</th>
+                            <th scope="col" className="px-3 py-2">Status Bayar</th>
+                            <th scope="col" className="px-3 py-2">Total</th>
+                            <th scope="col" className="px-3 py-2">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200 text-sm">
                         {currentOrders.map(order => (
                             <OrderItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} />
                         ))}
                         {sortedAndFilteredOrders.length === 0 && (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
                                     Tidak ada data pesanan yang sesuai.
                                 </td>
                             </tr>
@@ -179,48 +170,64 @@ const PaymentList = ({ orders, onVerifyPayment }) => {
                 </table>
             </div>
             {sortedAndFilteredOrders.length > 0 && (
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="text-sm text-gray-700">
                         Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, sortedAndFilteredOrders.length)} dari {sortedAndFilteredOrders.length} data
                     </div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <button
-                            onClick={handlePrevPage}
-                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                            disabled={currentPage === 1}
+                    <div className="flex items-center gap-4">
+                        <label htmlFor="itemsPerPage" className="text-sm font-medium text-gray-700">Data per halaman:</label>
+                        <select
+                            id="itemsPerPage"
+                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md py-2 px-3"
+                            value={itemsPerPage}
+                            onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
                         >
-                            <span className="sr-only">Previous</span>
-                            <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                        {getPageNumbers().map((page, index) => (
-                            <React.Fragment key={index}>
-                                {typeof page === 'number' ? (
-                                    <button
-                                        onClick={() => setCurrentPage(page)}
-                                        aria-current="page"
-                                        className={`z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${currentPage === page ? '' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                                    >
-                                        {page}
-                                    </button>
-                                ) : (
-                                    <span className="relative inline-flex items-center px-4 py-2 border-gray-300 bg-white text-sm font-medium text-gray-700">
-                                        {page}
-                                    </span>
-                                )}
-                            </React.Fragment>
-                        ))}
-                        <button
-                            onClick={handleNextPage}
-                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                            disabled={currentPage === totalPages}
-                        >
-                            <span className="sr-only">Next</span>
-                            <ArrowRightIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
-                    </nav>
+                            {itemsPerPageOptions.map(value => (
+                                <option key={value} value={value}>
+                                    {value}
+                                </option>
+                            ))}
+                        </select>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button
+                                onClick={handlePrevPage}
+                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none"
+                                disabled={currentPage === 1}
+                            >
+                                <span className="sr-only">Previous</span>
+                                <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                            {getPageNumbers().map((page, index) => (
+                                <React.Fragment key={index}>
+                                    {typeof page === 'number' ? (
+                                        <button
+                                            onClick={() => setCurrentPage(page)}
+                                            aria-current="page"
+                                            className={`z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${currentPage === page ? '' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ) : (
+                                        <span className="relative inline-flex items-center px-4 py-2 border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                            {page}
+                                        </span>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                            <button
+                                onClick={handleNextPage}
+                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none"
+                                disabled={currentPage === totalPages}
+                            >
+                                <span className="sr-only">Next</span>
+                                <ArrowRightIcon className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                        </nav>
+                    </div>
                 </div>
             )}
         </div>
     );
 };
+
 export default PaymentList;

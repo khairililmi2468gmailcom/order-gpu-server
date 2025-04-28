@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid'; // Menggunakan ikon dari Heroicons
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     const pageNumbers = [];
@@ -25,39 +26,44 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     }
 
     return (
-        <div className="flex justify-center mt-4">
+        <nav className="flex items-center justify-center mt-4" aria-label="Pagination">
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded-l shadow-sm disabled:opacity-50"
+                className="bg-white text-gray-500 hover:bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed"
             >
-                Prev
+                <span className="sr-only">Previous</span>
+                <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            {showStartEllipsis && (
-                <span className="bg-white text-gray-800 font-semibold py-2 px-4 border border-gray-400 shadow-sm">...</span>
-            )}
-            {pageNumbers.map(number => (
-                <button
-                    key={number}
-                    onClick={() => onPageChange(number)}
-                    className={`bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 shadow-sm ${
-                        currentPage === number ? 'bg-blue-500 text-white' : ''
-                    }`}
-                >
-                    {number}
-                </button>
-            ))}
-            {showEndEllipsis && (
-                <span className="bg-white text-gray-800 font-semibold py-2 px-4 border border-gray-400 shadow-sm">...</span>
-            )}
+            <div className="hidden md:flex -space-x-px"> {/* Sembunyikan elipsis dan angka di layar kecil */}
+                {showStartEllipsis && (
+                    <span className="bg-white text-gray-700 py-2 px-3">...</span>
+                )}
+                {pageNumbers.map(number => (
+                    <button
+                        key={number}
+                        onClick={() => onPageChange(number)}
+                        aria-current={currentPage === number ? "page" : undefined}
+                        className={`bg-white text-gray-700 hover:bg-gray-100 py-2 px-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+                            currentPage === number ? 'z-10 bg-indigo-50 text-white border-indigo-500' : ''
+                        }`}
+                    >
+                        {number}
+                    </button>
+                ))}
+                {showEndEllipsis && (
+                    <span className="bg-white text-gray-700 py-2 px-3">...</span>
+                )}
+            </div>
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded-r shadow-sm disabled:opacity-50"
+                className="bg-white text-gray-500 hover:bg-gray-100 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed"
             >
-                Next
+                <span className="sr-only">Next</span>
+                <ArrowRightIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-        </div>
+        </nav>
     );
 };
 

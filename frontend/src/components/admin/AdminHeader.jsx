@@ -5,7 +5,7 @@ import { faUserCircle, faCaretDown, faCog, faSignOutAlt, faBars, faRefresh } fro
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
-const AdminHeader = ({ onToggleSidebar }) => {
+const AdminHeader = ({ onToggleSidebar, setToken}) => {
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     const navigate = useNavigate();
@@ -52,6 +52,7 @@ const AdminHeader = ({ onToggleSidebar }) => {
 
             const { token: newToken } = response.data;
             localStorage.setItem('token', newToken);
+            setToken(newToken);
             Swal.fire('Berhasil', 'Token berhasil diperbarui!', 'success');
         } catch (error) {
             console.error('Error refreshing token', error);
@@ -64,7 +65,6 @@ const AdminHeader = ({ onToggleSidebar }) => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            console.log('Klik di luar:', event.target);
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setProfileDropdownOpen(false);
             }

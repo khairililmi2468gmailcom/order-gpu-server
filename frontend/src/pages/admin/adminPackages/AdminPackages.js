@@ -1,57 +1,101 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createRoot } from 'react-dom/client'; // Import createRoot
-import useApi from '../../../hooks/useApi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
 import PackageList from '../../../components/admin/packagesServer/PackageList';
 import PackageForm from '../../../components/admin/packagesServer/PackageForm';
 import SearchBar from '../../../components/admin/packagesServer/SearchBar';
 import Pagination from '../../../components/admin/packagesServer/Pagination';
 import Swal from 'sweetalert2';
+import { PlusCircleIcon, RocketLaunchIcon, ArrowsUpDownIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:4000/api/admin/gpu-packages';
 
 function AdminPackages() {
     const token = localStorage.getItem('token');
     const [packages, setPackages] = useState([]);
-    const [isCreating, setIsCreating] = useState(false);
-    const [editingPackage, setEditingPackage] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [packagesPerPage, setPackagesPerPage] = useState(5);
-    const [availablePageSizes] = useState([5, 10, 25, 50, 100, 500, 1000]);
+    const [packagesPerPage, setPackagesPerPage] = useState(5); // Initialize as a number
+    const [loading, setLoading] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const availablePageSizes = [5, 10, 25, 50, 100, 500, 1000];
+    const [sortBy, setSortBy] = useState('updated_at');
+    const [sortOrder, setSortOrder] = useState('desc');
 
-    const { data: fetchedPackages, loading, error, setData: setFetchedPackages } = useApi(
-        'http://localhost:4000/api/admin/gpu-packages',
-        token
-    );
-
-    useEffect(() => {
-        if (fetchedPackages) {
-            // Urutkan paket berdasarkan updated_at dari yang terbaru
-            const sortedPackages = [...fetchedPackages].sort((a, b) => {
-                return new Date(b.updated_at) - new Date(a.updated_at); // Mengurutkan dari yang terbaru
+    const sortOptions = [
+        { value: 'updated_at', label: 'Terakhir Diupdate' },
+        { value: 'created_at', label: 'Tanggal Pembuatan' },
+        { value: 'name', label: 'Nama Paket' }
+    ];
+    // Use useCallback for fetchPackages to prevent unnecessary re-renders
+    const fetchPackages = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(API_URL, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
-            setPackages(sortedPackages);
-            setCurrentPage(1);
+            const newData = response.data;
+            if (Array.isArray(newData)) {
+                setPackages(() => newData); // Use a function to update state
+            } else {
+                console.error("Error: Data fetched is not an array", response);
+                Swal.fire(
+                    'Error',
+                    `Failed to fetch packages: Invalid data format. Expected an array, but received ${typeof responseData}. Please check the API response.`,
+                    'error'
+                );
+                setPackages([]); // Reset packages to prevent errors
+            }
+        } catch (error) {
+            console.error("Gagal mengambil paket:", error);
+            Swal.fire('Error!', 'Gagal mengambil data paket.', 'error');
+            setPackages([]);
+        } finally {
+            setLoading(false);
         }
-    }, [fetchedPackages]); 
-    
-    
-    const filteredPackages = packages.filter(pkg =>
-        pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pkg.vcpu?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pkg.ram?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    }, [token]);
+
+    // Fetch packages on component mount and when refreshKey changes
+    useEffect(() => {
+        fetchPackages();
+    }, [fetchPackages, refreshKey]);
+
+    const handleRefresh = () => {
+        setRefreshKey(prevKey => prevKey + 1);
+    };
+
+    const filteredPackages = packages.filter(pkg => {
+        const nameMatch = pkg.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        const vcpuMatch = pkg.vcpu?.toLowerCase().includes(searchQuery.toLowerCase());
+        const ramMatch = pkg.ram?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return nameMatch || vcpuMatch || ramMatch;
+    }).sort((a, b) => {
+        let valueA, valueB;
+
+        if (sortBy === 'name') {
+            valueA = a.name?.toLowerCase();
+            valueB = b.name?.toLowerCase();
+        } else {
+            valueA = new Date(a[sortBy]);
+            valueB = new Date(b[sortBy]);
+        }
+
+        if (sortOrder === 'asc') {
+            return valueA > valueB ? 1 : -1;
+        }
+        return valueA < valueB ? 1 : -1;
+    });
 
     const indexOfLastPackage = currentPage * packagesPerPage;
     const indexOfFirstPackage = indexOfLastPackage - packagesPerPage;
     const currentPackages = filteredPackages.slice(indexOfFirstPackage, indexOfLastPackage);
     const totalPages = Math.ceil(filteredPackages.length / packagesPerPage);
 
-    const handleCancelForm = () => {
-        setIsCreating(false);
-        setEditingPackage(null);
-    };
-
     const showFormModal = (initialPackage = null) => {
-        let formInstance; // Declare formInstance outside the then() block
+        let formInstance;
 
         Swal.fire({
             title: initialPackage ? 'Edit Paket' : 'Tambah Paket Baru',
@@ -61,8 +105,8 @@ function AdminPackages() {
             showCancelButton: true,
             cancelButtonText: 'Batal',
             preConfirm: () => {
-                if (formInstance) { // Use formInstance here
-                    return formInstance.validateForm(); // Call validateForm
+                if (formInstance) {
+                    return formInstance.validateForm();
                 }
                 return false;
             },
@@ -72,7 +116,6 @@ function AdminPackages() {
                 if (formContainer) {
                     formContainer.innerHTML = '';
                     const root = createRoot(formContainer);
-                    // Render PackageForm and pass a ref
                     root.render(
                         <PackageForm
                             ref={(el) => {
@@ -127,12 +170,10 @@ function AdminPackages() {
     const handleSavePackage = async (formData, id = null) => {
         try {
             if (formData.price_per_hour) {
-                formData.price_per_hour = formData.price_per_hour.replace(/\./g, '');  // Hapus titik
+                formData.price_per_hour = formData.price_per_hour.replace(/\./g, '');
             }
             const method = id ? 'PUT' : 'POST';
-            const url = id
-                ? `http://localhost:4000/api/admin/gpu-packages/${id}`
-                : 'http://localhost:4000/api/admin/gpu-packages';
+            const url = id ? `${API_URL}/${id}` : API_URL;
 
             const response = await fetch(url, {
                 method: method,
@@ -150,14 +191,7 @@ function AdminPackages() {
 
             const responseData = await response.json();
             Swal.fire('Berhasil!', `Paket server berhasil ${id ? 'diperbarui' : 'ditambahkan'}`, 'success');
-            setFetchedPackages(prev => {
-                if (id) {
-                    return prev.map(pkg => pkg.id === id ? { ...pkg, ...formData } : pkg);
-                } else {
-                    return [...prev, { ...formData, id: responseData.id }];
-                }
-            });
-
+            await fetchPackages(); // Refetch packages to update the list
         } catch (error) {
             console.error("Gagal menyimpan paket:", error);
             Swal.fire('Error!', error.message, 'error');
@@ -173,11 +207,11 @@ function AdminPackages() {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
+            cancelButtonText: 'Batal',
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`http://localhost:4000/api/admin/gpu-packages/${id}`, {
+                    const response = await fetch(`${API_URL}/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -194,7 +228,7 @@ function AdminPackages() {
                         'Paket server berhasil dihapus.',
                         'success'
                     );
-                    setFetchedPackages(prev => prev.filter(pkg => pkg.id !== id));
+                    await fetchPackages(); // Refetch packages after deletion
                 } catch (error) {
                     console.error("Gagal menghapus paket:", error);
                     Swal.fire('Error!', error.message, 'error');
@@ -213,29 +247,40 @@ function AdminPackages() {
     };
 
     const handlePageSizeChange = (event) => {
-        setPackagesPerPage(parseInt(event.target.value));
+        setPackagesPerPage(parseInt(event.target.value, 10));
         setCurrentPage(1);
     };
 
-    if (loading) return <p className="p-8">Sedang memuat data paket server...</p>;
-    if (error) return <p className="p-8 text-red-500">Error: {error}</p>;
+    if (loading) {
+        return (
+            <div className="p-8 flex justify-center items-center">
+                <RocketLaunchIcon className="animate-spin h-8 w-8 text-gray-700" />
+                <span className="ml-2 text-gray-700">Sedang memuat data paket server...</span>
+            </div>
+        );
+    }
+
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold mb-4">Manajemen Paket Server</h1>
-            <div className="mb-4 flex justify-between items-center">
-                <button onClick={handleCreate} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Tambah Paket Baru
+        <div className="p-4 md:p-6 lg:p-8">
+            <h1 className="text-2xl font-semibold mb-4 text-gray-900">Manajemen Paket Server</h1>
+            <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <button
+                    onClick={handleCreate}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors"
+                >
+                    <PlusCircleIcon className="mr-2 h-4 w-4" />
+                    Tambah Paket
                 </button>
                 <SearchBar onSearch={handleSearch} />
             </div>
-            <div className="mb-4 flex items-center justify-start">
-                <label htmlFor="pageSize" className="mr-2 text-gray-700 text-sm font-semibold">
+            <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <label htmlFor="pageSize" className="text-sm font-medium text-gray-700">
                     Tampilkan per halaman:
                 </label>
                 <select
                     id="pageSize"
-                    className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md py-2 px-3 max-w-sm"
                     value={packagesPerPage}
                     onChange={handlePageSizeChange}
                 >
@@ -246,10 +291,49 @@ function AdminPackages() {
                     ))}
                 </select>
             </div>
+            <div className="flex items-center gap-2">
+                <label htmlFor="sortBy" className="text-sm font-medium text-gray-700">
+                    Urutkan berdasarkan:
+                </label>
+                <select
+                    id="sortBy"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md py-2 px-3"
+                    value={sortBy}
+                    onChange={(e) => {
+                        setSortBy(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                >
+                    {sortOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+
+                <button
+                    onClick={() => {
+                        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+                        setCurrentPage(1);
+                    }}
+                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors flex items-center gap-1"
+                    title={`Urutkan ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                >
+                    <ArrowsUpDownIcon className="h-4 w-4 mr-1" />
+                    {sortOrder === 'asc' ? (
+                        <span>Asc</span>
+                    ) : (
+                        <span>Desc</span>
+                    )}
+                </button>
+            </div>
+
             <PackageList
                 packages={currentPackages}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onRefresh={handleRefresh}
+                loading={loading}
             />
             {filteredPackages.length > 0 && (
                 <Pagination
