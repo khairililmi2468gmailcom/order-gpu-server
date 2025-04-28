@@ -8,7 +8,6 @@ import Swal from 'sweetalert2';
 import { PlusCircleIcon, RocketLaunchIcon, ArrowsUpDownIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:4000/api/admin/gpu-packages';
 
 function AdminPackages() {
     const token = localStorage.getItem('token');
@@ -31,7 +30,7 @@ function AdminPackages() {
     const fetchPackages = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(API_URL, {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/gpu-packages`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -173,7 +172,7 @@ function AdminPackages() {
                 formData.price_per_hour = formData.price_per_hour.replace(/\./g, '');
             }
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `${API_URL}/${id}` : API_URL;
+            const url = id ? `${process.env.REACT_APP_API_URL}/api/admin/gpu-packages/${id}` : `${process.env.REACT_APP_API_URL}/api/admin/gpu-packages`;
 
             const response = await fetch(url, {
                 method: method,
@@ -211,7 +210,7 @@ function AdminPackages() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`${API_URL}/${id}`, {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/gpu-packages/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,

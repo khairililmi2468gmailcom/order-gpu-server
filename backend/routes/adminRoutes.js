@@ -1,7 +1,7 @@
 // src/routes/adminRoutes.js
 import express from 'express';
 import { authenticate, isAdmin } from '../middlewares/auth.js';
-import { approveOrder, deactivateToken, getAllOrders, getAllPayments, getTokens, getWebsiteStats, verifyPayment } from '../controllers/adminController.js';
+import { approveOrder,  getAllOrders, getAllPayments, getTokens, getWebsiteStats,  updateOrderToken,  updatePassword,  updateTokenStatus, updateUser, verifyPayment } from '../controllers/adminController.js';
 import { createGpuPackage, getGpuPackages, updateGpuPackage, deleteGpuPackage } from '../controllers/gpuController.js';
 import logAccess from '../middlewares/logAccess.js';
 
@@ -20,9 +20,12 @@ router.delete('/gpu-packages/:id', authenticate, isAdmin, deleteGpuPackage);
 
 // Rute untuk memanage token dan statistik
 router.get('/tokens', authenticate, isAdmin, getTokens);
-router.put('/tokens/deactivate', authenticate, isAdmin, deactivateToken);
+router.put('/tokens/token-status', authenticate, isAdmin, updateTokenStatus);
+router.put('/tokens/order-token', authenticate, isAdmin, updateOrderToken);
 router.get('/stats', authenticate, isAdmin, logAccess, getWebsiteStats);
-
 router.get('/payments', authenticate, isAdmin, getAllPayments);
+
+router.put('/users/:id', authenticate, isAdmin, updateUser);
+router.put('/password/:id', authenticate, isAdmin, updatePassword);
 
 export default router;

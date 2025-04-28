@@ -63,6 +63,9 @@ function AdminPayments() {
         }
     }, [token, fetchOrders]);
 
+    const handleUpdateOrder = () => {
+        fetchOrders();
+    };
     if (loading) {
         return (
             <div className="p-8 flex justify-center items-center">
@@ -86,7 +89,7 @@ function AdminPayments() {
         <div className="p-6 sm:p-8">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">Manajemen Persetujuan</h1>
             {orders.length > 0 ? (
-                <PaymentList orders={orders} onVerifyPayment={handleVerifyPayment} />
+                <PaymentList orders={orders} onVerifyPayment={handleVerifyPayment} handleUpdateOrder={handleUpdateOrder}/>
             ) : (
                 <p className="text-gray-600">Tidak ada data pesanan.</p>
             )}

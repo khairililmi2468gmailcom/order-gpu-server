@@ -10,10 +10,12 @@ import LoginAdminPage from './pages/loginadmin/LoginAdmin';
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AdminPackages from './pages/admin/adminPackages/AdminPackages';
-import { setNavigator } from './hooks/apiClient'; 
+import { setNavigator } from './hooks/apiClient';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPayments from './pages/admin/AdminPayments/AdminPayments';
 import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
+import AdminSettings from './pages/admin/AdminSettings/AdminSettings';
+import AdminUbahPassword from './pages/admin/AdminUbahPassword/AdminUbahPassword';
 
 function App() {
   const location = useLocation();
@@ -96,7 +98,8 @@ function App() {
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="payments" element={< AdminPayments />} />
                   <Route path="packages" element={<AdminPackages />} />
-                  {/* Rute admin lainnya */}
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="ubahpassword" element={<AdminUbahPassword />} />
                 </Routes>
               </ProtectedRoute>
             } />

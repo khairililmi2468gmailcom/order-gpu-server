@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserCircle, faCaretDown, faCog, faSignOutAlt, faBars, faRefresh } from '@fortawesome/free-solid-svg-icons';
+import { faUserCircle, faCaretDown, faCog, faSignOutAlt, faBars, faRefresh, faKey } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -118,6 +118,13 @@ const AdminHeader = ({ onToggleSidebar, setToken}) => {
                         >
                             <FontAwesomeIcon icon={faCog} className="mr-2 text-gray-400" />
                             Pengaturan
+                        </Link>
+                        <Link
+                            to="/admin/ubahpassword"
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none text-sm"
+                        >
+                            <FontAwesomeIcon icon={faKey} className="mr-2 text-gray-400" />
+                            Ubah Password
                         </Link>
                         <button
                             onClick={handleLogout}

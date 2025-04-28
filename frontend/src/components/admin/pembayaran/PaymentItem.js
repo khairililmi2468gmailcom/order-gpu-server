@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PaymentModal from './PaymentModal';
 import Swal from 'sweetalert2';
+import { Pencil, Zap, CheckCircle } from 'lucide-react';
 
-const PaymentItem = ({ order, onVerifyPayment }) => {
+const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isPaymentVerified = order.payment_status === 'verified';
     const isPaymentRejected = order.payment_status === 'rejected';
+    const isOrderApproved = order.order_status === 'approved';
+    const [hasToken, setHasToken] = useState(order.token !== null && order.token !== undefined && order.token !== ''); // State untuk keberadaan token
+    const [isActive, setIsActive] = useState(order.is_active); // State untuk status token aktif/nonaktif
+    const [localOrder, setLocalOrder] = useState(order);
+
+    // Mendapatkan token dari localStorage
+    const adminToken = localStorage.getItem('token');
+
+    useEffect(() => {
+        setLocalOrder(order);
+        setHasToken(order.token !== null && order.token !== undefined && order.token !== '');
+        setIsActive(order.is_active);
+    }, [order]);
 
     const handleOpenModal = () => {
         if (order.proof_url) {
@@ -34,7 +48,7 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
         });
     };
 
-    const handleSendToken = () => {
+    const handleSendToken = async () => {
         Swal.fire({
             title: 'Kirim Token ke Pengguna',
             html: `<input id="tokenInput" class="swal2-input" placeholder="Masukkan Token">`,
@@ -43,17 +57,141 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
             preConfirm: () => {
                 return document.getElementById('tokenInput').value;
             }
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
                 const tokenToSend = result.value;
-                console.log('Token dikirim:', tokenToSend, 'untuk Order ID:', order.order_id);
-                Swal.fire('Berhasil!', `Token "${tokenToSend}" telah dikirim.`, 'success');
+                if (!tokenToSend) {
+                    Swal.fire('Error', 'Token tidak boleh kosong', 'error');
+                    return;
+                }
+                try {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/tokens/order-token`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`,
+                        },
+                        body: JSON.stringify({
+                            order_id: order.order_id,
+                            token: tokenToSend,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
+                    const responseData = await response.json();
+                    setLocalOrder(prevOrder => ({
+                        ...prevOrder,
+                        token: tokenToSend
+                    }));
+                    setHasToken(true);
+                    Swal.fire('Berhasil!', `Token "${tokenToSend}" telah dikirim.`, 'success');
+                } catch (error) {
+                    console.error("Gagal mengirim token:", error);
+                    Swal.fire('Error!', error.message, 'error');
+                }
+            }
+        });
+    };
+
+    const handleUpdateToken = async () => {
+        Swal.fire({
+            title: 'Update Token Pengguna',
+            html: `<input id="tokenInput" class="swal2-input" placeholder="Masukkan Token Baru" value="${order.token || ''}">`, //Menampilkan token lama
+            showCancelButton: true,
+            confirmButtonText: 'Update',
+            preConfirm: () => {
+                return document.getElementById('tokenInput').value;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const newToken = result.value;
+                if (!newToken) {
+                    Swal.fire('Error', 'Token tidak boleh kosong', 'error');
+                    return;
+                }
+                try {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/tokens/order-token`, {
+                        method: 'PUT', // Menggunakan method PUT
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`,
+                        },
+                        body: JSON.stringify({
+                            order_id: order.order_id,
+                            token: newToken,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
+                    const responseData = await response.json();
+
+                    setLocalOrder(prevOrder => ({
+                        ...prevOrder,
+                        token: newToken
+                    }));
+                    onUpdateOrder(responseData.data);
+                    Swal.fire('Berhasil!', `Token berhasil diupdate menjadi "${newToken}".`, 'success');
+                } catch (error) {
+                    console.error("Gagal mengupdate token:", error);
+                    Swal.fire('Error!', error.message, 'error');
+                }
+            }
+        });
+    };
+
+    const handleToggleTokenStatus = async () => {
+        const newIsActive = !isActive;
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: `Anda yakin ingin ${newIsActive ? 'mengaktifkan' : 'menonaktifkan'} token ini?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/tokens/token-status`, {
+                        method: 'PUT', // Menggunakan method PUT
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${adminToken}`,
+                        },
+                        body: JSON.stringify({
+                            order_id: order.order_id,
+                            is_active: newIsActive,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+
+                    setIsActive(newIsActive);
+                    setLocalOrder(prevOrder => ({
+                        ...prevOrder,
+                        is_active: newIsActive
+                    }));
+                    Swal.fire('Berhasil!', `Token berhasil di${newIsActive ? 'aktifkan' : 'nonaktifkan'}.`, 'success');
+                } catch (error) {
+                    console.error("Gagal mengubah status token:", error);
+                    Swal.fire('Error!', error.message, 'error');
+                }
             }
         });
     };
 
     return (
-        <tr className={`hover:bg-gray-50 ${isPaymentRejected ? 'bg-red-100 hover:bg-red-200' : ''} text-sm`}> {/* Ukuran font dasar diperkecil */}
+        <tr className={`hover:bg-gray-50 ${isPaymentRejected ? 'bg-red-100 hover:bg-red-200' : ''} text-sm`}>
             <td className="px-3 py-2 whitespace-nowrap">
                 {order.proof_url ? (
                     <button
@@ -73,7 +211,7 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
             </td>
             <td className="px-3 py-2 uppercase text-gray-700">{order.user_name}</td>
             <td className="px-3 py-2 whitespace-nowrap">
-                <div className="text-xs"> {/* Ukuran font lebih kecil untuk detail paket */}
+                <div className="text-xs">
                     <div className="font-semibold text-indigo-700">{order.gpu_package_name}</div>
                     <div className="italic text-gray-500">Harga/Jam: {order.price_per_hour}</div>
                     <div>vCPU: <span className="font-medium">{order.vcpu}</span> Core</div>
@@ -84,19 +222,19 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{order.duration_days} Hari</td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{
                 order.order_status === 'pending_approval' ? 'Menunggu' :
-                order.order_status === 'pending_payment' ? 'Menunggu Bayar' :
-                order.order_status === 'approved' ? 'Disetujui' :
-                order.order_status === 'rejected' ? 'Ditolak' :
-                order.order_status === 'active' ? 'Aktif' : 'Selesai'
+                    order.order_status === 'pending_payment' ? 'Menunggu Bayar' :
+                        order.order_status === 'approved' ? 'Disetujui' :
+                            order.order_status === 'rejected' ? 'Ditolak' :
+                                order.order_status === 'active' ? 'Aktif' : 'Selesai'
             }</td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{
                 order.payment_status === 'pending' ? 'Menunggu' :
-                order.payment_status === 'verified' ? 'Terverifikasi' : 'Ditolak'
+                    order.payment_status === 'verified' ? 'Terverifikasi' : 'Ditolak'
             }</td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">Rp {parseFloat(order.total_cost).toLocaleString('id-ID')}</td>
             <td className="px-3 py-2 whitespace-nowrap">
                 {order.payment_status === 'pending' && (
-                    <div className="space-x-1 flex"> {/* Jarak antar tombol diperkecil */}
+                    <div className="space-x-1 flex">
                         <div className="flex flex-col items-center">
                             <button
                                 onClick={() => handleVerify('verified')}
@@ -104,7 +242,7 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             </button>
-                            <span className="text-xs text-gray-500 mt-0.5">Terima</span> {/* Jarak teks diperkecil */}
+                            <span className="text-xs text-gray-500 mt-0.5">Terima</span>
                         </div>
                         <div className="flex flex-col items-center">
                             <button
@@ -117,24 +255,40 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
                         </div>
                     </div>
                 )}
-                {isPaymentVerified && (
-                    <div className="space-x-2 flex items-center"> {/* Jarak antar item diperkecil */}
+                {isPaymentVerified && isOrderApproved && !hasToken && (
+                    <div className="flex flex-col items-center">
+                        <button onClick={handleSendToken} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L7 8m-5 5h10"></path></svg>
+                        </button>
+                        <span className="text-xs text-gray-500 mt-0.5">Kirim</span>
+                    </div>
+                )}
+                {isPaymentVerified && isOrderApproved && hasToken && (
+                    <div className="space-x-1 flex">
                         <div className="flex flex-col items-center">
-                            <span className='inline-flex items-center text-green-500 font-medium mb-0.5'> {/* Jarak ikon ke teks diperkecil */}
-                                <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            </span>
-                            <span className="text-xs text-gray-500">Diterima</span>
+                            <button onClick={handleUpdateToken} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" title="Update Token">
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs text-gray-500 mt-0.5">Update</span>
                         </div>
                         <div className="flex flex-col items-center">
-                            <button onClick={handleSendToken} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L7 8m-5 5h10"></path></svg>
+                            <button
+                                onClick={handleToggleTokenStatus}
+                                className="inline-flex items-center justify-center p-1 border border-gray-500 text-gray-500 hover:bg-gray-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                title={isActive ? "Nonaktifkan Token" : "Aktifkan Token"}
+                            >
+                                {isActive ? (
+                                    <Zap className="w-4 h-4 text-red-500" /> // Icon petir untuk non-aktif
+                                ) : (
+                                    <CheckCircle className="w-4 h-4 text-green-500" /> // Icon ceklis untuk aktif
+                                )}
                             </button>
-                            <span className="text-xs text-gray-500 mt-0.5">Kirim</span>
+                            <span className="text-xs text-gray-500 mt-0.5">{isActive ? 'Aktif' : 'Nonaktif'}</span>
                         </div>
                     </div>
                 )}
                 {isPaymentRejected && (
-                    <span className="inline-flex items-center text-red-600 font-semibold text-xs"> {/* Ukuran font diperkecil */}
+                    <span className="inline-flex items-center text-red-600 font-semibold text-xs">
                         <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Ditolak
                     </span>)}
@@ -142,4 +296,5 @@ const PaymentItem = ({ order, onVerifyPayment }) => {
         </tr>
     );
 };
+
 export default PaymentItem;

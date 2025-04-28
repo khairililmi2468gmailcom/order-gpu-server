@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import OrderItem from './PaymentItem';
 import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Listbox, ListboxOption } from '@headlessui/react';
+import PaymentItem from './PaymentItem';
 
 const itemsPerPageOptions = [5, 10, 25, 50, 100]; // Opsi jumlah data per halaman
 
-const PaymentList = ({ orders, onVerifyPayment }) => {
+const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('pending');
     const [sortOrder, setSortOrder] = useState('asc');
@@ -157,7 +157,7 @@ const PaymentList = ({ orders, onVerifyPayment }) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 text-sm">
                         {currentOrders.map(order => (
-                            <OrderItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} />
+                            <PaymentItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} onUpdateOrder={handleUpdateOrder}/>
                         ))}
                         {sortedAndFilteredOrders.length === 0 && (
                             <tr>

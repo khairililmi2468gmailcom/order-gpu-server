@@ -1,6 +1,9 @@
 // src/controllers/adminController.js
 import pool from '../config/db.js';
 import { v4 as uuidv4 } from 'uuid';
+import User from '../models/User.js';
+import Password from '../models/Password.js';
+import bcrypt from 'bcryptjs';
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -111,25 +114,59 @@ export const getTokens = async (req, res) => {
   }
 };
 
-export const deactivateToken = async (req, res) => {
-  const { order_id } = req.body;
+export const updateTokenStatus = async (req, res) => {
+  const { order_id, is_active } = req.body;
+
+  if (typeof is_active !== 'boolean') {
+    return res.status(400).json({ error: 'Field is_active harus berupa boolean' });
+  }
 
   try {
     const [order] = await pool.query('SELECT * FROM orders WHERE id = ?', [order_id]);
-    if (!order[0]) return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
+    if (!order[0]) {
+      return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
+    }
 
-    // Nonaktifkan token
     await pool.query(
       'UPDATE orders SET is_active = ? WHERE id = ?',
-      [false, order_id]
+      [is_active, order_id]
     );
 
-    res.json({ message: 'Token berhasil dinonaktifkan' });
+    const statusMessage = is_active ? 'diaktifkan' : 'dinonaktifkan';
+    res.json({ message: `Token berhasil ${statusMessage}` });
   } catch (err) {
-    console.error('Deactivate Token Error:', err);
-    res.status(500).json({ error: 'Gagal menonaktifkan token' });
+    console.error('Update Token Status Error:', err);
+    res.status(500).json({ error: 'Gagal mengubah status token' });
   }
 };
+
+export const updateOrderToken = async (req, res) => {
+  const { order_id, token } = req.body;
+
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ error: 'Token harus berupa string dan tidak boleh kosong' });
+  }
+
+  try {
+    // Cek apakah order dengan order_id tersebut ada
+    const [order] = await pool.query('SELECT * FROM orders WHERE id = ?', [order_id]);
+    if (!order[0]) {
+      return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
+    }
+
+    // Update token hanya di kolom token
+    await pool.query(
+      'UPDATE orders SET token = ?, updated_at = NOW() WHERE id = ?',
+      [token, order_id]
+    );
+
+    res.json({ message: 'Token berhasil diupdate' });
+  } catch (err) {
+    console.error('Update Token Error:', err);
+    res.status(500).json({ error: 'Gagal mengupdate token' });
+  }
+};
+
 
 export const getWebsiteStats = async (req, res) => {
   try {
@@ -243,6 +280,8 @@ export const getAllPayments = async (req, res) => {
           o.gpu_package_id,
           o.duration_days,
           o.total_cost,
+          o.token,
+          o.is_active,
           o.status AS order_status,
           o.start_date,
           o.end_date,
@@ -269,3 +308,51 @@ export const getAllPayments = async (req, res) => {
   }
 };
 
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name, and email are required.' });
+    }
+
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    await User.updateById(id, { name, email, phone });
+
+    res.json({ message: 'User updated successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to update user.' });
+  }
+};
+
+export const updatePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required.' });
+    }
+
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10); // 10 itu salt rounds, biasa cukup aman
+
+    await Password.updateById(id, { password: hashedPassword });
+
+    res.json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to update password.' });
+  }
+};

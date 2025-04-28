@@ -15,7 +15,7 @@ function AdminDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/admin/stats', {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/stats`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
