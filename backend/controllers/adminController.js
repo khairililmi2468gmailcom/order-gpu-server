@@ -158,6 +158,7 @@ export const getAllPayments = async (req, res) => {
           p.status AS payment_status,
           p.verified_by,
           p.verified_at,
+          
           o.id AS order_id,
           o.user_id,
           o.gpu_package_id,
@@ -167,11 +168,19 @@ export const getAllPayments = async (req, res) => {
           o.start_date,
           o.end_date,
           o.created_at AS order_created_at,
+          
           u.name AS user_name,
-          u.email AS user_email
+          u.email AS user_email,
+
+          g.name AS gpu_package_name,
+          g.price_per_hour,
+          g.vcpu,
+          g.ram,
+          g.min_period_days
        FROM payments p 
        JOIN orders o ON p.order_id = o.id 
-       JOIN users u ON o.user_id = u.id`
+       JOIN users u ON o.user_id = u.id
+       JOIN gpu_packages g ON o.gpu_package_id = g.id`
     );
 
     res.json(payments);

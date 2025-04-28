@@ -3,7 +3,7 @@ import OrderItem from './PaymentItem';
 import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Listbox, ListboxOption } from '@headlessui/react'; // Import komponen Headless UI
 
-const OrderList = ({ orders, onVerifyPayment }) => {
+const PaymentList = ({ orders, onVerifyPayment }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('pending');
     const [sortOrder, setSortOrder] = useState('asc');
@@ -136,21 +136,32 @@ const OrderList = ({ orders, onVerifyPayment }) => {
             </div>
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 shadow-sm rounded-md">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 items-center">
                         <tr>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"> {/* Tambahkan w-24 */}
+                                Bukti Pembayaran
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
                                 Nama Pengguna
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                                Paket Pesanan
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                                Durasi Penyewaan
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                                 Status Pesanan
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                                 Status Pembayaran
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                                 Total Biaya
                             </th>
-                        
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -212,4 +223,4 @@ const OrderList = ({ orders, onVerifyPayment }) => {
         </div>
     );
 };
-export default OrderList;
+export default PaymentList;

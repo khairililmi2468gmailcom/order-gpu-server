@@ -9,10 +9,11 @@ import RegisterPage from './pages/register/Register';
 import LoginAdminPage from './pages/loginadmin/LoginAdmin';
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
-import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
+import AdminOrders from './pages/admin/AdminPayments/AdminPayments';
 import AdminPackages from './pages/admin/adminPackages/AdminPackages';
 import { setNavigator } from './hooks/apiClient'; // Pastikan path ini benar
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import AdminPayments from './pages/admin/AdminPayments/AdminPayments';
 
 function App() {
   const location = useLocation();
@@ -90,12 +91,13 @@ function App() {
           <Routes>
             <Route path="/admin/*" element={
               <ProtectedRoute isAdminRoute isAuthenticated={isLoggedInApp} isAdmin={isAdmin}>
-                  <Routes>
-                    <Route path="" element={<AdminDashboard />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="packages" element={<AdminPackages />} />
-                    {/* Rute admin lainnya */}
-                  </Routes>
+                <Routes>
+                  <Route path="" element={<AdminDashboard />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="payments" element={< AdminPayments />} />
+                  <Route path="packages" element={<AdminPackages />} />
+                  {/* Rute admin lainnya */}
+                </Routes>
               </ProtectedRoute>
             } />
             <Route path="/404" element={<NotFound />} />

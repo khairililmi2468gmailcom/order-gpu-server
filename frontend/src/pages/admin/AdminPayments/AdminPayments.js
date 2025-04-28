@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import OrderList from '../../../components/admin/pesanan/OrderList';
+import PaymentList from '../../../components/admin/pembayaran/PaymentList';
 import Swal from 'sweetalert2';
 
-function AdminOrders() {
+function AdminPayments() {
     const [orders, setOrders] = useState([]);
     const token = localStorage.getItem('token');
     const [loading, setLoading] = useState(true);
@@ -84,9 +84,9 @@ function AdminOrders() {
 
     return (
         <div className="p-6 sm:p-8">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-800">Manajemen Pesanan</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-gray-800">Manajemen Persetujuan</h1>
             {orders.length > 0 ? (
-                <OrderList orders={orders} onVerifyPayment={handleVerifyPayment} />
+                <PaymentList orders={orders} onVerifyPayment={handleVerifyPayment} />
             ) : (
                 <p className="text-gray-600">Tidak ada data pesanan.</p>
             )}
@@ -94,4 +94,4 @@ function AdminOrders() {
     );
 }
 
-export default AdminOrders;
+export default AdminPayments;
