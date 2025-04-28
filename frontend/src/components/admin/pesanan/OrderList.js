@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import OrderItem from './OrderItem';
 import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { Listbox, ListboxOption } from '@headlessui/react'; // Import komponen Headless UI
 
 const OrderList = ({ orders, onVerifyPayment }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -8,6 +9,14 @@ const OrderList = ({ orders, onVerifyPayment }) => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
+
+    const sortOptions = [
+        { value: 'pending', label: 'Status: Pending' },
+        { value: 'approved', label: 'Status: Disetujui' },
+        { value: 'rejected', label: 'Status: Ditolak' },
+        { value: 'total_cost', label: 'Total Biaya' },
+        { value: 'user_name', label: 'Nama Pengguna' },
+    ];
 
     const filteredOrders = orders.filter(order =>
         Object.values(order).some(value =>
@@ -79,36 +88,51 @@ const OrderList = ({ orders, onVerifyPayment }) => {
 
     return (
         <div>
-            <div className="mb-4 flex items-center space-x-4">
-                <div className="relative flex-grow">
+            <div className="mb-4 flex items-center gap-4 md:gap-6 lg:gap-8"> {/* Responsif gap */}
+                <div className="relative w-1/2 md:max-w-xs"> {/* Lebar input pencarian responsif */}
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                         type="text"
-                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                        placeholder="Cari data..."
+                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2"
+                        placeholder="Cari..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="sortBy" className="text-sm font-medium text-gray-700">Urutkan:</label>
-                    <select
-                        id="sortBy"
-                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                    >
-                        <option value="pending">Status: Pending</option>
-                        <option value="approved">Status: Disetujui</option>
-                        <option value="rejected">Status: Ditolak</option>
-                        <option value="total_cost">Total Biaya</option>
-                        <option value="user_name">Nama Pengguna</option>
-                    </select>
-                    {sortBy === 'total_cost' || sortBy === 'user_name' ? (
-                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                 <div className="flex items-center space-x-2">
+                    <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
+                    <Listbox value={sortBy} onChange={setSortBy}>
+                        <div className="relative">
+                            <Listbox.Button className="bg-white relative border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 flex items-center justify-between">
+                                {sortOptions.find(option => option.value === sortBy)?.label || 'Urutkan'}
+                                <ArrowsUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </Listbox.Button>
+                            <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                {sortOptions.map((option) => (
+                                    <Listbox.Option
+                                        key={option.value}
+                                        className={({ active, selected }) =>
+                                            `cursor-default select-none relative py-2 pl-4 pr-4 ${
+                                                active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                            } ${selected ? 'bg-indigo-200 font-semibold' : ''}`
+                                        }
+                                        value={option.value}
+                                    >
+                                        {({ selected }) => (
+                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                {option.label}
+                                            </span>
+                                        )}
+                                    </Listbox.Option>
+                                ))}
+                            </Listbox.Options>
+                        </div>
+                    </Listbox>
+                    {(sortBy === 'total_cost' || sortBy === 'user_name') && (
+                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2"> {/* Tambahkan margin kiri */}
                             <ArrowsUpDownIcon className={`h-5 w-5 text-gray-500 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
                         </button>
-                    ) : null}
+                    )}
                 </div>
             </div>
             <div className="overflow-x-auto">

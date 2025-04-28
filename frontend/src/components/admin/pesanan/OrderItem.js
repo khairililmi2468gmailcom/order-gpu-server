@@ -54,13 +54,13 @@ const OrderItem = ({ order, onVerifyPayment }) => {
     };
 
     return (
-        <tr className={`hover:bg-gray-50 ${isPaymentRejected ? 'bg-red-50' : ''}`}>
+        <tr className={`hover:bg-gray-50 ${isPaymentRejected ? 'bg-red-200' : ''}`}>
             <td className="px-4 py-3 whitespace-nowrap">
                 <button onClick={handleOpenModal} className="text-blue-500 hover:underline focus:outline-none">
                     {order.proof_url ? 'Lihat' : 'Belum Ada'}
                 </button>
-                {isModalOpen && <PaymentModal imageUrl={`<span class="math-inline">\{process\.env\.REACT\_APP\_API\_URL\}/</span>{order.proof_url}`} onClose={handleCloseModal} />}
-            </td>
+                {isModalOpen && <PaymentModal imageUrl={`${process.env.REACT_APP_API_URL}/${order.proof_url}`} onClose={handleCloseModal} />}
+                </td>
             <td className="px-4 py-3 whitespace-nowrap">{order.order_status}</td>
             <td className="px-4 py-3 whitespace-nowrap">{order.payment_status === 'pending' ? 'Menunggu' : order.payment_status === 'verified' ? 'Terverifikasi' : 'Ditolak'}</td>
             <td className="px-4 py-3">{order.user_name}</td>

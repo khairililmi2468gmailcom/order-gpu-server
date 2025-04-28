@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserCircle, faCaretDown, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUserCircle, faCaretDown, faCog, faSignOutAlt, faBars } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 
-const AdminHeader = () => {
+const AdminHeader = ({ onToggleSidebar }) => {
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const navigate = useNavigate();
     const profileRef = useRef(null);
@@ -24,7 +24,9 @@ const AdminHeader = () => {
             if (result.isConfirmed) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                navigate('/login-admin'); // Redirect ke halaman login admin
+                // Dispatch custom logout event
+                window.dispatchEvent(new Event('adminLogout'));
+                navigate('/login'); // Redirect ke halaman login user
             }
         });
     };
@@ -43,6 +45,12 @@ const AdminHeader = () => {
 
     return (
         <header className="bg-primary text-white p-4 flex justify-between items-center">
+            <button
+                onClick={onToggleSidebar} // Panggil fungsi toggle sidebar
+                className="relative text-white focus:outline-none mr-4 z-2" // Selalu tampil
+            >
+                <FontAwesomeIcon icon={faBars} className="text-xl" />
+            </button>
             <h1 className="text-xl font-bold">Admin Dashboard</h1>
             <div className="relative" ref={profileRef}>
                 <button

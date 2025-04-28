@@ -37,7 +37,19 @@ function App() {
       setUser(updatedUser ? JSON.parse(updatedUser) : null);
     };
     window.addEventListener('storage', checkLoginStatus);
-    return () => window.removeEventListener('storage', checkLoginStatus);
+
+    // Listen for the custom adminLogout event
+    const handleAdminLogout = () => {
+      setIsLoggedInApp(false);
+      setUser(null);
+      navigate('/login'); // Optionally redirect here as well, if not done in AdminHeader
+    };
+    window.addEventListener('adminLogout', handleAdminLogout);
+
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+      window.removeEventListener('adminLogout', handleAdminLogout); // Clean up the event listener
+    };
   }, [navigate]);
 
   const handleLogout = () => {
@@ -45,7 +57,7 @@ function App() {
     localStorage.removeItem('user');
     setIsLoggedInApp(false);
     setUser(null);
-    navigate('/login'); // Redirect ke login setelah logout
+    navigate('/login'); // Redirect ke login setelah logout dari user layout
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);

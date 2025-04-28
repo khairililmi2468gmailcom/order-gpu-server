@@ -5,13 +5,21 @@ import { useNavigate } from 'react-router-dom';
 
 const AdminLayout = ({ children }) => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(localStorage.getItem('isSidebarOpen') === 'true' || window.innerWidth >= 768);
     const navigate = useNavigate();
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+        localStorage.setItem('isSidebarOpen', !isSidebarOpen);
+    };
 
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
-            setIsSidebarOpen(window.innerWidth >= 768);
+            if (window.innerWidth >= 768) {
+                setIsSidebarOpen(true); // Default terbuka di desktop
+                localStorage.setItem('isSidebarOpen', 'true');
+            }
         };
 
         window.addEventListener('resize', handleResize);
@@ -34,17 +42,14 @@ const AdminLayout = ({ children }) => {
 
         checkAuthOnMount();
 
-        // Anda bisa menambahkan listener untuk perubahan local storage di sini
-        // jika Anda ingin logout otomatis ketika token dihapus dari tab lain.
         const handleStorageChange = (event) => {
             if (event.key === 'token' && !localStorage.getItem('token')) {
-                // Token dihapus dari tab lain, lakukan logout
                 localStorage.removeItem('user');
                 navigate('/login-admin');
             }
             if (event.key === 'user' && localStorage.getItem('user') && JSON.parse(localStorage.getItem('user'))?.role !== 'admin') {
                 localStorage.removeItem('token');
-                navigate('/login'); // Redirect jika role berubah jadi bukan admin
+                navigate('/login');
             }
         };
 
@@ -57,13 +62,12 @@ const AdminLayout = ({ children }) => {
 
     return (
         <div className="flex h-screen overflow-hidden">
-            <AdminSidebar isOpen={isSidebarOpen} />
+            {isSidebarOpen && <AdminSidebar isOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />}
             <div
-                className={`flex-1 flex flex-col overflow-hidden transition-padding duration-300 ease-in-out ${
-                    isSidebarOpen && !isMobile ? 'pl-64' : 'pl-0'
-                }`}
+                className={`flex-1 flex flex-col overflow-hidden transition-padding duration-300 ease-in-out ${isSidebarOpen && !isMobile ? 'pl-64' : 'pl-0'
+                    }`}
             >
-                <AdminHeader />
+                <AdminHeader onToggleSidebar={toggleSidebar} />
                 <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
                     {children}
                 </main>

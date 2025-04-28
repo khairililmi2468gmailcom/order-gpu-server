@@ -17,7 +17,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     const [navbarTranslateY, setNavbarTranslateY] = useState(0);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
-    const contactBarHeight = 50;
+    const contactBarHeight = 64;
     const scrollThreshold = 40;
     const desktopBreakpoint = 1024;
     const mediumBreakpoint = 768;
@@ -64,8 +64,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             const isDesktop = screenWidth >= desktopBreakpoint;
             const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
             const desktopTranslateY = -contactBarHeight;
-            const mobileTranslateY = -contactBarHeight + 15;
-            const mediumTranslateY = -contactBarHeight + 10;
+            const mobileTranslateY = -contactBarHeight + 20;
+            const mediumTranslateY = -contactBarHeight;
 
             let translationValue = 0;
             if (isDesktop) {
@@ -215,11 +215,12 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                     <div className="hidden md:flex items-center space-x-6">
                         {!isLoggedInLocal ? (
                             <>
-                                <button className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300">
-                                    <NavLink to="/login" >
-                                        Login
-                                    </NavLink>
-                                </button>
+                                <NavLink
+                                    to="/login"
+                                    className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300"
+                                >
+                                    Login
+                                </NavLink>
                                 <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
                                     Hubungi Kami
                                 </button>
