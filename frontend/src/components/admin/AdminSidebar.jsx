@@ -54,8 +54,8 @@ const AdminSidebar = ({ isOpen, onToggleSidebar }) => {
                     </li>
                     <li>
                         <Link
-                            to="/admin/pesan"
-                            className={`${linkClasses} ${location.pathname.startsWith('/admin/pesan') ? activeLinkClasses : ''}`}
+                            to="/admin/orders"
+                            className={`${linkClasses} ${location.pathname.startsWith('/admin/orders') ? activeLinkClasses : ''}`}
                         >
                             <ShoppingBagIcon className={`h-5 w-5 mr-2 ${logoIconColor}`} />
                             <span>Pesanan</span>

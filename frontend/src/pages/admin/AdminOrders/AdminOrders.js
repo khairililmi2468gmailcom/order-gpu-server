@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import OrderList from '../../../components/admin/pesanan/OrderList';
-import Swal from 'sweetalert2';
 
 function AdminOrders() {
     const [orders, setOrders] = useState([]);
@@ -12,7 +11,7 @@ function AdminOrders() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/payments`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/orders`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -30,32 +29,6 @@ function AdminOrders() {
             setLoading(false);
         }
     }, [token]);
-
-    const handleVerifyPayment = async (paymentId, status) => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/payments/verify`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ payment_id: paymentId, status: status }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP error! status: ${response.status}`);
-            }
-
-            Swal.fire('Berhasil!', data.message, 'success').then(() => {
-                fetchOrders();
-            });
-        } catch (error) {
-            console.error("Gagal memverifikasi pembayaran:", error);
-            Swal.fire('Error!', error.message, 'error');
-        }
-    };
 
     useEffect(() => {
         if (token) {
@@ -86,7 +59,7 @@ function AdminOrders() {
         <div className="p-6 sm:p-8">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">Manajemen Pesanan</h1>
             {orders.length > 0 ? (
-                <OrderList orders={orders} onVerifyPayment={handleVerifyPayment} />
+                <OrderList orders={orders} onRefresh={fetchOrders} />
             ) : (
                 <p className="text-gray-600">Tidak ada data pesanan.</p>
             )}
@@ -95,3 +68,4 @@ function AdminOrders() {
 }
 
 export default AdminOrders;
+

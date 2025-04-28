@@ -9,11 +9,11 @@ import RegisterPage from './pages/register/Register';
 import LoginAdminPage from './pages/loginadmin/LoginAdmin';
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
-import AdminOrders from './pages/admin/AdminPayments/AdminPayments';
 import AdminPackages from './pages/admin/adminPackages/AdminPackages';
-import { setNavigator } from './hooks/apiClient'; // Pastikan path ini benar
-import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import { setNavigator } from './hooks/apiClient'; 
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminPayments from './pages/admin/AdminPayments/AdminPayments';
+import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
 
 function App() {
   const location = useLocation();

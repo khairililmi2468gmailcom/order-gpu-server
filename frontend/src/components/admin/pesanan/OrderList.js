@@ -1,21 +1,28 @@
-import React, { useCallback, useState } from 'react';
-import OrderItem from './PaymentItem';
-import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { Listbox, ListboxOption } from '@headlessui/react'; // Import komponen Headless UI
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+    MagnifyingGlassIcon,
+    ArrowsUpDownIcon,
+    ArrowLeftIcon,
+    ArrowRightIcon,
 
-const OrderList = ({ orders, onVerifyPayment }) => {
+} from '@heroicons/react/24/outline';
+
+import { Listbox, ListboxOption } from '@headlessui/react';
+import OrderItem from './OrderItem';
+const OrderList = ({ orders, onRefresh }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState('pending');
-    const [sortOrder, setSortOrder] = useState('asc');
+    const [sortBy, setSortBy] = useState('created_at'); // Mengubah default sortBy menjadi 'created_at'
+    const [sortOrder, setSortOrder] = useState('desc');  // Mengubah default sortOrder menjadi 'desc'
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const availablePageSizes = [5, 10, 25, 50, 100, 500, 1000];
 
     const sortOptions = [
-        { value: 'pending', label: 'Status: Pending' },
-        { value: 'approved', label: 'Status: Disetujui' },
-        { value: 'rejected', label: 'Status: Ditolak' },
-        { value: 'total_cost', label: 'Total Biaya' },
         { value: 'user_name', label: 'Nama Pengguna' },
+        { value: 'package_name', label: 'Nama Paket' },
+        { value: 'total_cost', label: 'Total Biaya' },
+        { value: 'duration_days', label: 'Durasi' },
+        { value: 'created_at', label: 'Tanggal Pemesanan' }, // Menambahkan 'created_at' ke sortOptions
     ];
 
     const filteredOrders = orders.filter(order =>
@@ -26,34 +33,33 @@ const OrderList = ({ orders, onVerifyPayment }) => {
 
     const sortOrders = useCallback((ordersToSort) => {
         return [...ordersToSort].sort((a, b) => {
-            if (sortBy === 'pending') {
-                const statusOrder = { pending: 0, verified: 1, rejected: 2 };
-                return statusOrder[a.payment_status] - statusOrder[b.payment_status];
-            } else if (sortBy === 'approved') {
-                const statusOrder = { verified: 0, pending: 1, rejected: 2 };
-                return statusOrder[a.payment_status] - statusOrder[b.payment_status];
-            } else if (sortBy === 'rejected') {
-                const statusOrder = { rejected: 0, pending: 1, verified: 2 };
-                return statusOrder[a.payment_status] - statusOrder[b.payment_status];
+            if (sortBy === 'user_name') {
+                const nameA = a.user_name.toLowerCase();
+                const nameB = b.user_name.toLowerCase();
+                return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            } else if (sortBy === 'package_name') {
+                const packageA = a.package_name.toLowerCase();
+                const packageB = b.package_name.toLowerCase();
+                return sortOrder === 'asc' ? packageA.localeCompare(packageB) : packageB.localeCompare(packageA);
             } else if (sortBy === 'total_cost') {
                 const priceA = parseFloat(a.total_cost);
                 const priceB = parseFloat(b.total_cost);
                 return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
-            } else if (sortBy === 'user_name') {
-                const nameA = a.user_name.toLowerCase();
-                const nameB = b.user_name.toLowerCase();
-                return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            } else if (sortBy === 'duration_days') {
+                return sortOrder === 'asc' ? a.duration_days - b.duration_days : b.duration_days - a.duration_days;
+            } else if (sortBy === 'created_at') { // Menambahkan logika pengurutan untuk 'created_at'
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
             }
             return 0;
         });
     }, [sortBy, sortOrder]);
 
     const sortedAndFilteredOrders = sortOrders(filteredOrders);
-
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentOrders = sortedAndFilteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-
     const totalPages = Math.ceil(sortedAndFilteredOrders.length / itemsPerPage);
 
     const handleNextPage = () => {
@@ -86,10 +92,15 @@ const OrderList = ({ orders, onVerifyPayment }) => {
         return pageNumbers;
     };
 
+    const handlePageSizeChange = (value) => {
+        setItemsPerPage(parseInt(value, 10));
+        setCurrentPage(1);
+    };
+
     return (
         <div>
-            <div className="mb-4 flex items-center gap-4 md:gap-6 lg:gap-8"> {/* Responsif gap */}
-                <div className="relative w-1/2 md:max-w-xs"> {/* Lebar input pencarian responsif */}
+            <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="relative w-full sm:w-1/2 md:max-w-xs">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                         type="text"
@@ -99,41 +110,79 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
-                    <Listbox value={sortBy} onChange={setSortBy}>
-                        <div className="relative">
-                            <Listbox.Button className="bg-white relative border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 flex items-center justify-between">
-                                {sortOptions.find(option => option.value === sortBy)?.label || 'Urutkan'}
-                                <ArrowsUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </Listbox.Button>
-                            <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                {sortOptions.map((option) => (
-                                    <Listbox.Option
-                                        key={option.value}
-                                        className={({ active, selected }) =>
-                                            `cursor-default select-none relative py-2 pl-4 pr-4 ${active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
-                                            } ${selected ? 'bg-indigo-200 font-semibold' : ''}`
-                                        }
-                                        value={option.value}
-                                    >
-                                        {({ selected }) => (
-                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                {option.label}
-                                            </span>
-                                        )}
-                                    </Listbox.Option>
-                                ))}
-                            </Listbox.Options>
-                        </div>
-                    </Listbox>
-                    {(sortBy === 'total_cost' || sortBy === 'user_name') && (
-                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2"> {/* Tambahkan margin kiri */}
-                            <ArrowsUpDownIcon className={`h-5 w-5 text-gray-500 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
-                        </button>
-                    )}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
+                        <Listbox value={sortBy} onChange={setSortBy}>
+                            <div className="relative">
+                                <Listbox.Button className="bg-white relative border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 flex items-center justify-between min-w-[200px]">
+                                    {sortOptions.find(option => option.value === sortBy)?.label || 'Urutkan'}
+                                    <ArrowsUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                </Listbox.Button>
+                                <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    {sortOptions.map((option) => (
+                                        <Listbox.Option
+                                            key={option.value}
+                                            className={({ active, selected }) =>
+                                                `cursor-default select-none relative py-2 pl-4 pr-4 ${active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                } ${selected ? 'bg-indigo-200 font-semibold' : ''}`
+                                            }
+                                            value={option.value}
+                                        >
+                                            {({ selected }) => (
+                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                    {option.label}
+                                                </span>
+                                            )}
+                                        </Listbox.Option>
+                                    ))}
+                                </Listbox.Options>
+                            </div>
+                        </Listbox>
+                        {(sortBy === 'total_cost' || sortBy === 'user_name' || sortBy === 'duration_days' || sortBy === 'created_at') && ( // Memasukkan created_at ke dalam kondisi
+                            <button
+                                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                                className="ml-2 inline-flex items-center justify-center p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors"
+                                title={sortOrder === 'asc' ? 'Urutkan Menurun' : 'Urutkan Menaik'}
+                            >
+                                <ArrowsUpDownIcon className={`h-5 w-5 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="pageSize" className="text-sm font-medium text-gray-700 sr-only">
+                            Tampilkan per halaman:
+                        </label>
+                        <Listbox value={itemsPerPage} onChange={handlePageSizeChange}>
+                            <div className="relative">
+                                <Listbox.Button className="bg-white relative border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 flex items-center justify-between min-w-[180px]">
+                                    {itemsPerPage}
+                                    <ArrowsUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                </Listbox.Button>
+                                <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    {availablePageSizes.map(size => (
+                                        <Listbox.Option
+                                            key={size}
+                                            className={({ active, selected }) =>
+                                                `cursor-default select-none relative py-2 pl-4 pr-4 ${active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                } ${selected ? 'bg-indigo-200 font-semibold' : ''}`
+                                            }
+                                            value={size}
+                                        >
+                                            {({ selected }) => (
+                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                    {size}
+                                                </span>
+                                            )}
+                                        </Listbox.Option>
+                                    ))}
+                                </Listbox.Options>
+                            </div>
+                        </Listbox>
+                    </div>
                 </div>
             </div>
+
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 shadow-sm rounded-md">
                     <thead className="bg-gray-50">
@@ -142,24 +191,26 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                                 Nama Pengguna
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status Pesanan
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status Pembayaran
+                                Nama Paket
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Total Biaya
                             </th>
-                        
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Durasi
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Bukti Upload
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {currentOrders.map(order => (
-                            <OrderItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} />
+                            <OrderItem key={order.id} order={order} />
                         ))}
                         {sortedAndFilteredOrders.length === 0 && (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                <td colSpan={5} className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                     Tidak ada data pesanan yang sesuai.
                                 </td>
                             </tr>
@@ -167,6 +218,7 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                     </tbody>
                 </table>
             </div>
+
             {sortedAndFilteredOrders.length > 0 && (
                 <div className="mt-4 flex items-center justify-between">
                     <div className="text-sm text-gray-700">
@@ -187,7 +239,10 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                                     <button
                                         onClick={() => setCurrentPage(page)}
                                         aria-current="page"
-                                        className={`z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${currentPage === page ? '' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                                        className={`z-10 ${currentPage === page
+                                            ? 'bg-indigo-50 border-indigo-500 text-indigo-600'
+                                            : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-300'
+                                            } relative inline-flex items-center px-4 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
                                     >
                                         {page}
                                     </button>
@@ -212,4 +267,5 @@ const OrderList = ({ orders, onVerifyPayment }) => {
         </div>
     );
 };
+
 export default OrderList;

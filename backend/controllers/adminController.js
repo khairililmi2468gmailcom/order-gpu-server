@@ -9,12 +9,22 @@ export const getAllOrders = async (req, res) => {
        JOIN users u ON o.user_id = u.id 
        JOIN gpu_packages g ON o.gpu_package_id = g.id`
     );
+
+    // Loop through orders and check if there's a matching entry in the payments table
+    for (let order of orders) {
+      const [payment] = await pool.query(
+        `SELECT p.proof_url FROM payments p WHERE p.order_id = ?`, [order.id]
+      );
+      
+      // Check if a payment entry exists and has a proof_url
+      order.hasUpload = payment.length > 0 && payment[0].proof_url ? true : false;
+    }
+
     res.json(orders);
   } catch (err) {
     res.status(500).json({ error: 'Gagal mengambil semua pesanan' });
   }
 };
-
 
 export const verifyPayment = async (req, res) => {
   const { payment_id, status } = req.body;
@@ -123,29 +133,98 @@ export const deactivateToken = async (req, res) => {
 
 export const getWebsiteStats = async (req, res) => {
   try {
-    // Hitung jumlah pengunjung
+    // Cards:
     const [visitorCount] = await pool.query('SELECT COUNT(DISTINCT ip) AS visitor_count FROM access_log');
-    
-    // Hitung jumlah pengguna
     const [userCount] = await pool.query('SELECT COUNT(id) AS user_count FROM users');
-
-    // Hitung jumlah pesanan
     const [orderCount] = await pool.query('SELECT COUNT(id) AS order_count FROM orders');
+    const [totalRevenue] = await pool.query('SELECT IFNULL(SUM(total_cost), 0) AS total_revenue FROM orders WHERE status = "approved"');
+    const [pendingOrders] = await pool.query('SELECT COUNT(id) AS pending_order FROM orders WHERE status = "pending_payment"');
+    const [approvedOrders] = await pool.query('SELECT COUNT(id) AS approved_order FROM orders WHERE status = "approved"');
+    const [monthlyNewUsersTotal] = await pool.query(`
+      SELECT COUNT(*) AS this_month_new_users
+      FROM users
+      WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())
+    `);
+    const [todayVisitors] = await pool.query(`
+      SELECT COUNT(DISTINCT ip) AS today_visitors
+      FROM access_log
+      WHERE DATE(accessed_at) = CURDATE()
+    `);
 
-    // Hitung pendapatan yang dihasilkan
-    const [totalRevenue] = await pool.query('SELECT SUM(total_cost) AS total_revenue FROM orders WHERE status = "approved"');
+    // Charts:
+    const [monthlyRevenue] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(created_at, '%Y-%m') AS month,
+        SUM(total_cost) AS total
+      FROM orders
+      WHERE status = "approved"
+      GROUP BY month
+      ORDER BY month ASC
+    `);
+
+    const [orderStatusCount] = await pool.query(`
+      SELECT 
+        status,
+        COUNT(*) AS count
+      FROM orders
+      GROUP BY status
+    `);
+
+    const [monthlyNewUsers] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(created_at, '%Y-%m') AS month,
+        COUNT(*) AS new_users
+      FROM users
+      GROUP BY month
+      ORDER BY month ASC
+    `);
+
+    const [dailyVisitors] = await pool.query(`
+      SELECT 
+        DATE(accessed_at) AS date,
+        COUNT(DISTINCT ip) AS visitors
+      FROM access_log
+      WHERE accessed_at >= CURDATE() - INTERVAL 30 DAY
+      GROUP BY date
+      ORDER BY date ASC
+    `);
 
     res.json({
-      visitorCount: visitorCount[0].visitor_count,
-      userCount: userCount[0].user_count,
-      orderCount: orderCount[0].order_count,
-      totalRevenue: totalRevenue[0].total_revenue,
+      cards: {
+        visitorCount: visitorCount[0].visitor_count,
+        todayVisitors: todayVisitors[0].today_visitors,
+        userCount: userCount[0].user_count,
+        monthlyNewUsers: monthlyNewUsersTotal[0].this_month_new_users,
+        orderCount: orderCount[0].order_count,
+        pendingOrders: pendingOrders[0].pending_order,
+        approvedOrders: approvedOrders[0].approved_order,
+        totalRevenue: totalRevenue[0].total_revenue
+      },
+      charts: {
+        lineChart: {
+          label: "Pendapatan Bulanan",
+          data: monthlyRevenue
+        },
+        barChart: {
+          label: "User Baru per Bulan",
+          data: monthlyNewUsers
+        },
+        pieChart: {
+          label: "Status Order",
+          data: orderStatusCount
+        },
+        areaChart: {
+          label: "Visitor Harian (30 hari)",
+          data: dailyVisitors
+        }
+      }
     });
   } catch (err) {
     console.error('Get Website Stats Error:', err);
     res.status(500).json({ error: 'Gagal mengambil statistik website' });
   }
 };
+
 
 
 export const getAllPayments = async (req, res) => {
