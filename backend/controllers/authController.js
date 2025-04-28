@@ -49,3 +49,29 @@ export const login = async (req, res) => {
     res.status(500).json({ error: 'Gagal login' });
   }
 };
+
+export const refreshToken = (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+  }
+
+  const oldToken = authHeader.split(' ')[1];
+
+  jwt.verify(oldToken, process.env.JWT_SECRET, { ignoreExpiration: true }, (err, decoded) => {
+      if (err) {
+          console.error(err);
+          return res.status(403).json({ message: 'Invalid token' });
+      }
+
+      const { id, email, role } = decoded;
+
+      const newToken = jwt.sign(
+          { id, email, role },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' } // Token baru 1 jam lagi valid
+      );
+
+      res.status(200).json({ token: newToken });
+  });
+};

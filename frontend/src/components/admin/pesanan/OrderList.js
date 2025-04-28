@@ -99,7 +99,7 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                 <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2">
                     <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
                     <Listbox value={sortBy} onChange={setSortBy}>
                         <div className="relative">
@@ -112,8 +112,7 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                                     <Listbox.Option
                                         key={option.value}
                                         className={({ active, selected }) =>
-                                            `cursor-default select-none relative py-2 pl-4 pr-4 ${
-                                                active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                            `cursor-default select-none relative py-2 pl-4 pr-4 ${active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
                                             } ${selected ? 'bg-indigo-200 font-semibold' : ''}`
                                         }
                                         value={option.value}
@@ -139,17 +138,17 @@ const OrderList = ({ orders, onVerifyPayment }) => {
                 <table className="min-w-full divide-y divide-gray-200 shadow-sm rounded-md">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"> {/* Tambahkan w-24 */}
                                 Bukti Pembayaran
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama Pengguna
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status Pesanan
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status Pembayaran
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Nama Pengguna
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Total Biaya

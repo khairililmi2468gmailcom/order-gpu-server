@@ -221,6 +221,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                 >
                                     Login
                                 </NavLink>
+                                
                                 <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
                                     Hubungi Kami
                                 </button>

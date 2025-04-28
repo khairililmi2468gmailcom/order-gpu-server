@@ -7,7 +7,6 @@ import AdminDashboard from './pages/admin/AdminDashboard/AdminDashboard';
 import LoginPage from './pages/login/LoginPage';
 import RegisterPage from './pages/register/Register';
 import LoginAdminPage from './pages/loginadmin/LoginAdmin';
-
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
@@ -17,38 +16,40 @@ import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRou
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('ID');
-  const [isLoggedInApp, setIsLoggedInApp] = useState(() => !!localStorage.getItem('token'));
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [isLoggedInApp, setIsLoggedInApp] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // <<<<<<<<<<<<<< ini tambahan
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdmin = user?.role === 'admin';
-  const navigate = useNavigate();
 
   useEffect(() => {
     setNavigator(navigate);
+
     const checkLoginStatus = () => {
-      setIsLoggedInApp(!!localStorage.getItem('token'));
-      const updatedUser = localStorage.getItem('user');
-      setUser(updatedUser ? JSON.parse(updatedUser) : null);
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      setIsLoggedInApp(!!token);
+      setUser(storedUser ? JSON.parse(storedUser) : null);
+      setIsLoading(false);
     };
+
+    checkLoginStatus(); // Jalankan pertama kali
     window.addEventListener('storage', checkLoginStatus);
 
-    // Listen for the custom adminLogout event
     const handleAdminLogout = () => {
       setIsLoggedInApp(false);
       setUser(null);
-      navigate('/login'); // Optionally redirect here as well, if not done in AdminHeader
+      navigate('/login');
     };
     window.addEventListener('adminLogout', handleAdminLogout);
 
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
-      window.removeEventListener('adminLogout', handleAdminLogout); // Clean up the event listener
+      window.removeEventListener('adminLogout', handleAdminLogout);
     };
   }, [navigate]);
 
@@ -57,7 +58,7 @@ function App() {
     localStorage.removeItem('user');
     setIsLoggedInApp(false);
     setUser(null);
-    navigate('/login'); // Redirect ke login setelah logout dari user layout
+    navigate('/login');
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -77,48 +78,27 @@ function App() {
     setUser(updatedUser ? JSON.parse(updatedUser) : null);
   };
 
+  if (isLoading) {
+    // Tampilkan loading kosong / spinner / atau bahkan return null
+    return null;
+  }
+
   return (
     <>
       {isAdminRoute ? (
         <AdminLayout>
           <Routes>
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute
-                  isAuthenticated={isLoggedInApp}
-                  isAdmin={isAdmin}
-                  isAdminRoute={true}
-                >
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/orders"
-              element={
-                <ProtectedRoute
-                  isAuthenticated={isLoggedInApp}
-                  isAdmin={isAdmin}
-                  isAdminRoute={true}
-                >
-                  <AdminOrders />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/packages"
-              element={
-                <ProtectedRoute
-                  isAuthenticated={isLoggedInApp}
-                  isAdmin={isAdmin}
-                  isAdminRoute={true}
-                >
-                  <AdminPackages />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/admin/*" element={
+              <ProtectedRoute isAdminRoute isAuthenticated={isLoggedInApp} isAdmin={isAdmin}>
+                  <Routes>
+                    <Route path="" element={<AdminDashboard />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="packages" element={<AdminPackages />} />
+                    {/* Rute admin lainnya */}
+                  </Routes>
+              </ProtectedRoute>
+            } />
+            <Route path="/404" element={<NotFound />} />
           </Routes>
         </AdminLayout>
       ) : (
