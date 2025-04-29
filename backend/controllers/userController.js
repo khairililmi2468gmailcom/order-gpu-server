@@ -8,9 +8,15 @@ export const getMyOrders = async (req, res) => {
 
   try {
     const [orders] = await pool.query(
-      `SELECT o.*, g.name AS package_name 
-       FROM orders o 
-       JOIN gpu_packages g ON o.gpu_package_id = g.id 
+      `SELECT 
+         o.*, 
+         g.name AS package_name, 
+         p.proof_url, 
+         p.status AS payment_status, 
+         p.verified_by 
+       FROM orders o
+       JOIN gpu_packages g ON o.gpu_package_id = g.id
+       LEFT JOIN payments p ON p.order_id = o.id
        WHERE o.user_id = ?`,
       [req.user.id]
     );
@@ -25,6 +31,7 @@ export const getMyOrders = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve orders' });
   }
 };
+
 
 
 export const getGpuToken = async (req, res) => {

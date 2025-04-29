@@ -67,6 +67,7 @@ const AdminHeader = ({ onToggleSidebar, setToken}) => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setProfileDropdownOpen(false);
+                setIsOverlayVisible(false); // Pastikan overlay juga tertutup
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -74,8 +75,9 @@ const AdminHeader = ({ onToggleSidebar, setToken}) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [profileRef]);
+
     return (
-        <header className="bg-white shadow-sm p-5  flex justify-between items-center border-b border-gray-200">
+        <header className="bg-white shadow-sm p-5 flex justify-between items-center border-b border-gray-200">
             {isOverlayVisible && (
                 <div
                     className="fixed top-0 left-0 w-full h-full z-9" // Di bawah dropdown (z-index 10)
@@ -95,7 +97,7 @@ const AdminHeader = ({ onToggleSidebar, setToken}) => {
                 <h1 className="text-lg font-semibold text-indigo-700">Admin Dashboard</h1>
             </div>
 
-            <div className="relative mr-4">
+            <div className="relative mr-4" ref={profileRef}>
                 <button
                     onClick={toggleProfileDropdown}
                     className="flex items-center gap-2 focus:outline-none"
@@ -104,7 +106,7 @@ const AdminHeader = ({ onToggleSidebar, setToken}) => {
                     <FontAwesomeIcon icon={faCaretDown} className="text-gray-400" />
                 </button>
                 {profileDropdownOpen && (
-                    <div className="absolute top-10 right-0 bg-white border border-gray-200 rounded-md shadow-md w-40 z-10">
+                    <div className="absolute top-10 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-10 origin-top-right">
                         <button
                             onClick={handleRefreshToken}
                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none w-full text-left text-sm"

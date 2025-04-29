@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrashIcon, GiftIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, GiftIcon, PhotoIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 import { AiOutlineSortDescending, AiOutlineSortAscending } from "react-icons/ai";
 import {
@@ -12,12 +12,18 @@ import {
 } from 'react-shimmer-effects';
 
 const statusAlias = {
-    pending_payment: 'Pending Payment',
-    pending_approval: 'Pending Approval',
+    pending_payment: 'Pending',
+    pending_approval: 'Pending',
     approved: 'Approved',
     rejected: 'Rejected',
     active: 'Active',
     completed: 'Completed',
+};
+
+const paymentStatusAlias = {
+    pending: 'Pending',
+    paid: 'Paid',
+    rejected: 'Rejected',
 };
 
 const filterOptions = [
@@ -26,6 +32,7 @@ const filterOptions = [
     { value: 'total_cost', label: 'Harga' },
     { value: 'is_active', label: 'Status Token', hasSubOptions: true },
     { value: 'status', label: 'Status Pesanan', hasSubOptions: true },
+    { value: 'payment_status', label: 'Status Pembayaran', hasSubOptions: true },
     { value: 'created_at', label: 'Tanggal Pesan' },
 ];
 
@@ -57,6 +64,11 @@ const ListOrders = () => {
     const [isOpeningGift, setIsOpeningGift] = useState(false);
     const giftModalRef = useRef(null);
 
+    // Modal Edit Bukti Pembayaran
+    const [isEditProofModalOpen, setIsEditProofModalOpen] = useState(false);
+    const [selectedOrderForProof, setSelectedOrderForProof] = useState(null);
+    const [paymentProofFile, setPaymentProofFile] = useState(null);
+
     const fetchOrders = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -85,6 +97,12 @@ const ListOrders = () => {
     useEffect(() => {
         let results = [...orders];
 
+        if (searchQuery) {
+            results = results.filter(order =>
+                order.package_name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
         if (activeFilter) {
             const [filterKey, filterValue] = Object.entries(activeFilter)[0];
             if (filterKey === 'package_name') {
@@ -97,18 +115,20 @@ const ListOrders = () => {
                 results = results.filter(order => order.is_active === filterValue);
             } else if (filterKey === 'status') {
                 results = results.filter(order => order.status === filterValue);
+            } else if (filterKey === 'payment_status') {
+                results = results.filter(order => order.payment_status === filterValue);
             } else if (filterKey === 'created_at') {
                 results = results.sort((a, b) => sortDirection === 'asc' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at));
             }
-        } else {
-            // Default sort by created_at desc jika tidak ada filter aktif
+        } else if (!searchQuery) {
+            // Default sort by created_at desc jika tidak ada filter aktif dan tidak ada pencarian
             results = results.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
         setFilteredOrders(results);
         setCurrentPage(0);
-    }, [orders, activeFilter, sortDirection]);
-
+    }, [orders, activeFilter, sortDirection, searchQuery]);
+    
     useEffect(() => {
         setPageCount(Math.ceil(filteredOrders.length / itemsPerPage));
     }, [filteredOrders, itemsPerPage]);
@@ -199,6 +219,76 @@ const ListOrders = () => {
         setIsTokenModalOpen(false);
         setSelectedToken(null);
         setIsOpeningGift(false);
+    };
+
+    const openEditProofModal = (order) => {
+        setSelectedOrderForProof(order);
+        setPaymentProofFile(null);
+        setIsEditProofModalOpen(true);
+    };
+
+    const closeEditProofModal = () => {
+        setIsEditProofModalOpen(false);
+        setSelectedOrderForProof(null);
+        setPaymentProofFile(null);
+    };
+
+    const handlePaymentProofChange = (event) => {
+        const file = event.target.files[0];
+        setPaymentProofFile(file);
+    };
+
+    const handleUpdatePaymentProof = async () => {
+        if (!paymentProofFile || !selectedOrderForProof) {
+            Swal.fire('Peringatan!', 'Silakan pilih file bukti pembayaran.', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: 'Anda ingin memperbarui bukti pembayaran untuk pesanan ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Unggah!',
+            cancelButtonText: 'Batal',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('order_id', selectedOrderForProof.id);
+                formData.append('paymentProof', paymentProofFile);
+
+                try {
+                    const response = await fetch('http://localhost:4000/api/payment/orders/payment-proof', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Gagal mengunggah bukti pembayaran'}`);
+                    }
+
+                    Swal.fire(
+                        'Berhasil!',
+                        'Bukti pembayaran berhasil diunggah.',
+                        'success'
+                    ).then(() => {
+                        closeEditProofModal();
+                        fetchOrders();
+                    });
+                } catch (err) {
+                    Swal.fire(
+                        'Gagal!',
+                        'Terjadi kesalahan saat mengunggah bukti pembayaran.',
+                        'error'
+                    );
+                    console.error('Error updating payment proof:', err);
+                }
+            }
+        });
     };
 
     const startIndex = currentPage * itemsPerPage;
@@ -292,7 +382,7 @@ const ListOrders = () => {
                     </div>
                     <ShimmerButton size="sm" />
                 </div>
-                <ShimmerTable row={5} col={8} />
+                <ShimmerTable row={5} col={9} /> {/* Tambah 1 kolom untuk Bukti Pembayaran */}
                 <div className="mt-4 flex items-center justify-between">
                     <ShimmerText line={1} width={120} />
                     <div className="flex items-center space-x-2">
@@ -310,9 +400,7 @@ const ListOrders = () => {
 
     return (
         <div className="container mx-auto p-6">
-            <h2 className="text-2xl font-semibold mb-4">Daftar Pesanan Anda</h2>
-
-            <div className="mb-4 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
+            <h2 className="text-2xl font-semibold mb-4">Daftar Pesanan Anda</h2><div className="mb-4 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
                 <div className="flex items-center">
                     <label htmlFor="itemsPerPage" className="mr-2 text-gray-700">Tampilkan:</label>
                     <select
@@ -405,6 +493,20 @@ const ListOrders = () => {
                                                 ))}
                                             </div>
                                         )}
+                                        {openSubMenu === 'payment_status' && option.value === 'payment_status' && (
+                                            <div className="ml-2">
+                                                {Object.keys(paymentStatusAlias).map(pStatus => (
+                                                    <button
+                                                        key={pStatus}
+                                                        onClick={() => applySubFilter('payment_status', pStatus, `Status Pembayaran: ${paymentStatusAlias[pStatus]}`)}
+                                                        className={`block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-900 ${activeFilter && activeFilter.payment_status === pStatus ? 'bg-gray-100 font-semibold' : ''}`}
+                                                        role="menuitem"
+                                                    >
+                                                        {paymentStatusAlias[pStatus]}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -434,9 +536,11 @@ const ListOrders = () => {
                             <th className="px-5 py-3 text-left">Status</th>
                             <th className="px-5 py-3 text-left">Token</th>
                             <th className="px-5 py-3 text-left">Status Token</th>
+                            <th className="px-5 py-3 text-left">Status Pembayaran</th>
                             <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'created_at', label: 'Tanggal Pesan' })}>
                                 Tanggal Pesan {activeFilter && activeFilter.created_at !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
                             </th>
+                            <th className="px-5 py-3 text-left">Bukti Pembayaran</th>
                             <th className="px-5 py-3 text-left">Aksi</th>
                         </tr>
                     </thead>
@@ -473,8 +577,30 @@ const ListOrders = () => {
                                             {order.is_active ? 'Aktif' : 'Tidak Aktif'}
                                         </span>
                                     </td>
+                                    <td className="px-5 py-3 text-left">
+                                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${order.payment_status === 'pending' ? 'bg-yellow-200 text-yellow-700' :
+                                            order.payment_status === 'paid' ? 'bg-green-200 text-green-700' :
+                                                order.payment_status === 'rejected' ? 'bg-red-200 text-red-700' : 'bg-gray-200 text-gray-700'}`}>
+                                            {paymentStatusAlias[order.payment_status]}
+                                        </span>
+                                    </td>
                                     <td className="px-5 py-3 text-left">{new Date(order.created_at).toLocaleDateString()}</td>
                                     <td className="px-5 py-3 text-left">
+                                        {order.proof_url ? (
+                                            <button onClick={() => window.open(`http://localhost:4000/${order.proof_url}`, '_blank')} className="text-green-500 hover:text-green-700 focus:outline-none flex items-center">
+                                                <PhotoIcon className="h-5 w-5 inline-block mr-1" /> Lihat Bukti
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-500 italic">Belum diupload</span>
+                                        )}
+                                    </td>
+                                    <td className="px-5 py-3 text-left flex items-center">
+                                        <button
+                                            onClick={() => openEditProofModal(order)}
+                                            className="text-blue-500 hover:text-blue-700 focus:outline-none flex items-center mr-2"
+                                        >
+                                            <PencilSquareIcon className="h-5 w-5 inline-block" /> Edit
+                                        </button>
                                         <button
                                             onClick={() => handleDeleteOrder(order.id)}
                                             className="text-red-500 hover:text-red-700 focus:outline-none flex items-center"
@@ -485,7 +611,7 @@ const ListOrders = () => {
                                 </tr>
                             ))
                         ) : (
-                            <tr><td className="px-5 py-3 text-center" colSpan="8">Tidak ada pesanan ditemukan.</td></tr>
+                            <tr><td className="px-5 py-3 text-center" colSpan="10">Tidak ada pesanan ditemukan.</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -563,6 +689,56 @@ const ListOrders = () => {
                                     Tutup
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Bukti Pembayaran Modal */}
+            {isEditProofModalOpen && selectedOrderForProof && (
+                <div className="fixed z-50 inset-0 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            Unggah Bukti Pembayaran
+                        </h2>
+                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg className="w-8 h-8 mb-3 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                </svg>
+                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Klik untuk mengunggah</span> atau tarik dan lepas</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">(PNG, JPG)</p>
+                            </div>
+                            <input id="dropzone-file" type="file" className="hidden" onChange={handlePaymentProofChange} required />
+                        </label>
+
+                        {paymentProofFile && (
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium text-gray-700">Preview Bukti Pembayaran:</h3>
+                                <img
+                                    src={URL.createObjectURL(paymentProofFile)}
+                                    alt="Preview Bukti Pembayaran"
+                                    className="mt-2 rounded-md w-full h-auto max-h-48 object-cover"
+                                />
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                type="button"
+                                className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm mr-2"
+                                onClick={closeEditProofModal}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                                onClick={handleUpdatePaymentProof}
+                                disabled={!paymentProofFile}
+                            >
+                                Unggah
+                            </button>
                         </div>
                     </div>
                 </div>

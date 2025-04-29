@@ -221,7 +221,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                 >
                                     Login
                                 </NavLink>
-                                
+
                                 <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
                                     Hubungi Kami
                                 </button>
@@ -241,7 +241,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                     />
                                 </button>
                                 {profileDropdownOpen && (
-                                    <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-40 z-[1000]">
+                                    <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-[1000]">
                                         {user?.role === 'admin' && (
                                             <Link
                                                 to="/admin"
