@@ -16,6 +16,8 @@ import AdminPayments from './pages/admin/AdminPayments/AdminPayments';
 import AdminOrders from './pages/admin/AdminOrders/AdminOrders';
 import AdminSettings from './pages/admin/AdminSettings/AdminSettings';
 import AdminUbahPassword from './pages/admin/AdminUbahPassword/AdminUbahPassword';
+import FormPengisian from './pages/produklayanan/formPengisian/FormPengisian';
+import ListOrders from './pages/produklayanan/listOrder/ListOrders';
 
 function App() {
   const location = useLocation();
@@ -125,6 +127,16 @@ function App() {
             <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login-admin" element={<LoginAdminPage />} />
+            <Route path="/form-pengisian" element={
+              <ProtectedRoute isAuthenticated={isLoggedInApp}>
+                <FormPengisian />
+              </ProtectedRoute>
+            } />
+            <Route path="/listorders" element={
+              <ProtectedRoute isAuthenticated={isLoggedInApp}>
+                <ListOrders />
+              </ProtectedRoute>
+            } />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

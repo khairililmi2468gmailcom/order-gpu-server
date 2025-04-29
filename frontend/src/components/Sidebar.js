@@ -313,11 +313,11 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                                         My Profile
                                     </Link>
                                     <Link
-                                        to="/token-server"
+                                        to="/listorders"
                                         className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
                                         onClick={onClose}
                                     >
-                                        Token Server
+                                        List Orders
                                     </Link>
                                     <Link
                                         to="/settings"
