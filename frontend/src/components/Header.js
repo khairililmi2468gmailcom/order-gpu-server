@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faPhone, faCaretDown, faArrowRightLong, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faCaretDown, faArrowRightLong, faUserCircle, faBell } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from './Sidebar';
 import Swal from 'sweetalert2';
+import axios from 'axios';
+import NotificationDropdown from '../pages/notifikasi/NotificationDropdown';
 
 const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
@@ -29,6 +31,12 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     const profileRef = useRef(null);
     const langRef = useRef(null);
 
+    // notifikasi
+    const notificationRef = useRef(null); // Add ref for notification dropdown
+    const [notifications, setNotifications] = useState([]);  // State for notifications
+    const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false); // State for dropdown visibility
+
+
     // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -37,6 +45,9 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             }
             if (langRef.current && !langRef.current.contains(event.target)) {
                 setLanguageDropdownOpen(false);
+            }
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) { // Add this
+                setNotificationDropdownOpen(false);
             }
         };
 
@@ -122,6 +133,9 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
         if (languageDropdownOpen) {
             setLanguageDropdownOpen(false);
         }
+        if (notificationDropdownOpen) {
+            setNotificationDropdownOpen(false);
+        }
     };
 
 
@@ -148,6 +162,58 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
         }
         setLanguageDropdownOpen(!languageDropdownOpen);
     };
+
+    const toggleNotificationDropdown = () => {
+        setNotificationDropdownOpen(!notificationDropdownOpen);
+        if (profileDropdownOpen) {
+            setProfileDropdownOpen(false);
+        }
+        if (languageDropdownOpen) {
+            setLanguageDropdownOpen(false);
+        }
+    };
+
+    const fetchNotifications = useCallback(async () => {
+        if (isLoggedInLocal && user) {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/user/notifications`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                });
+                setNotifications(response.data);
+            } catch (error) {
+                console.error("Failed to fetch notifications:", error);
+                // Handle error (e.g., show error message)
+            }
+        }
+    }, [isLoggedInLocal, user]);
+
+    const handleReadNotification = async (id) => {
+        try {
+            await axios.put(`${process.env.REACT_APP_API_URL}/api/user/notifications/${id}/read`, {}, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            // Update state:
+            setNotifications(prevNotifications =>
+                prevNotifications.map(n =>
+                    n.id === id ? { ...n, status: 'read' } : n
+                )
+            );
+            // Fetch again to ensure consistency and get updated data
+            fetchNotifications();
+
+        } catch (error) {
+            console.error("Failed to mark notification as read:", error);
+            // Optionally, show an error message to the user
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
 
     const handleLogout = () => {
         Swal.fire({
@@ -188,7 +254,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                 {/* Desktop: Email & Telepon di kiri */}
                 <div className="w-full animate-slideDown flex flex-col md:flex-row items-start md:items-center justify-between">
                     {/* Kontak kiri desktop */}
-                    <div className="hidden md:flex items-center space-x-4 text-white font-bold">
+                    {/* <div className="hidden md:flex items-center space-x-4 text-white font-bold">
                         <div className="flex items-center text-sm">
                             <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
                             <span>info@usk.ac.id</span>
@@ -197,7 +263,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                             <FontAwesomeIcon icon={faPhone} className="mr-2" />
                             <span>+6221 230 2345</span>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Kontak kiri mobile */}
                     <div className="flex md:hidden items-center text-white">
@@ -227,87 +293,109 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                 </button>
                             </>
                         ) : (
-                            <div className="relative z-20" ref={profileRef}>
-                                <button
-                                    onClick={toggleProfileDropdown}
-                                    className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
-                                >
-                                    <FontAwesomeIcon icon={faUserCircle} className="text-xl" />
-                                    <span>Profile</span>
-                                    <FontAwesomeIcon
-                                        icon={faCaretDown}
-                                        className={`text-xs transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''
-                                            }`}
-                                    />
-                                </button>
-                                {profileDropdownOpen && (
-                                    <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-[1000]">
-                                        {user?.role === 'admin' && (
+                            <div className="flex items-center space-x-6">
+                                 <div className="relative z-20" ref={notificationRef}>
+                                    <button
+                                        onClick={toggleNotificationDropdown}
+                                        className="focus:outline-none text-white text-base font-bold relative"
+                                    >
+                                        <FontAwesomeIcon icon={faBell} className="text-xl" />
+                                        {notifications.filter(n => n.status === 'unread').length > 0 && (
+                                            <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
+                                                {notifications.filter(n => n.status === 'unread').length}
+                                            </span>
+                                        )}
+                                    </button>
+                                    {notificationDropdownOpen && (
+                                        <NotificationDropdown
+                                            notifications={notifications}
+                                            onRead={handleReadNotification}
+                                        />
+                                    )}
+                                </div>
+                                <div className="relative z-20" ref={profileRef}>
+                                    <button
+                                        onClick={toggleProfileDropdown}
+                                        className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
+                                    >
+                                        <FontAwesomeIcon icon={faUserCircle} className="text-xl" />
+                                        <span>Profile</span>
+                                        <FontAwesomeIcon
+                                            icon={faCaretDown}
+                                            className={`text-xs transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''
+                                                }`}
+                                        />
+                                    </button>
+                                    {profileDropdownOpen && (
+                                        <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-[1000]">
+                                            {user?.role === 'admin' && (
+                                                <Link
+                                                    to="/admin"
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                                >
+                                                    Dashboard
+                                                </Link>
+                                            )}
                                             <Link
-                                                to="/admin"
+                                                to="/profile"
                                                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
                                             >
-                                                Dashboard
+                                                My Profile
                                             </Link>
-                                        )}
-                                        <Link
-                                            to="/profile"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                        >
-                                            My Profile
-                                        </Link>
-                                        <Link
-                                            to="/listorders"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                        >
-                                            List Order
-                                        </Link>
-                                        <Link
-                                            to="/ubahpassword"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                        >
-                                            Ubah Password
-                                        </Link>
-                                        <button
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            onClick={handleLogout}
-                                        >
-                                            Logout
-                                        </button>
-                                    </div>
-                                )}
+                                            <Link
+                                                to="/listorders"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                List Order
+                                            </Link>
+                                            <Link
+                                                to="/ubahpassword"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                Ubah Password
+                                            </Link>
+                                            <button
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                                onClick={handleLogout}
+                                            >
+                                                Logout
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="relative" ref={langRef}
+                                    onMouseLeave={() => setTimeout(() => setLanguageDropdownOpen(false), 1000)}>
+                                    <button
+                                        onClick={toggleLanguageDropdown}
+                                        className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
+                                    >
+                                        {selectedLanguage === 'ID' ? '🇮🇩' : '🇺🇸'}
+                                        <span>{selectedLanguage}</span>
+                                        <FontAwesomeIcon icon={faCaretDown} className="text-xs" />
+                                    </button>
+                                    {languageDropdownOpen && (
+                                        <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md z-10 px-2 py-1">
+                                            <button
+                                                onClick={() => handleLanguageSelect('ID')}
+                                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                <span>🇮🇩</span>
+                                                <span>ID</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleLanguageSelect('EN')}
+                                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                <span>🇺🇸</span>
+                                                <span>EN</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        <div className="relative" ref={langRef}
-                            onMouseLeave={() => setTimeout(() => setLanguageDropdownOpen(false), 1000)}>
-                            <button
-                                onClick={toggleLanguageDropdown}
-                                className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
-                            >
-                                {selectedLanguage === 'ID' ? '🇮🇩' : '🇺🇸'}
-                                <span>{selectedLanguage}</span>
-                                <FontAwesomeIcon icon={faCaretDown} className="text-xs" />
-                            </button>
-                            {languageDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md z-10 px-2 py-1">
-                                    <button
-                                        onClick={() => handleLanguageSelect('ID')}
-                                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                    >
-                                        <span>🇮🇩</span>
-                                        <span>ID</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleLanguageSelect('EN')}
-                                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                    >
-                                        <span>🇺🇸</span>
-                                        <span>EN</span>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
             </div>
