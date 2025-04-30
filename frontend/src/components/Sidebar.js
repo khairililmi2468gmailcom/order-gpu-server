@@ -352,41 +352,6 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                         Hubungi Kami
                     </Link>
 
-                    {/* Dropdown Bahasa */}
-                    <div className="relative mt-2">
-                        <button
-                            onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                            className="flex items-center space-x-2 focus:outline-none text-gray-700 py-2 px-4 w-full text-left"
-                        >
-                            <span className="text-lg">
-                                {selectedLanguage === 'ID' ? '🇮🇩' : '🇺🇸'}
-                            </span>
-                            <span>{selectedLanguage}</span>
-                            <FontAwesomeIcon icon={languageDropdownOpen ? faCaretUp : faCaretDown} className="text-xs" />
-                        </button>
-                        {languageDropdownOpen && (
-                            <div className="ml-4 mt-1">
-                                <button
-                                    onClick={() => {
-                                        handleLanguageSelect('ID');
-                                        onClose();
-                                    }}
-                                    className="block px-4 py-2 text-gray-700 hover:text-blue-500 transition duration-300 w-full text-left"
-                                >
-                                    🇮🇩 ID
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        handleLanguageSelect('EN');
-                                        onClose();
-                                    }}
-                                    className="block px-4 py-2 text-gray-700 hover:text-blue-500 transition duration-300 w-full text-left"
-                                >
-                                    🇺🇸 EN
-                                </button>
-                            </div>
-                        )}
-                    </div>
                 </div>
             </div>
         </>

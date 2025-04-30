@@ -254,9 +254,10 @@ const Beranda = () => {
         className={`py-16 bg-gray-50 transition-opacity duration-700 delay-200 ${isSolusiVisible ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Solusi Kami</h2>
+          <h2 className="lg:text-5xl text-3xl text-black font-bold mb-4">Solusi Kami</h2>
           {/* Isi bagian solusi di sini */}
-          <p className='mb-8'>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
+          <p className='mb-8 text-gray-600 text-sm lg:text-xl'>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
+      
           <FileSolusi />
         </div>
       </section>
@@ -268,9 +269,10 @@ const Beranda = () => {
         className={`bg-white py-16 transition-opacity duration-700 delay-300 ${isTentangVisible ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Tentang Kami</h2>
+          <h2 className="lg:text-5xl text-3xl font-bold mb-4">Tentang Kami</h2>
           {/* Isi bagian tentang kami di sini */}
-          <p className='mb-8'>Lebih lanjut tentang perusahaan dan visi kami.</p>
+          <p className='mb-8 text-gray-600 lg:text-xl text-sm'>Lebih lanjut tentang perusahaan dan visi kami.</p>
+          
           <TentangKami />
         </div>
       </section>

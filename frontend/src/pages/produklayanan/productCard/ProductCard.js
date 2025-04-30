@@ -217,7 +217,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                     opacity: isCtaVisible ? 1 : 0
                 }}>
                 <h2 className="lg:text-5xl text-3xl  font-bold text-black">Produk dan Layanan Kami</h2>
-                <p className="mt-2 text-gray-600 text-sm">Jelajahi ragam layanan Teknologi Informasi dan Komunikasi inovatif dari kami untuk berbagai pilihan industri.</p>
+                <p className="mt-2 text-gray-600 text-sm lg:text-xl">Jelajahi ragam layanan Teknologi Informasi dan Komunikasi inovatif dari kami untuk berbagai pilihan industri.</p>
             </div>
             <div ref={ctaRef} className="mb-4 flex justify-end items-center space-x-4 transition-all duration-700 translate-y-6 opacity-5"
                 style={{

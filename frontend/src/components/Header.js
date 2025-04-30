@@ -74,7 +74,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             const isScrollingDown = currentScrollY > lastScrollY;
             const isDesktop = screenWidth >= desktopBreakpoint;
             const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
-            const desktopTranslateY = -contactBarHeight;
+            const desktopTranslateY = -contactBarHeight + 15;
             const mobileTranslateY = -contactBarHeight + 20;
             const mediumTranslateY = -contactBarHeight;
 
@@ -359,36 +359,6 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                                 onClick={handleLogout}
                                             >
                                                 Logout
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="relative" ref={langRef}
-                                    onMouseLeave={() => setTimeout(() => setLanguageDropdownOpen(false), 1000)}>
-                                    <button
-                                        onClick={toggleLanguageDropdown}
-                                        className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
-                                    >
-                                        {selectedLanguage === 'ID' ? '🇮🇩' : '🇺🇸'}
-                                        <span>{selectedLanguage}</span>
-                                        <FontAwesomeIcon icon={faCaretDown} className="text-xs" />
-                                    </button>
-                                    {languageDropdownOpen && (
-                                        <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md z-10 px-2 py-1">
-                                            <button
-                                                onClick={() => handleLanguageSelect('ID')}
-                                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            >
-                                                <span>🇮🇩</span>
-                                                <span>ID</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleLanguageSelect('EN')}
-                                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            >
-                                                <span>🇺🇸</span>
-                                                <span>EN</span>
                                             </button>
                                         </div>
                                     )}
