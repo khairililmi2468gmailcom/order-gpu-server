@@ -7,7 +7,7 @@ import { faFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-400 text-white py-16 px-5 sm:px-16 md:px-24 lg:px-72">
+    <footer className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-400 text-white py-16 px-5 sm:px-16 md:px-24 lg:px-72 lg:mt-8 mt-0">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Logo dan Deskripsi */}
         <div className="flex flex-col items-start">

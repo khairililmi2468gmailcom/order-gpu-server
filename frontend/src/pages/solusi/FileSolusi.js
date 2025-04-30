@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileAlt, faLightbulb, faChartBar, faUsers, faArrowRight } from '@fortawesome/free-solid-svg-icons';
@@ -7,17 +7,19 @@ import { ShimmerThumbnail, ShimmerTitle, ShimmerButton } from 'react-shimmer-eff
 
 const FileSolusi = () => {
     const [solusiRef, isSolusiVisible] = useFadeInOnScroll({ threshold: 0.2 });
-    const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = useState(true); // Inisialisasi loading menjadi true
+    const [contentLoaded, setContentLoaded] = useState(false); // State untuk menandakan konten selesai di-load pertama kali
 
-    React.useEffect(() => {
-        if (isSolusiVisible) {
-            setLoading(true);
+    useEffect(() => {
+        // Efek untuk loading awal
+        if (loading) {
             const timer = setTimeout(() => {
                 setLoading(false);
-            }, 500);
+                setContentLoaded(true); // Set konten selesai di-load
+            }, 1000); // Durasi shimmer loading awal
             return () => clearTimeout(timer);
         }
-    }, [isSolusiVisible]);
+    }, [loading]); // Hanya berjalan saat 'loading' berubah (dari true ke false)
 
     const handleSewaGPUClick = (e) => {
         e.preventDefault();
@@ -44,7 +46,6 @@ const FileSolusi = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 sm:px-8 md:px-16 lg:px-32">
-                        {/* ... Bagian fitur seperti sebelumnya ... */}
                         <div className="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition-shadow duration-300 border-b-4 border-primary">
                             <div className="w-16 h-16 mx-auto rounded-full bg-primary text-white flex items-center justify-center mb-4">
                                 <FontAwesomeIcon icon={faFileAlt} size="2x" />
@@ -101,14 +102,14 @@ const FileSolusi = () => {
 
                 <div className="mt-16 bg-secondary rounded-xl py-12 px-8 sm:px-16">
                     {loading ? (
-                        <div className="flex flex-col items-center"> {/* Pusatkan elemen shimmer */}
-                            <ShimmerTitle className="mb-4" line={2} variant="primary" /> {/* Gunakan variant primary agar warnanya sama */}
-                            <div className="w-3/4 mb-6"> {/* Atur lebar shimmer deskripsi */}
+                        <div className="flex flex-col items-center">
+                            <ShimmerTitle className="mb-4" line={2} variant="secondary" />
+                            <div className="w-3/4 mb-6">
                                 <ShimmerThumbnail height={15} rounded />
                                 <ShimmerThumbnail height={15} className="mt-2" rounded />
                                 <ShimmerThumbnail height={15} className="mt-2" rounded />
                             </div>
-                            <ShimmerButton size="lg" className="mt-4" /> {/* Tambahkan margin atas pada tombol */}
+                            <ShimmerButton size="lg" className="mt-4" />
                         </div>
                     ) : (
                         <>

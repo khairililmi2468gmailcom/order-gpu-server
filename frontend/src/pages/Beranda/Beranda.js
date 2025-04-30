@@ -14,42 +14,37 @@ const slidesData = [
     title: 'Pilihan GPU Terlengkap',
     description: 'Temukan berbagai pilihan GPU terbaru dan terbaik untuk kebutuhan komputasi Anda.',
     buttonText: 'Lihat Semua GPU',
-    link: '/gpu'
+    // link: '#produk-layanan-section' // Anda bisa hapus ini
   },
   {
     imageUrl: '/images/landing/2.jpg',
     title: 'Performa Terbaik untuk Gaming',
     description: 'Tingkatkan pengalaman gaming Anda dengan GPU berperforma tinggi dari merek terkemuka.',
     buttonText: 'GPU Gaming',
-    link: '/gpu/gaming'
+    // link: '#produk-layanan-section' // Anda bisa hapus ini
   },
   {
     imageUrl: '/images/landing/3.jpg',
     title: 'GPU untuk Profesional Kreatif',
     description: 'Dapatkan GPU yang mendukung kinerja optimal untuk desain grafis, video editing, dan rendering 3D.',
     buttonText: 'GPU Workstation',
-    link: '/gpu/workstation'
+    // link: '#produk-layanan-section' // Anda bisa hapus ini
   },
   {
     imageUrl: '/images/landing/4.jpg',
     title: 'Penawaran dan Diskon Spesial Hari Ini',
     description: 'Jangan lewatkan promo menarik dan diskon khusus untuk berbagai jenis GPU pilihan.',
     buttonText: 'Promo Terbaru',
-    link: '/promo'
+    // link: '#produk-layanan-section' // Anda bisa hapus ini
   }
 ];
 const Beranda = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animate, setAnimate] = useState(false);
-  // const textRef = useRef(null);
-  // const descriptionRef = useRef(null);
-  // const buttonRef = useRef(null);
   const prevButtonRef = useRef(null);
   const nextButtonRef = useRef(null);
   const dotsRef = useRef([]);
-  // const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
-  // const solusiRef = useRef(null);
-  // const tentangKamiRef = useRef(null);
+  const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [produkRef, isProdukVisible] = useFadeInOnScroll();
   const [solusiRef, isSolusiVisible] = useFadeInOnScroll();
@@ -65,7 +60,7 @@ const Beranda = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > window.innerHeight / 2) { // kalau sudah scroll lebih dari setengah layar
+      if (window.scrollY > window.innerHeight / 2) {
         setShowScrollTop(true);
       } else {
         setShowScrollTop(false);
@@ -80,6 +75,9 @@ const Beranda = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const scrollToProdukLayanan = () => {
+    produkLayananRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const goToPreviousSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
@@ -99,19 +97,18 @@ const Beranda = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       goToNextSlide();
-    }, 5000); // Ganti gambar setiap 5 detik
+    }, 5000);
 
-    return () => clearInterval(intervalId); // Membersihkan interval saat komponen unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
     setAnimate(true);
     const timeoutId = setTimeout(() => {
       setAnimate(false);
-    }, 500); // Durasi animasi
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [currentIndex]);
-
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -124,10 +121,8 @@ const Beranda = () => {
       }
     };
 
-    // Jalankan saat pertama load
     handleHashChange();
 
-    // Tambahkan event listener untuk perubahan hash
     window.addEventListener('hashchange', handleHashChange);
 
     return () => {
@@ -135,14 +130,13 @@ const Beranda = () => {
     };
   }, []);
 
-
   const handleIntersection = (entry) => {
     setIsVisible(entry.isIntersecting);
   };
   useIntersectionObserver({
     target: landingRef,
     onIntersect: handleIntersection,
-    threshold: 0.5 // Sesuaikan threshold sesuai kebutuhan
+    threshold: 0.5
   });
 
   return (
@@ -155,10 +149,9 @@ const Beranda = () => {
               className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
                 }`}
             >
-              {/* Lapisan Warna dengan Opasitas */}
               {index === currentIndex && (
                 <div
-                  className="absolute top-0 left-0 w-full h-full  opacity-20 z-1" // Ubah opacity sesuai keinginan Anda
+                  className="absolute top-0 left-0 w-full h-full  opacity-20 z-1"
                 />
               )}
               <div
@@ -168,7 +161,7 @@ const Beranda = () => {
 
               <div
                 className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 slide-content ${index === currentIndex ? 'slide-active' : ''
-                  } ${isVisible ? 'slide-in' : 'slide-out'}`} // Tambahkan kelas animasi berdasarkan visibilitas
+                  } ${isVisible ? 'slide-in' : 'slide-out'}`}
               >
                 <h2
                   className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none transition-all duration-700 delay-150"
@@ -193,6 +186,7 @@ const Beranda = () => {
                 </p>
 
                 <button
+                  onClick={scrollToProdukLayanan} // Tambahkan onClick handler di sini
                   className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition-all duration-700 delay-500"
                   style={{
                     opacity: index === currentIndex ? 1 : 0,
@@ -241,7 +235,7 @@ const Beranda = () => {
       </section>
       {/* Bagian Produk & Layanan */}
       <section
-        ref={produkRef} // Gunakan ref dari hook
+        ref={produkLayananRef} // Pastikan ref ini ada di sini
         id="produk-layanan-section"
         className={`py-16 bg-gray-100 transition-opacity duration-700 ${isProdukVisible ? 'opacity-100' : 'opacity-0'}`}
       >
@@ -257,7 +251,7 @@ const Beranda = () => {
           <h2 className="lg:text-5xl text-3xl text-black font-bold mb-4">Solusi Kami</h2>
           {/* Isi bagian solusi di sini */}
           <p className='mb-8 text-gray-600 text-sm lg:text-xl'>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
-      
+
           <FileSolusi />
         </div>
       </section>
@@ -272,7 +266,7 @@ const Beranda = () => {
           <h2 className="lg:text-5xl text-3xl font-bold mb-4">Tentang Kami</h2>
           {/* Isi bagian tentang kami di sini */}
           <p className='mb-8 text-gray-600 lg:text-xl text-sm'>Lebih lanjut tentang perusahaan dan visi kami.</p>
-          
+
           <TentangKami />
         </div>
       </section>

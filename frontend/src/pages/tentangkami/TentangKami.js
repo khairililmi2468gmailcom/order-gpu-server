@@ -9,6 +9,7 @@ import CallToActionSection from './components/CallToActionSection';
 
 const TentangKami = () => {
     const [loading, setLoading] = useState(true);
+    const [contentLoaded, setContentLoaded] = useState(false);
     const [tentangRef, isTentangVisible] = useFadeInOnScroll({ threshold: 0.2 });
     const [visitorCountVisible, setVisitorCountVisible] = useState(false);
     const [accordionStates, setAccordionStates] = useState({
@@ -27,18 +28,25 @@ const TentangKami = () => {
     };
 
     useEffect(() => {
-        if (isTentangVisible) {
-            setLoading(true);
+        // Efek untuk loading awal
+        if (loading) {
             setVisitorCountVisible(true);
             const timer = setTimeout(() => {
-                setLoading(false);
-            }, 200);
+                setLoading(false); 
+                setVisitorCountVisible(false);
+            }, 1500); // Durasi shimmer loading awal
             return () => clearTimeout(timer);
-        } else {
-            setLoading(true);
+        }
+    }, [loading]); // Hanya berjalan saat 'loading' berubah (dari true ke false)
+
+    useEffect(() => {
+        if (isTentangVisible && !loading) {
+            setVisitorCountVisible(true);
+        } else if (!loading) {
             setVisitorCountVisible(false);
         }
-    }, [isTentangVisible]);
+    }, [isTentangVisible, loading]);
+
 
     const handleSewaGPUClick = (e) => {
         e.preventDefault();
