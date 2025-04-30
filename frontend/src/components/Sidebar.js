@@ -204,6 +204,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
         });
     };
 
+ 
     return (
         <>
             {/* Overlay */}
@@ -284,6 +285,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                     {/* Bagian bawah tetap */}
                     {isLoggedIn ? (
                         <div className="relative" ref={profileDropdownRef}>
+                            
                             <button
                                 onClick={toggleProfileDropdown}
                                 className="flex items-center space-x-2 focus:outline-none text-gray-700 py-2 px-4 w-full text-left hover:bg-gray-100 rounded-md transition duration-300"
@@ -333,6 +335,7 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                                         Logout
                                     </button>
                                 </div>
+                                
                             )}
                         </div>
                     ) : (

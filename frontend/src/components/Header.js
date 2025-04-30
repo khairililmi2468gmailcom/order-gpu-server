@@ -294,7 +294,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                             </>
                         ) : (
                             <div className="flex items-center space-x-6">
-                                 <div className="relative z-20" ref={notificationRef}>
+                                <div className="relative z-20" ref={notificationRef}>
                                     <button
                                         onClick={toggleNotificationDropdown}
                                         className="focus:outline-none text-white text-base font-bold relative"
@@ -690,16 +690,35 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
 
                     {/* Hamburger Menu (Mobile) */}
                     <div className="md:hidden">
-                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none text-white">
-                            {/* Icon Hamburger (Anda perlu menginstal dan mengimpor icon hamburger) */}
-                            <svg className="w-6 h-6 fill-black" viewBox="0 0 24 24">
-                                {mobileMenuOpen ? (
-                                    <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 0 1 1.414 1.414l-4.828 4.829z" />
-                                ) : (
-                                    <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2z" />
+                        <div className='flex items-center min-w-full'>
+                            <button
+                                onClick={toggleNotificationDropdown}
+                                className="focus:outline-none text-black text-base font-bold relative mr-4" // Tambahkan mr-4 untuk margin kanan
+                            >
+                                <FontAwesomeIcon icon={faBell} className="text-xl" />
+                                {notifications.filter(n => n.status === 'unread').length > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
+                                        {notifications.filter(n => n.status === 'unread').length}
+                                    </span>
                                 )}
-                            </svg>
-                        </button>
+                            </button>
+                            {notificationDropdownOpen && (
+                                <NotificationDropdown
+                                    notifications={notifications}
+                                    onRead={handleReadNotification}
+                                />
+                            )}
+                            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none text-white">
+                                {/* Icon Hamburger */}
+                                <svg className="w-6 h-6 fill-black" viewBox="0 0 24 24">
+                                    {mobileMenuOpen ? (
+                                        <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 0 1 1.414 1.414l-4.828 4.829z" />
+                                    ) : (
+                                        <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2z" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -710,6 +729,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                 setLanguageDropdownOpen={setLanguageDropdownOpen}
                 selectedLanguage={selectedLanguage}
                 handleLanguageSelect={handleLanguageSelect}
+                setNotificationDropdownOpen={setNotificationDropdownOpen}
+                notificationDropdownOpen={notificationDropdownOpen}
                 isLoggedIn={isLoggedIn}
                 onLogout={onLogout}
                 user={user}

@@ -4,6 +4,9 @@ import ProdukLayananSection from '../produklayanan/ProdukLayanan';
 import { faArrowUpLong } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useFadeInOnScroll } from '../../hooks/useFadeInOnScrool';
+import FileSolusi from '../solusi/FileSolusi';
+import TentangKami from '../tentangkami/TentangKami';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver'; // Asumsi path hook
 
 const slidesData = [
   {
@@ -52,6 +55,8 @@ const Beranda = () => {
   const [solusiRef, isSolusiVisible] = useFadeInOnScroll();
   const [tentangRef, isTentangVisible] = useFadeInOnScroll();
   const [isMounted, setIsMounted] = useState(false);
+  const landingRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -130,9 +135,19 @@ const Beranda = () => {
     };
   }, []);
 
+
+  const handleIntersection = (entry) => {
+    setIsVisible(entry.isIntersecting);
+  };
+  useIntersectionObserver({
+    target: landingRef,
+    onIntersect: handleIntersection,
+    threshold: 0.5 // Sesuaikan threshold sesuai kebutuhan
+  });
+
   return (
     <>
-      <section id="landing">
+      <section id="landing" ref={landingRef}>
         <div className={`relative w-full lg:h-[700px] h-[500px] overflow-hidden ${isMounted ? 'mounted' : ''}`}>
           {slidesData.map((slide, index) => (
             <div
@@ -153,7 +168,7 @@ const Beranda = () => {
 
               <div
                 className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 slide-content ${index === currentIndex ? 'slide-active' : ''
-                  }`}
+                  } ${isVisible ? 'slide-in' : 'slide-out'}`} // Tambahkan kelas animasi berdasarkan visibilitas
               >
                 <h2
                   className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none transition-all duration-700 delay-150"
@@ -236,12 +251,13 @@ const Beranda = () => {
       <section
         ref={solusiRef} // Gunakan ref dari hook
         id="solusi-section"
-        className={`py-16 bg-gray-100 transition-opacity duration-700 delay-200 ${isSolusiVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`py-16 bg-gray-50 transition-opacity duration-700 delay-200 ${isSolusiVisible ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8">Solusi Kami</h2>
+          <h2 className="text-3xl font-bold mb-4">Solusi Kami</h2>
           {/* Isi bagian solusi di sini */}
-          <p>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
+          <p className='mb-8'>Berbagai solusi inovatif untuk kebutuhan bisnis Anda.</p>
+          <FileSolusi />
         </div>
       </section>
 
@@ -249,12 +265,13 @@ const Beranda = () => {
       <section
         ref={tentangRef} // Gunakan ref dari hook
         id="tentang-kami-section"
-        className={`py-16 transition-opacity duration-700 delay-300 ${isTentangVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`bg-white py-16 transition-opacity duration-700 delay-300 ${isTentangVisible ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8">Tentang Kami</h2>
+          <h2 className="text-3xl font-bold mb-4">Tentang Kami</h2>
           {/* Isi bagian tentang kami di sini */}
-          <p>Lebih lanjut tentang perusahaan dan visi kami.</p>
+          <p className='mb-8'>Lebih lanjut tentang perusahaan dan visi kami.</p>
+          <TentangKami />
         </div>
       </section>
       {showScrollTop && (

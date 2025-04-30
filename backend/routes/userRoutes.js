@@ -7,6 +7,7 @@ import { getAllPackages, getPackageById } from '../controllers/packageController
 import { getGpuToken } from '../controllers/userController.js';
 import { uploadPaymentProof } from '../controllers/paymentController.js';
 import { getNotifications, markNotificationAsRead } from '../controllers/notificationController.js';
+import { getTodayVisitors, getTotalVisitors, recordVisit } from '../controllers/visitorController.js';
 
 const router = express.Router();
 router.get('/packages', getAllPackages);
@@ -19,4 +20,8 @@ router.put('/profile', authenticate, updateProfile);
 router.put('/profile/password', authenticate, updatePassword);
 router.get('/notifications', authenticate, getNotifications);
 router.put('/notifications/:id/read', authenticate, markNotificationAsRead);
+router.post('/visitors', recordVisit);
+router.get('/visitors/today', getTodayVisitors);
+router.get('/visitors/total', getTotalVisitors);
+
 export default router;

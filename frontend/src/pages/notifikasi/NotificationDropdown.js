@@ -72,7 +72,7 @@ const NotificationDropdown = ({ notifications, onRead }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg w-96 z-50 overflow-hidden min-w-[320px]"
+            className="absolute lg:top-full top-16 lg:right-0 right-1 mt-2 bg-white border border-gray-200 rounded-md shadow-lg w-96 z-50 overflow-hidden min-w-[300px]"
         >
             <AnimatePresence mode="wait">
                 {!isViewingDetails && (

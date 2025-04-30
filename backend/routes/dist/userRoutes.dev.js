@@ -19,6 +19,8 @@ var _paymentController = require("../controllers/paymentController.js");
 
 var _notificationController = require("../controllers/notificationController.js");
 
+var _visitorController = require("../controllers/visitorController.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 // src/routes/userRoutes.js
@@ -34,5 +36,8 @@ router.put('/profile', _auth.authenticate, _userController.updateProfile);
 router.put('/profile/password', _auth.authenticate, _userController.updatePassword);
 router.get('/notifications', _auth.authenticate, _notificationController.getNotifications);
 router.put('/notifications/:id/read', _auth.authenticate, _notificationController.markNotificationAsRead);
+router.post('/visitors', _visitorController.recordVisit);
+router.get('/visitors/today', _visitorController.getTodayVisitors);
+router.get('/visitors/total', _visitorController.getTotalVisitors);
 var _default = router;
 exports["default"] = _default;

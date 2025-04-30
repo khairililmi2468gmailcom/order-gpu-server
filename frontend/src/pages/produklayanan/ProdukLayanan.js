@@ -10,16 +10,17 @@ const ProdukLayananSection = React.forwardRef((props, ref) => {
 
     return (
         <>
-            
-            <section
-                ref={ctaRef}
-                id="produk-layanan-section"
-                className="py-16 px-4  sm:px-6 lg:px-64 bg-gray-100">
-                <ProductCard />
-            </section>
-            <section className="py-16 px-4  sm:px-6 lg:px-64">
-                <AboutProdukLayanan />
-            </section>
+            <div className=' px-5 '>
+                <section
+                    ref={ctaRef}
+                    id="produk-layanan-section"
+                    className="py-16 px-4  sm:px-6 lg:px-64 bg-gray-100">
+                    <ProductCard />
+                </section>
+                <section className="py-16 px-4  sm:px-6 lg:px-64">
+                    <AboutProdukLayanan />
+                </section>
+            </div>
         </>
     );
 });
