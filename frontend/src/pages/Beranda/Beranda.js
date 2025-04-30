@@ -7,6 +7,7 @@ import { useFadeInOnScroll } from '../../hooks/useFadeInOnScrool';
 import FileSolusi from '../solusi/FileSolusi';
 import TentangKami from '../tentangkami/TentangKami';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver'; // Asumsi path hook
+import { Link } from 'react-router-dom';
 
 const slidesData = [
   {
@@ -14,37 +15,42 @@ const slidesData = [
     title: 'Pilihan GPU Terlengkap',
     description: 'Temukan berbagai pilihan GPU terbaru dan terbaik untuk kebutuhan komputasi Anda.',
     buttonText: 'Lihat Semua GPU',
-    // link: '#produk-layanan-section' // Anda bisa hapus ini
+    link: '/gpu'
   },
   {
     imageUrl: '/images/landing/2.jpg',
     title: 'Performa Terbaik untuk Gaming',
     description: 'Tingkatkan pengalaman gaming Anda dengan GPU berperforma tinggi dari merek terkemuka.',
     buttonText: 'GPU Gaming',
-    // link: '#produk-layanan-section' // Anda bisa hapus ini
+    link: '/gpu/gaming'
   },
   {
     imageUrl: '/images/landing/3.jpg',
     title: 'GPU untuk Profesional Kreatif',
     description: 'Dapatkan GPU yang mendukung kinerja optimal untuk desain grafis, video editing, dan rendering 3D.',
     buttonText: 'GPU Workstation',
-    // link: '#produk-layanan-section' // Anda bisa hapus ini
+    link: '/gpu/workstation'
   },
   {
     imageUrl: '/images/landing/4.jpg',
     title: 'Penawaran dan Diskon Spesial Hari Ini',
     description: 'Jangan lewatkan promo menarik dan diskon khusus untuk berbagai jenis GPU pilihan.',
     buttonText: 'Promo Terbaru',
-    // link: '#produk-layanan-section' // Anda bisa hapus ini
+    link: '/promo'
   }
 ];
 const Beranda = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animate, setAnimate] = useState(false);
+  // const textRef = useRef(null);
+  // const descriptionRef = useRef(null);
+  // const buttonRef = useRef(null);
   const prevButtonRef = useRef(null);
   const nextButtonRef = useRef(null);
   const dotsRef = useRef([]);
-  const produkLayananRef = useRef(null); // Ref untuk ProdukLayananSection
+  // const produkLayananRef = useRef(null);
+  // const solusiRef = useRef(null);
+  // const tentangKamiRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [produkRef, isProdukVisible] = useFadeInOnScroll();
   const [solusiRef, isSolusiVisible] = useFadeInOnScroll();
@@ -60,7 +66,7 @@ const Beranda = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > window.innerHeight / 2) {
+      if (window.scrollY > window.innerHeight / 2) { // kalau sudah scroll lebih dari setengah layar
         setShowScrollTop(true);
       } else {
         setShowScrollTop(false);
@@ -75,9 +81,6 @@ const Beranda = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToProdukLayanan = () => {
-    produkLayananRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   const goToPreviousSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
@@ -94,21 +97,26 @@ const Beranda = () => {
     setAnimate(true);
   };
 
+  const handleButtonClick = () => {
+    produkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       goToNextSlide();
-    }, 5000);
+    }, 5000); // Ganti gambar setiap 5 detik
 
-    return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId); // Membersihkan interval saat komponen unmount
   }, []);
 
   useEffect(() => {
     setAnimate(true);
     const timeoutId = setTimeout(() => {
       setAnimate(false);
-    }, 500);
+    }, 500); // Durasi animasi
     return () => clearTimeout(timeoutId);
   }, [currentIndex]);
+
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -121,8 +129,10 @@ const Beranda = () => {
       }
     };
 
+    // Jalankan saat pertama load
     handleHashChange();
 
+    // Tambahkan event listener untuk perubahan hash
     window.addEventListener('hashchange', handleHashChange);
 
     return () => {
@@ -130,13 +140,14 @@ const Beranda = () => {
     };
   }, []);
 
+
   const handleIntersection = (entry) => {
     setIsVisible(entry.isIntersecting);
   };
   useIntersectionObserver({
     target: landingRef,
     onIntersect: handleIntersection,
-    threshold: 0.5
+    threshold: 0.5 // Sesuaikan threshold sesuai kebutuhan
   });
 
   return (
@@ -149,9 +160,10 @@ const Beranda = () => {
               className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
                 }`}
             >
+              {/* Lapisan Warna dengan Opasitas */}
               {index === currentIndex && (
                 <div
-                  className="absolute top-0 left-0 w-full h-full  opacity-20 z-1"
+                  className="absolute top-0 left-0 w-full h-full  opacity-20 z-1" // Ubah opacity sesuai keinginan Anda
                 />
               )}
               <div
@@ -161,7 +173,7 @@ const Beranda = () => {
 
               <div
                 className={`absolute top-1/2 left-5 md:left-10 -translate-y-1/2 text-white z-20 p-5 md:p-12 lg:p-24 xl:p-72 slide-content ${index === currentIndex ? 'slide-active' : ''
-                  } ${isVisible ? 'slide-in' : 'slide-out'}`}
+                  } ${isVisible ? 'slide-in' : 'slide-out'}`} // Tambahkan kelas animasi berdasarkan visibilitas
               >
                 <h2
                   className="text-2xl md:text-7xl max-w-sm md:max-w-5xl font-bold select-none transition-all duration-700 delay-150"
@@ -186,8 +198,7 @@ const Beranda = () => {
                 </p>
 
                 <button
-                  onClick={scrollToProdukLayanan} // Tambahkan onClick handler di sini
-                  className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition-all duration-700 delay-500"
+                  onClick={handleButtonClick} className="mt-4 bg-white text-secondary shadow-md rounded-full px-6 py-2 text-sm md:px-8 md:py-2.5 md:text-base font-bold hover:bg-gray-100 transition-all duration-700 delay-500"
                   style={{
                     opacity: index === currentIndex ? 1 : 0,
                     transform: index === currentIndex ? 'translateY(0)' : 'translateY(20px)',
@@ -235,7 +246,7 @@ const Beranda = () => {
       </section>
       {/* Bagian Produk & Layanan */}
       <section
-        ref={produkLayananRef} // Pastikan ref ini ada di sini
+        ref={produkRef} // Gunakan ref dari hook
         id="produk-layanan-section"
         className={`py-16 bg-gray-100 transition-opacity duration-700 ${isProdukVisible ? 'opacity-100' : 'opacity-0'}`}
       >
