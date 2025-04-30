@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PaymentModal from './PaymentModal';
 import Swal from 'sweetalert2';
-import { Pencil, Zap, CheckCircle } from 'lucide-react';
+import { Pencil, Zap, CheckCircle, Send } from 'lucide-react';
+import loadingGif from '../../../assets/GIF/loading.gif';
 
-const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
+const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const isPaymentVerified = order.payment_status === 'verified';
     const isPaymentRejected = order.payment_status === 'rejected';
@@ -145,6 +146,93 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
         });
     };
 
+    const handleSendTokenNotification = async () => {
+        Swal.fire({
+            title: 'Kirim Notifikasi Token Pengguna',
+            html: `<p class="swal2-html-container" style="margin-bottom: 1em; font-size: 1rem; text-align: center;">Anda akan mengirimkan notifikasi token berikut kepada pengguna terkait pesanan ini, pastikan token sudah diaktifkan:</p>
+                   <input id="tokenInput" class="swal2-input" placeholder="Token Pengguna" value="${localOrder.token || ''}" readonly>`,
+            showCancelButton: true,
+            confirmButtonText: 'Kirim Notifikasi',
+            preConfirm: async () => {
+                const existingToken = document.getElementById('tokenInput').value;
+                if (!existingToken) {
+                    Swal.showValidationMessage('Token tidak ditemukan untuk pesanan ini.');
+                    return false; // Mencegah konfirmasi jika token kosong
+                }
+    
+                // Tampilkan loader kustom
+                Swal.fire({
+                    title: '<span style="font-size: 1rem;">Mengirim Notifikasi...</span>', // Teks lebih kecil
+                    html: `<div style="display: flex; justify-content: center;"><img src="${loadingGif}" alt="Mengirim..." width="360"></div>`, // Posisi tengah
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        const loadingImage = Swal.getImage();
+                        let loopTimeout;
+    
+                        // Fungsi untuk memulai loop setelah 2 detik
+                        const startLoop = () => {
+                            loopTimeout = setTimeout(() => {
+                                // Atur agar animasi GIF diulang (mungkin perlu manipulasi src atau class CSS)
+                                if (loadingImage) {
+                                    loadingImage.src = loadingGif + '?' + Date.now(); // Trick untuk memaksa refresh GIF
+                                }
+                            }, 0);
+                        };
+    
+                        // Mulai loop setelah 2 detik
+                        startLoop();
+    
+                        return new Promise(async (resolve) => {
+                            try {
+                                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/orders/send-token`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${adminToken}`,
+                                    },
+                                    body: JSON.stringify({
+                                        orderId: localOrder.order_id,
+                                        token: existingToken,
+                                    }),
+                                });
+                                // console.log(order.order_id);
+                                // console.log(existingToken);
+                                // console.log(order.is_active)
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    clearTimeout(loopTimeout); // Hentikan loop
+                                    Swal.close(); // Tutup loader
+                                    Swal.fire('Error!', errorData.message || `HTTP error! status: ${response.status}`, 'error');
+                                    resolve(false); // Reject preConfirm
+                                    return;
+                                }
+    
+                                clearTimeout(loopTimeout); // Hentikan loop
+                                Swal.close(); // Tutup loader
+                                Swal.fire('Berhasil!', 'Notifikasi token berhasil dikirim ke pengguna.', 'success');
+                                resolve(true); // Resolve preConfirm
+                            } catch (error) {
+                                console.error("Gagal mengirim notifikasi token:", error);
+                                clearTimeout(loopTimeout); // Hentikan loop
+                                Swal.close(); // Tutup loader
+                                Swal.fire('Error!', error.message, 'error');
+                                resolve(false); // Reject preConfirm
+                            }
+                        });
+                    },
+                });
+    
+                return false; // Mencegah Swal utama menutup sebelum loader selesai
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showLoaderOnConfirm: false, // Kita tangani loader sendiri
+            backdrop: true,
+        });
+    };
+
     const handleToggleTokenStatus = async () => {
         const newIsActive = !isActive;
         Swal.fire({
@@ -176,11 +264,19 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
 
                     const responseData = await response.json();
 
+                    // Update state lokal TANPA menunggu parent
                     setIsActive(newIsActive);
-                    setLocalOrder(prevOrder => ({
-                        ...prevOrder,
+                    setLocalOrder(prev => ({
+                        ...prev,
                         is_active: newIsActive
                     }));
+
+                    // Panggil callback untuk update parent
+                    onUpdateOrder({
+                        ...localOrder, // Salin semua data lama
+                        is_active: newIsActive // Update nilai is_active
+                    });
+
                     Swal.fire('Berhasil!', `Token berhasil di${newIsActive ? 'aktifkan' : 'nonaktifkan'}.`, 'success');
                 } catch (error) {
                     console.error("Gagal mengubah status token:", error);
@@ -207,7 +303,7 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
                 ) : (
                     <span className="text-gray-600">Belum Ada</span>
                 )}
-                {isModalOpen && <PaymentModal imageUrl={`${process.env.REACT_APP_API_URL}/${order.proof_url}`} onClose={handleCloseModal} />}
+                {isModalOpen && <PaymentModal imageUrl={`<span class="math-inline">\{process\.env\.REACT\_APP\_API\_URL\}/</span>{order.proof_url}`} onClose={handleCloseModal} />}
             </td>
             <td className="px-3 py-2 uppercase text-gray-700">{order.user_name}</td>
             <td className="px-3 py-2 whitespace-nowrap">
@@ -232,6 +328,30 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
                     order.payment_status === 'verified' ? 'Terverifikasi' : 'Ditolak'
             }</td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">Rp {parseFloat(order.total_cost).toLocaleString('id-ID')}</td>
+            <td className="px-3 py-2 whitespace-nowrap text-gray-700">
+                <div>
+                    {new Date(order.order_created_at).toLocaleDateString('id-ID', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    })}
+                </div>
+                <div className="text-sm text-gray-500">
+                    {new Date(order.order_created_at).toLocaleTimeString('id-ID', {
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    })}
+                </div>
+            </td>
+            <td className="px-3 py-2 whitespace-nowrap text-gray-700">
+                <div>
+                    {new Date(order.order_updated_at).toLocaleDateString('id-ID', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    })}
+                </div>
+                <div className="text-sm text-gray-500">
+                    {new Date(order.order_updated_at).toLocaleTimeString('id-ID', {
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    })}
+                </div>
+            </td>
             <td className="px-3 py-2 whitespace-nowrap">
                 {order.payment_status === 'pending' && (
                     <div className="space-x-1 flex">
@@ -240,7 +360,7 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
                                 onClick={() => handleVerify('verified')}
                                 className="inline-flex items-center justify-center p-1 border border-green-500 text-green-500 hover:bg-green-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             </button>
                             <span className="text-xs text-gray-500 mt-0.5">Terima</span>
                         </div>
@@ -257,17 +377,17 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
                 )}
                 {isPaymentVerified && isOrderApproved && !hasToken && (
                     <div className="flex flex-col items-center">
-                        <button onClick={handleSendToken} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L7 8m-5 5h10"></path></svg>
+                        <button onClick={handleSendToken} className="inline-flex items-center justify-center p-1 border border-orange-500 text-orange-500 hover:bg-orange-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                            <svg className="w-5 h-5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L7 8m-5 5h10"></path></svg>
                         </button>
-                        <span className="text-xs text-gray-500 mt-0.5">Kirim</span>
+                        <span className="text-xs text-gray-500 mt-0.5">Input</span>
                     </div>
                 )}
                 {isPaymentVerified && isOrderApproved && hasToken && (
-                    <div className="space-x-1 flex">
+                    <div className="space-x-2 flex">
                         <div className="flex flex-col items-center">
-                            <button onClick={handleUpdateToken} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" title="Update Token">
-                                <Pencil className="w-4 h-4" />
+                            <button onClick={handleUpdateToken} className="inline-flex items-center justify-center p-1 border border-yellow-500 text-yellow-500 hover:bg-yellow-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2" title="Update Token">
+                                <Pencil className="w-5 h-5" />
                             </button>
                             <span className="text-xs text-gray-500 mt-0.5">Update</span>
                         </div>
@@ -278,18 +398,24 @@ const PaymentItem = ({ order, onVerifyPayment,onUpdateOrder }) => {
                                 title={isActive ? "Nonaktifkan Token" : "Aktifkan Token"}
                             >
                                 {isActive ? (
-                                    <Zap className="w-4 h-4 text-red-500" /> // Icon petir untuk non-aktif
+                                    <Zap className="w-5 h-5 text-red-500" /> // Icon petir untuk non-aktif
                                 ) : (
-                                    <CheckCircle className="w-4 h-4 text-green-500" /> // Icon ceklis untuk aktif
+                                    <CheckCircle className="w-5 h-5 text-green-500" /> // Icon ceklis untuk aktif
                                 )}
                             </button>
                             <span className="text-xs text-gray-500 mt-0.5">{isActive ? 'Aktif' : 'Nonaktif'}</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <button onClick={handleSendTokenNotification} className="inline-flex items-center justify-center p-1 border border-blue-500 text-blue-500 hover:bg-blue-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" title="Update Token">
+                                <Send className="w-5 h-5" />
+                            </button>
+                            <span className="text-xs text-gray-500 mt-0.5">Kirim</span>
                         </div>
                     </div>
                 )}
                 {isPaymentRejected && (
                     <span className="inline-flex items-center text-red-600 font-semibold text-xs">
-                        <svg className="w-4 h-4 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg className="w-5 h-5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Ditolak
                     </span>)}
             </td>

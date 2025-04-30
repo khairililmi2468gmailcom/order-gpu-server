@@ -1,5 +1,6 @@
 // src/controllers/userController.js
 import pool from '../config/db.js';
+import bcrypt from 'bcryptjs';
 
 export const getMyOrders = async (req, res) => {
   if (!req.user || !req.user.id) {
@@ -71,3 +72,81 @@ export const getGpuToken = async (req, res) => {
     res.status(500).json({ error: 'Gagal mengambil token' });
   }
 };
+
+
+// src/controllers/userController.js
+export const deleteOrder = async (req, res) => {
+  const orderId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    // Periksa apakah order milik user yang sedang login
+    const [orders] = await pool.query(
+      'SELECT * FROM orders WHERE id = ? AND user_id = ?',
+      [orderId, userId]
+    );
+
+    if (orders.length === 0) {
+      return res.status(404).json({ error: 'Order tidak ditemukan atau bukan milik Anda' });
+    }
+
+    // Hapus pembayaran terkait jika ada
+    await pool.query('DELETE FROM payments WHERE order_id = ?', [orderId]);
+
+    // Hapus order
+    await pool.query('DELETE FROM orders WHERE id = ?', [orderId]);
+
+    res.json({ message: 'Order berhasil dihapus' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal menghapus order' });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  const { name, email, phone } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ error: 'Name dan email wajib diisi' });
+  }
+
+  try {
+    await pool.query(
+      'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?',
+      [name, email, phone || null, userId]
+    );
+    res.json({ message: 'Profil berhasil diperbarui' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memperbarui profil' });
+  }
+};
+
+export const updatePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Password lama dan baru wajib diisi' });
+  }
+
+  try {
+    const [users] = await pool.query('SELECT password FROM users WHERE id = ?', [userId]);
+    const user = users[0];
+
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) {
+      return res.status(400).json({ error: 'Password lama salah' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashed, userId]);
+
+    res.json({ message: 'Password berhasil diperbarui' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal memperbarui password' });
+  }
+};
+

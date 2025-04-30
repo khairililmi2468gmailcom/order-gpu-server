@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -124,7 +124,7 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
     return (
         <div className="bg-animated-bg bg-cover bg-center min-h-screen flex justify-center items-center">
             <div className="bg-white bg-opacity-80 p-10 rounded-lg shadow-xl w-full max-w-md">
-                <h2 className="text-2xl font-semibold text-primary mb-6 text-center">Login</h2>
+                <h2 className="text-2xl font-semibold text-indigo-600 mb-6 text-center">Login</h2>
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
                         <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
@@ -155,20 +155,25 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
                                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer"
                                 onClick={togglePasswordVisibility}
                             >
-                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="h-5 w-5" />
+                                <FontAwesomeIcon icon={showPassword? faEyeSlash : faEye} className="h-5 w-5" />
                             </span>
                         </div>
                         {passwordError && <p className="text-red-500 text-xs italic">{passwordError}</p>}
                     </div>
+                    <div className="flex items-center justify-between">
+                        <Link to="/forgot-password" className="inline-block align-baseline font-bold text-sm text-indigo-600 hover:text-indigo-800">
+                            Lupa Password?
+                        </Link>
+                    </div>
                     <button
                         type="submit"
-                        className="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                     >
                         Login
                     </button>
                 </form>
                 <p className="mt-4 text-center text-gray-600">
-                    Belum punya akun? <Link to="/register" className="text-primary">Daftar di sini</Link>
+                    Belum punya akun? <Link to="/register" className="text-indigo-600">Daftar di sini</Link>
                 </p>
             </div>
         </div>

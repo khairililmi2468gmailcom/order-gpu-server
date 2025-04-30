@@ -320,11 +320,11 @@ const Sidebar = ({ isOpen, onClose, languageDropdownOpen, setLanguageDropdownOpe
                                         List Orders
                                     </Link>
                                     <Link
-                                        to="/settings"
+                                        to="/ubahpassword"
                                         className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition duration-300"
                                         onClick={onClose}
                                     >
-                                        Settings
+                                        Ubah Password
                                     </Link>
                                     <button
                                         onClick={handleLogout}

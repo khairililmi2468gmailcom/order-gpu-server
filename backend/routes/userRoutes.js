@@ -1,7 +1,7 @@
 // src/routes/userRoutes.js
 import express from 'express';
 import { authenticate } from '../middlewares/auth.js';
-import { getMyOrders } from '../controllers/userController.js';
+import { deleteOrder, getMyOrders, updatePassword, updateProfile } from '../controllers/userController.js';
 import { createOrder } from '../controllers/orderController.js';
 import { getAllPackages, getPackageById } from '../controllers/packageController.js';
 import { getGpuToken } from '../controllers/userController.js';
@@ -13,5 +13,7 @@ router.get('/packages/:id', getPackageById);
 router.get('/orders', authenticate, getMyOrders);
 router.post('/orders', authenticate, createOrder);
 router.get('/orders/:id/token', authenticate, getGpuToken);
-
+router.delete('/orders/:id', authenticate, deleteOrder);
+router.put('/profile', authenticate, updateProfile);
+router.put('/profile/password', authenticate, updatePassword);
 export default router;

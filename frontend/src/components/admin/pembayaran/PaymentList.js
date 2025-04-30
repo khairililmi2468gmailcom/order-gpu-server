@@ -1,18 +1,22 @@
 import React, { useCallback, useState } from 'react';
-import { MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { Listbox, ListboxOption } from '@headlessui/react';
+import { MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import { Listbox } from '@headlessui/react';
 import PaymentItem from './PaymentItem';
+import Pagination from './Pagination'; // Asumsi Anda memiliki komponen Pagination terpisah
 
-const itemsPerPageOptions = [5, 10, 25, 50, 100]; // Opsi jumlah data per halaman
+const itemsPerPageOptions = [5, 10, 25, 50, 100];
 
-const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
+const PaymentList = ({ orders, onVerifyPayment, handleUpdateOrder }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState('pending');
-    const [sortOrder, setSortOrder] = useState('asc');
+    const [sortBy, setSortBy] = useState('default'); // Default state untuk pengurutan kombinasi
+    const [sortOrder, setSortOrder] = useState('desc');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageOptions[0]); // Set default items per page
+    const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageOptions[0]);
 
     const sortOptions = [
+        { value: 'default', label: 'Default (Update Terbaru)' },
+        { value: 'order_created_at', label: 'Tanggal Order' },
+        { value: 'order_updated_at', label: 'Tanggal Update' },
         { value: 'pending', label: 'Status: Pending' },
         { value: 'approved', label: 'Status: Disetujui' },
         { value: 'rejected', label: 'Status: Ditolak' },
@@ -28,7 +32,22 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
 
     const sortOrders = useCallback((ordersToSort) => {
         return [...ordersToSort].sort((a, b) => {
-            if (sortBy === 'pending') {
+            if (sortBy === 'default') {
+                // Prioritaskan order yang memiliki order_updated_at terbaru
+                if (a.order_updated_at && b.order_updated_at) {
+                    return new Date(b.order_updated_at) - new Date(a.order_updated_at);
+                } else if (a.order_updated_at) {
+                    return -1; // a yang diupdate lebih dulu
+                } else if (b.order_updated_at) {
+                    return 1; // b yang diupdate lebih dulu
+                }
+                // Jika tidak ada order_updated_at, urutkan berdasarkan order_created_at terbaru
+                return new Date(b.order_created_at) - new Date(a.order_created_at);
+            } else if (sortBy === 'order_created_at') {
+                return sortOrder === 'asc' ? new Date(a.order_created_at) - new Date(b.order_created_at) : new Date(b.order_created_at) - new Date(a.order_created_at);
+            } else if (sortBy === 'order_updated_at' && a.order_updated_at && b.order_updated_at) {
+                return sortOrder === 'asc' ? new Date(a.order_updated_at) - new Date(b.order_updated_at) : new Date(b.order_updated_at) - new Date(a.order_updated_at);
+            } else if (sortBy === 'pending') {
                 const statusOrder = { pending: 0, verified: 1, rejected: 2 };
                 return statusOrder[a.payment_status] - statusOrder[b.payment_status];
             } else if (sortBy === 'approved') {
@@ -51,51 +70,37 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
     }, [sortBy, sortOrder]);
 
     const sortedAndFilteredOrders = sortOrders(filteredOrders);
-
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentOrders = sortedAndFilteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-
     const totalPages = Math.ceil(sortedAndFilteredOrders.length / itemsPerPage);
 
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const getPageNumbers = () => {
-        const pageNumbers = [];
-        if (totalPages <= 5) {
-            for (let i = 1; i <= totalPages; i++) {
-                pageNumbers.push(i);
-            }
+    const handleSortChange = (value) => {
+        setSortBy(value);
+        setCurrentPage(1); // Reset page on sort
+        if (value === 'pending' || value === 'approved' || value === 'rejected') {
+            setSortOrder('asc'); // Default asc for status
         } else {
-            if (currentPage <= 3) {
-                pageNumbers.push(1, 2, 3, '...', totalPages);
-            } else if (currentPage >= totalPages - 2) {
-                pageNumbers.push(1, '...', totalPages - 2, totalPages - 1, totalPages);
-            } else {
-                pageNumbers.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
-            }
+            setSortOrder('desc'); // Default desc for other sorts
         }
-        return pageNumbers;
+    };
+
+    const handleSortOrderChange = () => {
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    };
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
     };
 
     const handleItemsPerPageChange = (value) => {
         setItemsPerPage(value);
-        setCurrentPage(1); // Reset ke halaman pertama saat jumlah item per halaman berubah
+        setCurrentPage(1);
     };
 
     return (
-        <div className="p-4 md:p-6 lg:p-8"> {/* Tambahkan padding keseluruhan */}
-            <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-4"> {/* Tata letak responsif */}
+        <div className="p-4 md:p-6 lg:p-8">
+            <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="relative w-full sm:w-1/2 md:max-w-xs">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
@@ -108,7 +113,7 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
                 </div>
                 <div className="flex items-center gap-2">
                     <label htmlFor="sortBy" className="text-sm font-medium text-gray-700 sr-only">Urutkan berdasarkan</label>
-                    <Listbox value={sortBy} onChange={setSortBy}>
+                    <Listbox value={sortBy} onChange={handleSortChange}>
                         <div className="relative">
                             <Listbox.Button className="bg-white relative border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm py-2 px-3 flex items-center justify-between">
                                 {sortOptions.find(option => option.value === sortBy)?.label || 'Urutkan'}
@@ -134,8 +139,8 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
                             </Listbox.Options>
                         </div>
                     </Listbox>
-                    {(sortBy === 'total_cost' || sortBy === 'user_name') && (
-                        <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="ml-2 focus:outline-none">
+                    {(sortBy === 'order_created_at' || sortBy === 'order_updated_at' || sortBy === 'total_cost' || sortBy === 'user_name') && (
+                        <button onClick={handleSortOrderChange} className="ml-2 focus:outline-none">
                             <ArrowsUpDownIcon className={`h-5 w-5 text-gray-500 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
                         </button>
                     )}
@@ -152,16 +157,18 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
                             <th scope="col" className="px-3 py-2">Status Pesanan</th>
                             <th scope="col" className="px-3 py-2">Status Bayar</th>
                             <th scope="col" className="px-3 py-2">Total</th>
+                            <th scope="col" className="px-3 py-2">Tgl Order</th>
+                            <th scope="col" className="px-3 py-2">Tgl Update</th>
                             <th scope="col" className="px-3 py-2">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 text-sm">
                         {currentOrders.map(order => (
-                            <PaymentItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} onUpdateOrder={handleUpdateOrder}/>
+                            <PaymentItem key={order.payment_id} order={order} onVerifyPayment={onVerifyPayment} onUpdateOrder={handleUpdateOrder} />
                         ))}
                         {sortedAndFilteredOrders.length === 0 && (
                             <tr>
-                                <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                                <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
                                     Tidak ada data pesanan yang sesuai.
                                 </td>
                             </tr>
@@ -170,61 +177,14 @@ const PaymentList = ({ orders, onVerifyPayment,handleUpdateOrder }) => {
                 </table>
             </div>
             {sortedAndFilteredOrders.length > 0 && (
-                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">
-                        Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, sortedAndFilteredOrders.length)} dari {sortedAndFilteredOrders.length} data
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <label htmlFor="itemsPerPage" className="text-sm font-medium text-gray-700">Data per halaman:</label>
-                        <select
-                            id="itemsPerPage"
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md py-2 px-3"
-                            value={itemsPerPage}
-                            onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
-                        >
-                            {itemsPerPageOptions.map(value => (
-                                <option key={value} value={value}>
-                                    {value}
-                                </option>
-                            ))}
-                        </select>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button
-                                onClick={handlePrevPage}
-                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none"
-                                disabled={currentPage === 1}
-                            >
-                                <span className="sr-only">Previous</span>
-                                <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-                            </button>
-                            {getPageNumbers().map((page, index) => (
-                                <React.Fragment key={index}>
-                                    {typeof page === 'number' ? (
-                                        <button
-                                            onClick={() => setCurrentPage(page)}
-                                            aria-current="page"
-                                            className={`z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${currentPage === page ? '' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ) : (
-                                        <span className="relative inline-flex items-center px-4 py-2 border-gray-300 bg-white text-sm font-medium text-gray-700">
-                                            {page}
-                                        </span>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                            <button
-                                onClick={handleNextPage}
-                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none"
-                                disabled={currentPage === totalPages}
-                            >
-                                <span className="sr-only">Next</span>
-                                <ArrowRightIcon className="h-5 w-5" aria-hidden="true" />
-                            </button>
-                        </nav>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={sortedAndFilteredOrders.length}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                />
             )}
         </div>
     );

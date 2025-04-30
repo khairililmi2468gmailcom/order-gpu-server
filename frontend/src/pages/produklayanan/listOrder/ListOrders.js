@@ -73,7 +73,7 @@ const ListOrders = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:4000/api/user/orders', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/orders`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -128,7 +128,7 @@ const ListOrders = () => {
         setFilteredOrders(results);
         setCurrentPage(0);
     }, [orders, activeFilter, sortDirection, searchQuery]);
-    
+
     useEffect(() => {
         setPageCount(Math.ceil(filteredOrders.length / itemsPerPage));
     }, [filteredOrders, itemsPerPage]);
@@ -179,7 +179,7 @@ const ListOrders = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`http://localhost:4000/api/user/orders/${id}`, {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/orders/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -258,7 +258,7 @@ const ListOrders = () => {
                 formData.append('paymentProof', paymentProofFile);
 
                 try {
-                    const response = await fetch('http://localhost:4000/api/payment/orders/payment-proof', {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/payment/orders/payment-proof`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -584,7 +584,18 @@ const ListOrders = () => {
                                             {paymentStatusAlias[order.payment_status]}
                                         </span>
                                     </td>
-                                    <td className="px-5 py-3 text-left">{new Date(order.created_at).toLocaleDateString()}</td>
+                                    <td className="px-5 py-3 text-left">
+                                        <div>
+                                            {new Date(order.created_at).toLocaleDateString('id-ID', {
+                                                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                                            })}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {new Date(order.created_at).toLocaleTimeString('id-ID', {
+                                                hour: '2-digit', minute: '2-digit', second: '2-digit'
+                                            })}
+                                        </div>
+                                    </td>
                                     <td className="px-5 py-3 text-left">
                                         {order.proof_url ? (
                                             <button onClick={() => window.open(`http://localhost:4000/${order.proof_url}`, '_blank')} className="text-green-500 hover:text-green-700 focus:outline-none flex items-center">

@@ -1,7 +1,7 @@
 // src/routes/adminRoutes.js
 import express from 'express';
 import { authenticate, isAdmin } from '../middlewares/auth.js';
-import { approveOrder,  getAllOrders, getAllPayments, getTokens, getWebsiteStats,  updateOrderToken,  updatePassword,  updateTokenStatus, updateUser, verifyPayment } from '../controllers/adminController.js';
+import { approveOrder,  getAllOrders, getAllPayments, getTokens, getWebsiteStats,  sendTokenToUser,  updateOrderToken,  updatePassword,  updateTokenStatus, updateUser, verifyPayment } from '../controllers/adminController.js';
 import { createGpuPackage, getGpuPackages, updateGpuPackage, deleteGpuPackage } from '../controllers/gpuController.js';
 import logAccess from '../middlewares/logAccess.js';
 
@@ -27,5 +27,6 @@ router.get('/payments', authenticate, isAdmin, getAllPayments);
 
 router.put('/users/:id', authenticate, isAdmin, updateUser);
 router.put('/password/:id', authenticate, isAdmin, updatePassword);
+router.put('/orders/send-token', authenticate, isAdmin, sendTokenToUser);
 
 export default router;

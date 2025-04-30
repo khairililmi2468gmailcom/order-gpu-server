@@ -18,6 +18,10 @@ import AdminSettings from './pages/admin/AdminSettings/AdminSettings';
 import AdminUbahPassword from './pages/admin/AdminUbahPassword/AdminUbahPassword';
 import FormPengisian from './pages/produklayanan/formPengisian/FormPengisian';
 import ListOrders from './pages/produklayanan/listOrder/ListOrders';
+import UbahPassword from './pages/ubahpassword/UbahPassword';
+import Profile from './pages/profile/Profile';
+import ForgotPasswordPage from './pages/login/ForgotPasswordPage';
+import ResetPasswordPage from './pages/login/ResetPasswordPage';
 
 function App() {
   const location = useLocation();
@@ -126,6 +130,8 @@ function App() {
             <Route path="/semua-layanan" element={<ProdukLayanan />} />
             <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/login-admin" element={<LoginAdminPage />} />
             <Route path="/form-pengisian" element={
               <ProtectedRoute isAuthenticated={isLoggedInApp}>
@@ -137,6 +143,17 @@ function App() {
                 <ListOrders />
               </ProtectedRoute>
             } />
+            <Route path="ubahpassword" element={
+              <ProtectedRoute isAuthenticated={isLoggedInApp}>
+                <UbahPassword />
+              </ProtectedRoute>
+            } />
+            <Route path="profile" element={
+              <ProtectedRoute isAuthenticated={isLoggedInApp}>
+                <Profile />
+              </ProtectedRoute>
+            } />
+
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

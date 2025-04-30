@@ -2,8 +2,11 @@
 import pool from '../config/db.js';
 import { v4 as uuidv4 } from 'uuid';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
+import Order from '../models/Order.js';
 import Password from '../models/Password.js';
 import bcrypt from 'bcryptjs';
+import { notifyUserWithToken } from '../utils/notification.js'; 
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -140,6 +143,33 @@ export const updateTokenStatus = async (req, res) => {
   }
 };
 
+
+// export const updateOrderToken = async (req, res) => {
+//   try {
+//     const { orderId, token, is_active } = req.body;
+
+//     const order = await Order.findByPk(orderId); // atau .findById jika pakai mongoose
+//     if (!order) return res.status(404).json({ message: 'Order tidak ditemukan' });
+
+//     // Update order
+//     order.token = token;
+//     order.is_active = is_active;
+//     await order.save();
+
+//     // Jika token aktif dan tidak null, kirim notifikasi ke user
+//     if (is_active === 1 && token) {
+//       const user = await User.findByPk(order.user_id); // atau .findById
+//       if (user) {
+//         await notifyUserWithToken(user.email, user.name, token);
+//       }
+//     }
+
+//     res.json({ message: 'Token order diperbarui dan notifikasi dikirim jika valid' });
+//   } catch (err) {
+//     console.error('Gagal update order token:', err);
+//     res.status(500).json({ message: 'Internal Server Error' });
+//   }
+// };
 export const updateOrderToken = async (req, res) => {
   const { order_id, token } = req.body;
 
@@ -286,6 +316,7 @@ export const getAllPayments = async (req, res) => {
           o.start_date,
           o.end_date,
           o.created_at AS order_created_at,
+          o.updated_at AS order_updated_at,
           
           u.name AS user_name,
           u.email AS user_email,
@@ -354,5 +385,41 @@ export const updatePassword = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to update password.' });
+  }
+};
+
+export const sendTokenToUser = async (req, res) => {
+  try {
+    const { orderId, token } = req.body; // Ambil ID pesanan dan token yang akan dikirim
+    const order = await Order.findById(orderId);
+
+    if (!order || order.is_active === 0) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan atau belum aktif.' });
+    }
+
+    // Perbarui status pesanan dan set token aktif
+    await Order.updateOrderStatusAndToken(orderId, { status: 'approved', token });
+
+    // Ambil informasi pengguna terkait pesanan ini
+    const user = await User.findById(order.user_id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
+    }
+
+    // Kirimkan notifikasi ke pengguna dalam aplikasi
+    const message = `Token aktif Anda adalah: ${token}`;
+    await Notification.create({
+      user_id: user.id,
+      message: message
+    });
+
+    // Kirimkan email ke pengguna dengan token
+    await notifyUserWithToken(user.email, user.name, token);
+
+    return res.status(200).json({ message: 'Token telah dikirimkan kepada pengguna dan email telah dikirim.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Terjadi kesalahan dalam mengirim token.' });
   }
 };

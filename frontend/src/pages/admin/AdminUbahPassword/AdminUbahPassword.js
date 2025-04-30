@@ -78,7 +78,7 @@ function AdminUbahPassword() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`http://localhost:4000/api/admin/password/${user.id}`, {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/password/${user.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',

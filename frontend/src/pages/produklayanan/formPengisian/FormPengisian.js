@@ -56,7 +56,7 @@ const FormPengisian = () => {
     const fetchGpuPackageDetails = async (id) => {
         setIsPackageLoading(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/user/packages/${id}`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/packages/${id}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -115,7 +115,7 @@ const FormPengisian = () => {
         setIsUploadFormVisible(false);
 
         try {
-            const response = await fetch('http://localhost:4000/api/user/orders', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ const FormPengisian = () => {
         formData.append('order_id', orderResult.orderId);
 
         try {
-            const response = await fetch(`http://localhost:4000/api/payment/orders/payment-proof`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/payment/orders/payment-proof`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
