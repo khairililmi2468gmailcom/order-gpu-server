@@ -74,7 +74,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             const isScrollingDown = currentScrollY > lastScrollY;
             const isDesktop = screenWidth >= desktopBreakpoint;
             const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
-            const desktopTranslateY = -contactBarHeight + 15;
+            const desktopTranslateY = -contactBarHeight ;
             const mobileTranslateY = -contactBarHeight + 20;
             const mediumTranslateY = -contactBarHeight;
 
