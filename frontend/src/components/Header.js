@@ -471,63 +471,51 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                             <img src="https://via.placeholder.com/150" alt="Product" className="mt-4 rounded-md" />
                                         </div>
                                         <div>
-                                            <h4 className="text-2xl font-extrabold text-gray-700 mb-2">Lintasarta Infrastructure Solutions</h4>
+                                            <h4 className="text-2xl font-extrabold text-gray-700 mb-2">RentGPU Infrastructure Solutions</h4>
                                             <NavLink
                                                 to="/connectivity"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
                                             >
-                                                Lintasarta Connectivity
+                                                RentGPU Connectivity
                                             </NavLink>
                                             <NavLink
                                                 to="/data-center"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
                                             >
-                                                Lintasarta Data Center
+                                                RentGPU Data Center
                                             </NavLink>
-                                            <NavLink
-                                                to="/cybersec"
-                                                className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
-
-                                            >
-                                                SQURA Cybersec
-                                            </NavLink>
+                                            
                                             <NavLink
                                                 to="/cloudeka"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
 
                                             >
-                                                Lintasarta Cloudeka
+                                                RentGPU Cloudeka
                                             </NavLink>
                                             <NavLink
                                                 to="/collaboration"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
 
                                             >
-                                                Lintasarta Collaboration
+                                                RentGPU Collaboration
                                             </NavLink>
                                         </div>
                                         <div>
-                                            <h4 className="text-2xl font-extrabold text-gray-700 mb-2">Lintasarta Industry Solution</h4>
+                                            <h4 className="text-2xl font-extrabold text-gray-700 mb-2">RentGPU Industry Solution</h4>
                                             <NavLink
-                                                to="/skota"
+                                                to="/gpuusk"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
 
                                             >
-                                                SKOTA
+                                                GpuUSK
                                             </NavLink>
-                                            <NavLink
-                                                to="/healthcare"
-                                                className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
-
-                                            >
-                                                Owlexa Healthcare
-                                            </NavLink>
+                                            
                                             <NavLink
                                                 to="/finance"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
 
                                             >
-                                                Finance Industry
+                                                OrderGPU Finance Industry
                                             </NavLink>
                                             <NavLink
                                                 to="/resources"
@@ -620,9 +608,9 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                         >
                             <NavLink
                                 to="#"
-                                className={parentNavItemClass('/mengenal-lintasarta', [
-                                    '/mengenal-lintasarta',
-                                    '/mengapa-lintasarta',
+                                className={parentNavItemClass('/mengenal-rentgpuusk', [
+                                    '/mengenal-rentgpuusk',
+                                    '/mengapa-rentgpuusk',
                                     '/karir',
                                     '/csr',
                                     '/whistleblowing'
@@ -647,8 +635,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                     onMouseEnter={() => setHoveredMenu('tentang')}
                                     onMouseLeave={() => setHoveredMenu(null)}
                                 >
-                                    <NavLink to="/mengenal-lintasarta" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengenal Lintasarta</NavLink>
-                                    <NavLink to="/mengapa-lintasarta" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengapa Lintasarta</NavLink>
+                                    <NavLink to="/mengenal-rentgpuusk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengenal RentGPU</NavLink>
+                                    <NavLink to="/mengapa-rentgpuusk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengapa RentGPU</NavLink>
                                     <NavLink to="/karir" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Karir</NavLink>
                                     <NavLink to="/csr" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>CSR</NavLink>
                                     <NavLink to="/whistleblowing" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Whistleblowing</NavLink>
