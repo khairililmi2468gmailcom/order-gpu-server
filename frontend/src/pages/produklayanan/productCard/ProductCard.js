@@ -280,38 +280,38 @@ const ProductCard = React.forwardRef((props, ref) => {
                     </div>
                 </div>
             </div>
-            <div ref={ctaRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 lg:px-8 lg:py-4">
+            <div ref={ctaRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
                 {visiblePackages.map((gpu, index) => (
                     <div key={gpu.id}
                         ref={cardRefs.current[index]}
-                        className={`bg-white rounded-lg shadow-md p-8 sm:p-6 transition-all duration-700 transform translate-y-6 opacity-0 `}
+                        className={`bg-white rounded-lg shadow-md p-6 sm:p-6 lg:p-6 xl:p-8 transition-all duration-700 transform translate-y-6 opacity-0 `}
                         style={{
                             transform: isCtaVisible ? 'translateY(0)' : '',
                             opacity: isCtaVisible ? 1 : 0
                         }}>
-                        <h3 className="text-primary-dark text-2xl sm:text-2xl xl:text-3xl lg:text-xl font-semibold transition duration-300">{gpu.name.split(' ')[0]} GPU</h3>
-                        <h2 className="text-md sm:text-md font-base mb-4 sm:mb-6 text-gray-700 xl:text-lg md:text-lg lg:text-lg">{gpu.name}</h2>
-                        <div className='mb-3 sm:mb-4 flex items-center'>
-                            <h1 className='text-2xl sm:text-2xl md:text-2xl xl:text-2xl lg:text-4xl font-bold '>Rp{parseFloat(gpu.price_per_hour).toLocaleString('id-ID')}</h1>
-                            <span className='block ml-2 text-xs sm:text-sm'>/ per jam</span>
+                        <h3 className="text-primary-dark text-2xl sm:text-2xl lg:text-2xl xl:text-3xl font-semibold transition duration-300">{gpu.name.split(' ')[0]} GPU</h3>
+                        <h2 className="text-md sm:text-md font-base mb-3 sm:mb-4 text-gray-700 lg:text-lg xl:text-lg">{gpu.name}</h2>
+                        <div className='mb-2 sm:mb-3 flex items-center'>
+                            <h1 className='text-2xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-3xl font-bold '>Rp{parseFloat(gpu.price_per_hour).toLocaleString('id-ID')}</h1>
+                            <span className='block ml-2 text-xs sm:text-sm lg:text-sm xl:text-md'>/ per jam</span>
                         </div>
                         <div className="mb-1 flex items-center">
-                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                            <span className="text-xs sm:text-sm">Hingga {gpu.vcpu} vCPU</span>
+                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Hingga {gpu.vcpu} vCPU</span>
                         </div>
                         <div className="mb-1 flex items-center">
-                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                            <span className="text-xs sm:text-sm">RAM hingga {gpu.ram}</span>
+                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">RAM hingga {gpu.ram}</span>
                         </div>
-                        <div className="mb-3 sm:mb-4 flex items-center">
-                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                            <span className="text-xs sm:text-sm">Periode minimal {gpu.min_period_days} hari</span>
+                        <div className="mb-3 sm:mb-3 flex items-center">
+                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Periode minimal {gpu.min_period_days} hari</span>
                         </div>
-                        {gpu.deskripsi && <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">{gpu.deskripsi.substring(0, 80)}...</p>}
+                        {gpu.deskripsi && <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">{gpu.deskripsi.substring(0, 80)}...</p>}
                         <div className="flex justify-center">
                             <button
                                 onClick={() => handlePesanClick(gpu.id)}
-                                className="bg-secondary text-white text-sm sm:text-lg xl:text-sm font-bold py-2 px-3 sm:py-2 sm:px-4 rounded-full hover:bg-secondary-dark transition duration-300"
+                                className="bg-secondary text-white text-sm sm:text-lg lg:text-sm xl:text-lg font-bold py-2 px-3 sm:py-2 sm:px-4 rounded-full hover:bg-secondary-dark transition duration-300"
                             >
                                 Pesan Sekarang
                             </button>
@@ -319,7 +319,6 @@ const ProductCard = React.forwardRef((props, ref) => {
                     </div>
                 ))}
             </div>
-
 
             <div className="mt-4 flex justify-center space-x-4">
                 {loadedCount > ITEMS_PER_PAGE && (

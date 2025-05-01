@@ -23,7 +23,7 @@ const AboutProdukLayanan = React.forwardRef((props, ref) => {
     };
 
     return (
-        <div className="relative rounded-lg overflow-hidden lg:px-96">
+        <div className="relative rounded-lg overflow-hidden ">
             {/* Background Image */}
             <div
                 className="absolute inset-0 bg-cover bg-center"
@@ -39,11 +39,10 @@ const AboutProdukLayanan = React.forwardRef((props, ref) => {
             {/* Content */}
             <div
                 ref={ctaRef}
-                className={`relative rounded-lg overflow-hidden text-center text-white py-24 px-4 sm:px-6 lg:px-8 transition-opacity duration-1000 ${isCtaVisible ? 'opacity-100' : 'opacity-0'
-                    }`}
+                className={`relative rounded-lg overflow-hidden text-center text-white py-24 px-6 sm:px-12 lg:px-8 transition-opacity duration-1000 ${isCtaVisible ? 'opacity-100' : 'opacity-0'}`}
             >
                 {loading ? (
-                    <div className="flex flex-col items-center"> {/* Pusatkan konten shimmer */}
+                    <div className="flex flex-col items-center max-w-xl mx-auto">
                         <ShimmerTitle className="mb-4 w-3/4" line={2} variant="primary" /> {/* Lebar shimmer judul */}
                         <div className="mb-8 w-3/4"> {/* Lebar shimmer paragraf */}
                             <ShimmerText line={1} variant="primary" />
@@ -56,19 +55,21 @@ const AboutProdukLayanan = React.forwardRef((props, ref) => {
                     </div>
                 ) : (
                     <>
-                        <h2 className="text-2xl md:text-4xl font-bold mb-4 select-none">
-                            Tingkatkan Produktivitas Bisnis dengan Layanan Kami
-                        </h2>
-                        <p className="mb-8 max-w-2xl mx-auto select-none">
-                            GPU USK telah berdedikasi selama lebih dari 30 tahun dalam mengembangkan ragam produk dan layanan untuk memudahkan sistem informasi dan komunikasi korporat.
-                        </p>
-                        <Link
-                            to="#tentang-kami-section" // Ubah 'to' menjadi '#tentang-kami-section'
-                            className="bg-white text-primary-dark font-bold py-3 px-6 rounded-full hover:bg-gray-100 border border-primary transition duration-300"
-                            onClick={handleTentangKamiClick} // Tambahkan event handler onClick
-                        >
-                            Tentang Kami
-                        </Link>
+                        <div className="max-w-2xl mx-auto">
+                            <h2 className="text-2xl md:text-4xl font-bold mb-4 select-none">
+                                Tingkatkan Produktivitas Bisnis dengan Layanan Kami
+                            </h2>
+                            <p className="mb-8 max-w-2xl mx-auto select-none">
+                                GPU USK telah berdedikasi selama lebih dari 30 tahun dalam mengembangkan ragam produk dan layanan untuk memudahkan sistem informasi dan komunikasi korporat.
+                            </p>
+                            <Link
+                                to="#tentang-kami-section" // Ubah 'to' menjadi '#tentang-kami-section'
+                                className="bg-white text-primary-dark font-bold py-3 px-6 rounded-full hover:bg-gray-100 border border-primary transition duration-300"
+                                onClick={handleTentangKamiClick} // Tambahkan event handler onClick
+                            >
+                                Tentang Kami
+                            </Link>
+                        </div>
                     </>
                 )}
             </div>

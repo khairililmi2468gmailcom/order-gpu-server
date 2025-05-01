@@ -56,7 +56,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Pengunjung</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.visitorCount || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Total Pengunjung Website</p>
@@ -75,7 +75,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Pengunjung Hari Ini</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.todayVisitors || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Jumlah Pengunjung Hari Ini</p>
@@ -94,7 +94,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Pengguna Terdaftar</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.userCount || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Total Pengguna</p>
@@ -113,7 +113,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Pengguna Baru (Bulan Ini)</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.monthlyNewUsers || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Total Pengguna Baru Bulan Ini</p>
@@ -133,7 +133,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Jumlah Pesanan</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.orderCount || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Total Order</p>
@@ -152,7 +152,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Order Tertunda</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.pendingOrders || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Order yang Menunggu Pembayaran</p>
@@ -171,7 +171,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                      <h2 className="text-sm font-semibold text-gray-600">Order Disetujui</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         <AnimatedNumber value={stats?.approvedOrders || 0} />
                     </p>
                     <p className="text-sm text-gray-500">Order yang telah Disetujui</p>
@@ -190,7 +190,7 @@ const DashboardCards = ({ stats }) => {
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-600">Total Pendapatan</h2>
-                    <p className="text-3xl font-extrabold text-gray-900">
+                    <p className="text-2xl font-extrabold text-gray-900">
                         Rp. {stats?.totalRevenue !== null ? (
                             <><AnimatedNumber value={parseFloat(stats.totalRevenue)} /></>
                         ) : (

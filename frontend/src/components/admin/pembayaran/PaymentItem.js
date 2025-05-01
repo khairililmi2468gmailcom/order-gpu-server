@@ -303,8 +303,8 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                 ) : (
                     <span className="text-gray-600">Belum Ada</span>
                 )}
-                {isModalOpen && <PaymentModal imageUrl={`<span class="math-inline">\{process\.env\.REACT\_APP\_API\_URL\}/</span>{order.proof_url}`} onClose={handleCloseModal} />}
-            </td>
+                {isModalOpen && <PaymentModal imageUrl={order.proof_url} onClose={handleCloseModal} />}
+                </td>
             <td className="px-3 py-2 uppercase text-gray-700">{order.user_name}</td>
             <td className="px-3 py-2 whitespace-nowrap">
                 <div className="text-xs">
