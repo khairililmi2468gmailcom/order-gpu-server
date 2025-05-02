@@ -22,9 +22,9 @@ const sortPackages = (packages, criteria) => {
         case 'vcpu_desc':
             return sorted.sort((a, b) => parseInt(b.vcpu) - parseInt(a.vcpu));
         case 'period_asc':
-            return sorted.sort((a, b) => parseInt(a.min_period_days) - parseInt(b.min_period_days));
+            return sorted.sort((a, b) => parseInt(a.min_period_hours) - parseInt(b.min_period_hours));
         case 'period_desc':
-            return sorted.sort((a, b) => parseInt(b.min_period_days) - parseInt(a.min_period_days));
+            return sorted.sort((a, b) => parseInt(b.min_period_hours) - parseInt(a.min_period_hours));
         case 'updated_at_desc':
             return sorted.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
         case 'updated_at_asc':
@@ -313,17 +313,25 @@ const ProductCard = React.forwardRef((props, ref) => {
                         </div>
                         <div className="mb-1 flex items-center">
                             <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
-                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Hingga {gpu.vcpu} vCPU</span>
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Memory GPU {gpu.memory_gpu} </span>
+                        </div>
+                        <div className="mb-1 flex items-center">
+                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Hingga {gpu.vcpu}</span>
                         </div>
                         <div className="mb-1 flex items-center">
                             <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
                             <span className="text-xs sm:text-sm lg:text-sm xl:text-md">RAM hingga {gpu.ram}</span>
                         </div>
+                        <div className="mb-1 flex items-center">
+                            <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">SSDK hingga {gpu.ssd}</span>
+                        </div>
                         <div className="mb-3 sm:mb-3 flex items-center">
                             <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
-                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Periode minimal {gpu.min_period_days} hari</span>
+                            <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Periode minimal {gpu.min_period_hours} Jam</span>
                         </div>
-                        {gpu.deskripsi && <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">{gpu.deskripsi.substring(0, 80)}...</p>}
+                        {gpu.description && <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">{gpu.description.substring(0, 80)}...</p>}
                         <div className="flex justify-center">
                             <button
                                 onClick={() => handlePesanClick(gpu.id)}

@@ -21,7 +21,7 @@ const OrderList = ({ orders, onRefresh }) => {
         { value: 'user_name', label: 'Nama Pengguna' },
         { value: 'package_name', label: 'Nama Paket' },
         { value: 'total_cost', label: 'Total Biaya' },
-        { value: 'duration_days', label: 'Durasi' },
+        { value: 'duration_hours', label: 'Durasi' },
         { value: 'created_at', label: 'Tanggal Pemesanan' }, // Menambahkan 'created_at' ke sortOptions
     ];
 
@@ -45,8 +45,8 @@ const OrderList = ({ orders, onRefresh }) => {
                 const priceA = parseFloat(a.total_cost);
                 const priceB = parseFloat(b.total_cost);
                 return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
-            } else if (sortBy === 'duration_days') {
-                return sortOrder === 'asc' ? a.duration_days - b.duration_days : b.duration_days - a.duration_days;
+            } else if (sortBy === 'duration_hours') {
+                return sortOrder === 'asc' ? a.duration_hours - b.duration_hours : b.duration_hours - a.duration_hours;
             } else if (sortBy === 'created_at') { // Menambahkan logika pengurutan untuk 'created_at'
                 const dateA = new Date(a.created_at).getTime();
                 const dateB = new Date(b.created_at).getTime();
@@ -139,7 +139,7 @@ const OrderList = ({ orders, onRefresh }) => {
                                 </Listbox.Options>
                             </div>
                         </Listbox>
-                        {(sortBy === 'total_cost' || sortBy === 'user_name' || sortBy === 'duration_days' || sortBy === 'created_at') && ( // Memasukkan created_at ke dalam kondisi
+                        {(sortBy === 'total_cost' || sortBy === 'user_name' || sortBy === 'duration_hours' || sortBy === 'created_at') && ( // Memasukkan created_at ke dalam kondisi
                             <button
                                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                                 className="ml-2 inline-flex items-center justify-center p-2 rounded-md border border-gray-300 shadow-sm bg-white text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors"

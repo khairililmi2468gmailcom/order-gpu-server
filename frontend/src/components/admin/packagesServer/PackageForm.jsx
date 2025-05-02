@@ -1,112 +1,119 @@
-
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 const PackageForm = forwardRef((props, ref) => {
-    const { initialPackage, onSubmit, onCancel } = props;
+    const { initialPackage, onSubmit } = props;
+
     const [name, setName] = useState('');
     const [pricePerHour, setPricePerHour] = useState('');
     const [vcpu, setVcpu] = useState('');
     const [ram, setRam] = useState('');
-    const [minPeriodDays, setMinPeriodDays] = useState('');
+    const [ssd, setSsd] = useState('');
+    const [memoryGpu, setMemoryGpu] = useState('');
+    const [description, setDescription] = useState('');
+    const [minPeriodHours, setminPeriodHours] = useState('');
 
-    const [nameError, setNameError] = useState('');
-    const [pricePerHourError, setPricePerHourError] = useState('');
-    const [vcpuError, setVcpuError] = useState('');
-    const [ramError, setRamError] = useState('');
-    const [minPeriodDaysError, setMinPeriodDaysError] = useState('');
-
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (initialPackage) {
             setName(initialPackage.name || '');
-            setPricePerHour(initialPackage.price_per_hour || '');
+            // Pastikan price_per_hour diinisialisasi sebagai string
+            setPricePerHour(String(initialPackage.price_per_hour || ''));
             setVcpu(initialPackage.vcpu || '');
             setRam(initialPackage.ram || '');
-            setMinPeriodDays(initialPackage.min_period_days || '');
+            setSsd(initialPackage.ssd || '');
+            setMemoryGpu(initialPackage.memory_gpu || '');
+            setDescription(initialPackage.description || '');
+            setminPeriodHours(String(initialPackage.min_period_hours || ''));  // Konversi kembali ke jam untuk input
         } else {
             setName('');
             setPricePerHour('');
             setVcpu('');
             setRam('');
-            setMinPeriodDays('');
+            setSsd('');
+            setMemoryGpu('');
+            setDescription('');
+            setminPeriodHours('');
         }
     }, [initialPackage]);
 
     const validateForm = () => {
+        const newErrors = {};
         let isValid = true;
-        let nameErrorMsg = '';
-        let pricePerHourErrorMsg = '';
-        let vcpuErrorMsg = '';
-        let ramErrorMsg = '';
-        let minPeriodDaysErrorMsg = '';
 
         if (!name.trim()) {
-            nameErrorMsg = 'Nama Paket harus diisi.';
+            newErrors.name = 'Nama Paket harus diisi.';
             isValid = false;
         } else if (name.length > 100) {
-            nameErrorMsg = 'Nama Paket maksimal 100 karakter.';
+            newErrors.name = 'Nama Paket maksimal 100 karakter.';
             isValid = false;
         }
-        setNameError(nameErrorMsg);
 
         if (!pricePerHour) {
-            pricePerHourErrorMsg = 'Harga per Jam harus diisi.';
+            newErrors.pricePerHour = 'Harga per Jam harus diisi.';
+            isValid = false;
+        } else if (typeof pricePerHour !== 'string') {
+            // Tambahkan pengecekan tipe untuk berjaga-jaga
+            newErrors.pricePerHour = 'Format harga tidak valid.';
             isValid = false;
         } else {
             const rawPrice = pricePerHour.replace(/\./g, '');
             const numericPrice = parseInt(rawPrice, 10);
-        
-            if (isNaN(numericPrice)) {
-                pricePerHourErrorMsg = 'Harga per Jam harus berupa angka positif.';
+            if (isNaN(numericPrice) || numericPrice < 0) {
+                newErrors.pricePerHour = 'Harga harus berupa angka positif.';
                 isValid = false;
-            } else if (numericPrice < 0) {
-                pricePerHourErrorMsg = 'Harga per Jam harus berupa angka positif.';
-                isValid = false;
-            } else if (numericPrice > 99999999) { // Maksimal 99.999.999
-                pricePerHourErrorMsg = 'Harga per Jam tidak boleh melebihi Rp99.999.999';
+            } else if (numericPrice > 99999999) {
+                newErrors.pricePerHour = 'Harga maksimal Rp99.999.999';
                 isValid = false;
             }
         }
-        setPricePerHourError(pricePerHourErrorMsg);
 
-        if (vcpu && vcpu.length > 50) {
-            vcpuErrorMsg = 'vCPU maksimal 50 karakter.';
+        if (vcpu.length > 50) {
+            newErrors.vcpu = 'vCPU maksimal 50 karakter.';
             isValid = false;
         }
-        setVcpuError(vcpuErrorMsg);
 
-        if (ram && ram.length > 50) {
-            ramErrorMsg = 'RAM maksimal 50 karakter.';
+        if (ram.length > 50) {
+            newErrors.ram = 'RAM maksimal 50 karakter.';
             isValid = false;
         }
-        setRamError(ramErrorMsg);
 
-        if(!minPeriodDays){
-            minPeriodDaysErrorMsg ='Minimal Periode tidak boleh kosong'
-            isValid = false;
-        } else if (minPeriodDays && (isNaN(Number(minPeriodDays)) || Number(minPeriodDays) < 0)) {
-            minPeriodDaysErrorMsg = 'Minimal Periode harus berupa angka positif.';
+        if (ssd.length > 50) {
+            newErrors.ssd = 'SSD maksimal 50 karakter.';
             isValid = false;
         }
-        setMinPeriodDaysError(minPeriodDaysErrorMsg);
 
-        setNameError(nameErrorMsg);
-        setPricePerHourError(pricePerHourErrorMsg);
-        setVcpuError(vcpuErrorMsg);
-        setRamError(ramErrorMsg);
-        setMinPeriodDaysError(minPeriodDaysErrorMsg);
+        if (memoryGpu.length > 50) {
+            newErrors.memoryGpu = 'Memory GPU maksimal 50 karakter.';
+            isValid = false;
+        }
+
+        if (!minPeriodHours) {
+            newErrors.minPeriodHours = 'Minimal Periode harus diisi.';
+            isValid = false;
+        } else if (isNaN(Number(minPeriodHours)) || Number(minPeriodHours) < 0) {
+            newErrors.minPeriodHours = 'Minimal Periode harus berupa angka positif.';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
         return isValid;
     };
 
     const handleSave = () => {
         if (validateForm()) {
-            onSubmit({
+            const formDataToSend = {
                 name,
-                price_per_hour: pricePerHour,
+                price_per_hour: pricePerHour.replace(/\./g, ''),
                 vcpu,
                 ram,
-                min_period_days: minPeriodDays,
-            });
+                ssd,
+                memory_gpu: memoryGpu,
+                description,
+                min_period_hours: Number(minPeriodHours),
+            };
+            console.log('Data yang dikirim dari PackageForm:', formDataToSend);
+            onSubmit(formDataToSend);
         }
     };
 
@@ -116,115 +123,83 @@ const PackageForm = forwardRef((props, ref) => {
             if (isValid) {
                 return {
                     name,
-                    price_per_hour: pricePerHour,
+                    price_per_hour: pricePerHour.replace(/\./g, ''), // Kirim harga tanpa format
                     vcpu,
                     ram,
-                    min_period_days: minPeriodDays
+                    ssd,
+                    memory_gpu: memoryGpu,
+                    description,
+                    min_period_hours: Number(minPeriodHours), // Konversi jam ke hari saat validasi dari luar
                 };
             }
             return false;
         },
+        resetForm: () => {
+            setName('');
+            setPricePerHour('');
+            setVcpu('');
+            setRam('');
+            setSsd('');
+            setMemoryGpu('');
+            setDescription('');
+            setminPeriodHours('');
+            setErrors({});
+        },
     }));
-
 
     return (
         <div className="bg-white rounded px-8 pt-6 pb-8 mb-4 text-left">
+            {[
+                { label: 'Nama Paket', id: 'name', value: name, setter: setName, errorKey: 'name', placeholder: 'Nama Paket' },
+                { label: 'Harga per Jam (Rp)', id: 'pricePerHour', value: pricePerHour, setter: (val) => {
+                    const raw = val.replace(/\D/g, '').slice(0, 8);
+                    const formatted = new Intl.NumberFormat('id-ID').format(raw);
+                    setPricePerHour(formatted);
+                }, errorKey: 'pricePerHour', placeholder: 'Contoh: 100.000' },
+                { label: 'vCPU', id: 'vcpu', value: vcpu, setter: setVcpu, errorKey: 'vcpu', placeholder: 'vCPU' },
+                { label: 'RAM', id: 'ram', value: ram, setter: setRam, errorKey: 'ram', placeholder: 'RAM' },
+                { label: 'SSD', id: 'ssd', value: ssd, setter: setSsd, errorKey: 'ssd', placeholder: 'SSD' },
+                { label: 'Memory GPU', id: 'memoryGpu', value: memoryGpu, setter: setMemoryGpu, errorKey: 'memoryGpu', placeholder: 'GPU Memory' },
+                { label: 'Minimal Periode (Jam)', id: 'minPeriodHours', value: minPeriodHours, setter: setminPeriodHours, errorKey: 'minPeriodHours', type: 'number', placeholder: 'Minimal jam sewa' }
+            ].map(({ label, id, value, setter, errorKey, placeholder, type = 'text' }) => (
+                <div className="mb-4" key={id}>
+                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={id}>
+                        {label}
+                    </label>
+                    <input
+                        id={id}
+                        type={type}
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => {
+                            setter(e.target.value);
+                            setErrors(prev => ({ ...prev, [errorKey]: '' }));
+                        }}
+                        className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors[errorKey] ? 'border-red-500' : ''}`}
+                    />
+                    {errors[errorKey] && <p className="text-red-500 text-xs italic">{errors[errorKey]}</p>}
+                </div>
+            ))}
             <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                    Nama Paket
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
+                    Deskripsi
                 </label>
-                <input
-                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${nameError ? 'border-red-500' : ''}`}
-                    id="name"
-                    type="text"
-                    placeholder="Nama Paket"
-                    value={name}
+                <textarea
+                    id="description"
+                    placeholder="Deskripsi paket (opsional)"
+                    value={description}
                     onChange={(e) => {
-                        setName(e.target.value);
-                        setNameError(''); // Clear error on input change
+                        setDescription(e.target.value);
+                        setErrors(prev => ({ ...prev, description: '' }));
                     }}
-                    required
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    rows="4"
                 />
-                {nameError && <p className="text-red-500 text-xs italic">{nameError}</p>}
-            </div>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="price_per_hour">
-                    Harga per Jam (Rp)
-                </label>
-                <input
-                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${pricePerHourError ? 'border-red-500' : ''}`}
-                    id="price_per_hour"
-                    type="text"
-                    placeholder="Contoh: 100.000"
-                    value={pricePerHour}
-                    onChange={(e) => {
-                        const rawValue = e.target.value.replace(/\D/g, '');
-                        const truncatedRawValue = rawValue.slice(0, 8);
-                        const formattedValue = new Intl.NumberFormat('id-ID').format(truncatedRawValue);
-                        setPricePerHour(formattedValue);
-                        setPricePerHourError('');
-                    }}
-                    required
-                />
-                {pricePerHourError && <p className="text-red-500 text-xs italic">{pricePerHourError}</p>}
-            </div>
-
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="vcpu">
-                    vCPU
-                </label>
-                <input
-                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${vcpuError ? 'border-red-500' : ''}`}
-                    id="vcpu"
-                    type="text"
-                    placeholder="vCPU"
-                    value={vcpu}
-                    onChange={(e) => {
-                        setVcpu(e.target.value);
-                        setVcpuError('');
-                    }}
-                />
-                {vcpuError && <p className="text-red-500 text-xs italic">{vcpuError}</p>}
-            </div>
-            <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2 " htmlFor="ram">
-                    RAM
-                </label>
-                <input
-                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${ramError ? 'border-red-500' : ''}`}
-                    id="ram"
-                    type="text"
-                    placeholder="RAM"
-                    value={ram}
-                    onChange={(e) => {
-                        setRam(e.target.value);
-                        setRamError('');
-                    }}
-                />
-                {ramError && <p className="text-red-500 text-xs italic">{ramError}</p>}
-            </div>
-            <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="min_period_days">
-                    Minimal Periode (Hari)
-                </label>
-                <input
-                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${minPeriodDaysError ? 'border-red-500' : ''}`}
-                    id="min_period_days"
-                    type="number"
-                    placeholder="Minimal Periode (Hari)"
-                    value={minPeriodDays}
-                    onChange={(e) => {
-                        setMinPeriodDays(e.target.value);
-                        setMinPeriodDaysError('');
-                    }}
-                    required
-                />
-                {minPeriodDaysError && <p className="text-red-500 text-xs italic">{minPeriodDaysError}</p>}
             </div>
         </div>
     );
 });
 
-PackageForm.displayName = 'PackageForm'; // Add this line
+PackageForm.displayName = 'PackageForm';
 
 export default PackageForm;

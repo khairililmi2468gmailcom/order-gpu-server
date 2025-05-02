@@ -52,15 +52,22 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const handleSendToken = async () => {
         Swal.fire({
             title: 'Kirim Token ke Pengguna',
-            html: `<input id="tokenInput" class="swal2-input" placeholder="Masukkan Token">`,
+            html: `
+            <input id="tokenInput" class="swal2-input" placeholder="Masukkan Token">
+            <input id="domainInput" class="swal2-input" placeholder="Masukkan Domain (opsional)">
+        `,
             showCancelButton: true,
             confirmButtonText: 'Kirim',
             preConfirm: () => {
-                return document.getElementById('tokenInput').value;
+                return {
+                    token: document.getElementById('tokenInput').value,
+                    domain: document.getElementById('domainInput').value
+                };
             }
         }).then(async (result) => {
             if (result.isConfirmed) {
-                const tokenToSend = result.value;
+                const tokenToSend = result.value.token;
+                const domainToSend = result.value.domain;
                 if (!tokenToSend) {
                     Swal.fire('Error', 'Token tidak boleh kosong', 'error');
                     return;
@@ -75,6 +82,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         body: JSON.stringify({
                             order_id: order.order_id,
                             token: tokenToSend,
+                            domain: domainToSend
                         }),
                     });
 
@@ -85,10 +93,11 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                     const responseData = await response.json();
                     setLocalOrder(prevOrder => ({
                         ...prevOrder,
-                        token: tokenToSend
+                        token: tokenToSend,
+                        domain: domainToSend
                     }));
                     setHasToken(true);
-                    Swal.fire('Berhasil!', `Token "${tokenToSend}" telah dikirim.`, 'success');
+                    Swal.fire('Berhasil!', `Token "${tokenToSend}" ${domainToSend ? `dan domain "${domainToSend}"` : ''} telah dikirim.`, 'success');
                 } catch (error) {
                     console.error("Gagal mengirim token:", error);
                     Swal.fire('Error!', error.message, 'error');
@@ -100,15 +109,21 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const handleUpdateToken = async () => {
         Swal.fire({
             title: 'Update Token Pengguna',
-            html: `<input id="tokenInput" class="swal2-input" placeholder="Masukkan Token Baru" value="${order.token || ''}">`, //Menampilkan token lama
-            showCancelButton: true,
+            html: `
+            <input id="tokenInput" class="swal2-input" placeholder="Masukkan Token Baru" value="${order.token || ''}">
+            <input id="domainInput" class="swal2-input" placeholder="Masukkan Domain Baru (opsional)" value="${order.domain || ''}">
+        `, showCancelButton: true,
             confirmButtonText: 'Update',
             preConfirm: () => {
-                return document.getElementById('tokenInput').value;
+                return {
+                    token: document.getElementById('tokenInput').value,
+                    domain: document.getElementById('domainInput').value
+                };
             }
         }).then(async (result) => {
             if (result.isConfirmed) {
-                const newToken = result.value;
+                const newToken = result.value.token;
+                const newDomain = result.value.domain;
                 if (!newToken) {
                     Swal.fire('Error', 'Token tidak boleh kosong', 'error');
                     return;
@@ -123,6 +138,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         body: JSON.stringify({
                             order_id: order.order_id,
                             token: newToken,
+                            domain: newDomain
                         }),
                     });
 
@@ -134,10 +150,11 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
 
                     setLocalOrder(prevOrder => ({
                         ...prevOrder,
-                        token: newToken
+                        token: newToken,
+                        domain: newDomain 
                     }));
                     onUpdateOrder(responseData.data);
-                    Swal.fire('Berhasil!', `Token berhasil diupdate menjadi "${newToken}".`, 'success');
+                    Swal.fire('Berhasil!', `Token berhasil diupdate menjadi "${newToken}" ${newDomain ? `dan domain menjadi "${newDomain}"` : ''}.`, 'success');
                 } catch (error) {
                     console.error("Gagal mengupdate token:", error);
                     Swal.fire('Error!', error.message, 'error');
@@ -159,7 +176,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                     Swal.showValidationMessage('Token tidak ditemukan untuk pesanan ini.');
                     return false; // Mencegah konfirmasi jika token kosong
                 }
-    
+
                 // Tampilkan loader kustom
                 Swal.fire({
                     title: '<span style="font-size: 1rem;">Mengirim Notifikasi...</span>', // Teks lebih kecil
@@ -170,7 +187,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                     didOpen: () => {
                         const loadingImage = Swal.getImage();
                         let loopTimeout;
-    
+
                         // Fungsi untuk memulai loop setelah 2 detik
                         const startLoop = () => {
                             loopTimeout = setTimeout(() => {
@@ -180,10 +197,10 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                                 }
                             }, 0);
                         };
-    
+
                         // Mulai loop setelah 2 detik
                         startLoop();
-    
+
                         return new Promise(async (resolve) => {
                             try {
                                 const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/orders/send-token`, {
@@ -208,7 +225,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                                     resolve(false); // Reject preConfirm
                                     return;
                                 }
-    
+
                                 clearTimeout(loopTimeout); // Hentikan loop
                                 Swal.close(); // Tutup loader
                                 Swal.fire('Berhasil!', 'Notifikasi token berhasil dikirim ke pengguna.', 'success');
@@ -223,7 +240,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         });
                     },
                 });
-    
+
                 return false; // Mencegah Swal utama menutup sebelum loader selesai
             },
             allowOutsideClick: false,
@@ -304,18 +321,21 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                     <span className="text-gray-600">Belum Ada</span>
                 )}
                 {isModalOpen && <PaymentModal imageUrl={order.proof_url} onClose={handleCloseModal} />}
-                </td>
+            </td>
             <td className="px-3 py-2 uppercase text-gray-700">{order.user_name}</td>
             <td className="px-3 py-2 whitespace-nowrap">
                 <div className="text-xs">
                     <div className="font-semibold text-indigo-700">{order.gpu_package_name}</div>
                     <div className="italic text-gray-500">Harga/Jam: {order.price_per_hour}</div>
-                    <div>vCPU: <span className="font-medium">{order.vcpu}</span> Core</div>
-                    <div>RAM: <span className="font-medium">{order.ram}</span> GB</div>
-                    <div>Min. Periode: <span className="font-medium">{order.min_period_days}</span> Hari</div>
+                    <div>Memory GPU: <span className="font-medium">{order.memory_gpu}</span></div>
+                    <div>vCPU: <span className="font-medium">{order.vcpu}</span></div>
+                    <div>RAM: <span className="font-medium">{order.ram}</span></div>
+                    <div>SSD: <span className="font-medium">{order.ssd}</span></div>
+                    <div>Min. Periode: <span className="font-medium">{order.min_period_hours}</span> Jam</div>
+                    <div>Deskripsi: <span className="font-medium">{order.description}</span> Jam</div>
                 </div>
             </td>
-            <td className="px-3 py-2 whitespace-nowrap text-gray-700">{order.duration_days} Hari</td>
+            <td className="px-3 py-2 whitespace-nowrap text-gray-700">{order.duration_hours} Jam</td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{
                 order.order_status === 'pending_approval' ? 'Menunggu' :
                     order.order_status === 'pending_payment' ? 'Menunggu Bayar' :

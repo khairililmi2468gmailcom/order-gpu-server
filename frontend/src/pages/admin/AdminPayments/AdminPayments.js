@@ -64,12 +64,14 @@ function AdminPayments() {
     }, [token, fetchOrders]);
 
     const handleUpdateOrder = (updatedOrder) => {
-        // Update state orders di parent tanpa re-fetch
-        setOrders(prev => prev.map(order =>
-            order.order_id === updatedOrder.order_id ? updatedOrder : order
-        ));
+        setOrders(prev =>
+            prev.map(order =>
+                order && updatedOrder && order.order_id === updatedOrder.order_id ? updatedOrder : order
+            )
+        );
         fetchOrders();
     };
+    
     if (loading) {
         return (
             <div className="p-8 flex justify-center items-center">

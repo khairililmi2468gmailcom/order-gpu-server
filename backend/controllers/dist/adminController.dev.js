@@ -433,13 +433,13 @@ var updateTokenStatus = function updateTokenStatus(req, res) {
 exports.updateTokenStatus = updateTokenStatus;
 
 var updateOrderToken = function updateOrderToken(req, res) {
-  var _req$body4, order_id, token, _ref13, _ref14, order;
+  var _req$body4, order_id, token, domain, _ref13, _ref14, order;
 
   return regeneratorRuntime.async(function updateOrderToken$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
-          _req$body4 = req.body, order_id = _req$body4.order_id, token = _req$body4.token;
+          _req$body4 = req.body, order_id = _req$body4.order_id, token = _req$body4.token, domain = _req$body4.domain;
 
           if (!(!token || typeof token !== 'string')) {
             _context6.next = 3;
@@ -471,24 +471,24 @@ var updateOrderToken = function updateOrderToken(req, res) {
 
         case 11:
           _context6.next = 13;
-          return regeneratorRuntime.awrap(_db["default"].query('UPDATE orders SET token = ?, updated_at = NOW() WHERE id = ?', [token, order_id]));
+          return regeneratorRuntime.awrap(_db["default"].query('UPDATE orders SET token = ?, domain = ?, updated_at = NOW() WHERE id = ?', [token, domain, order_id]));
 
         case 13:
           res.json({
-            message: 'Token berhasil diupdate'
+            message: 'Token dan domain berhasil diupdate'
           });
-          _context6.next = 20;
+          _context6.next = 19;
           break;
 
         case 16:
           _context6.prev = 16;
           _context6.t0 = _context6["catch"](3);
-          console.error('Update Token Error:', _context6.t0);
+          // console.error('Update Token dan Domain Error:', err);
           res.status(500).json({
-            error: 'Gagal mengupdate token'
+            error: 'Gagal mengupdate token dan domain'
           });
 
-        case 20:
+        case 19:
         case "end":
           return _context6.stop();
       }
@@ -650,7 +650,7 @@ var getAllPayments = function getAllPayments(req, res) {
         case 0:
           _context8.prev = 0;
           _context8.next = 3;
-          return regeneratorRuntime.awrap(_db["default"].query("SELECT \n          p.id AS payment_id,\n          p.order_id,\n          p.proof_url,\n          p.status AS payment_status,\n          p.verified_by,\n          p.verified_at,\n          \n          o.id AS order_id,\n          o.user_id,\n          o.gpu_package_id,\n          o.duration_days,\n          o.total_cost,\n          o.token,\n          o.is_active,\n          o.status AS order_status,\n          o.start_date,\n          o.end_date,\n          o.created_at AS order_created_at,\n          o.updated_at AS order_updated_at,\n          \n          u.name AS user_name,\n          u.email AS user_email,\n\n          g.name AS gpu_package_name,\n          g.price_per_hour,\n          g.vcpu,\n          g.ram,\n          g.min_period_days\n       FROM payments p \n       JOIN orders o ON p.order_id = o.id \n       JOIN users u ON o.user_id = u.id\n       JOIN gpu_packages g ON o.gpu_package_id = g.id"));
+          return regeneratorRuntime.awrap(_db["default"].query("SELECT \n          p.id AS payment_id,\n          p.order_id,\n          p.proof_url,\n          p.status AS payment_status,\n          p.verified_by,\n          p.verified_at,\n          \n          o.id AS order_id,\n          o.user_id,\n          o.gpu_package_id,\n          o.duration_hours,\n          o.total_cost,\n          o.token,\n          o.is_active,\n          o.status AS order_status,\n          o.domain,\n          o.start_date,\n          o.end_date,\n          o.created_at AS order_created_at,\n          o.updated_at AS order_updated_at,\n          \n          u.name AS user_name,\n          u.email AS user_email,\n\n          g.name AS gpu_package_name,\n          g.price_per_hour,\n          g.vcpu,\n          g.ram,\n          g.min_period_hours,\n          g.ssd,\n          g.memory_gpu,\n          g.description\t\n       FROM payments p \n       JOIN orders o ON p.order_id = o.id \n       JOIN users u ON o.user_id = u.id\n       JOIN gpu_packages g ON o.gpu_package_id = g.id"));
 
         case 3:
           _ref39 = _context8.sent;
@@ -819,14 +819,14 @@ var updatePassword = function updatePassword(req, res) {
 exports.updatePassword = updatePassword;
 
 var sendTokenToUser = function sendTokenToUser(req, res) {
-  var _req$body6, orderId, token, order, user, message;
+  var _req$body6, orderId, token, domain, order, user, message;
 
   return regeneratorRuntime.async(function sendTokenToUser$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
         case 0:
           _context11.prev = 0;
-          _req$body6 = req.body, orderId = _req$body6.orderId, token = _req$body6.token; // Ambil ID pesanan dan token yang akan dikirim
+          _req$body6 = req.body, orderId = _req$body6.orderId, token = _req$body6.token, domain = _req$body6.domain; // Ambil domain dari req.body
 
           _context11.next = 4;
           return regeneratorRuntime.awrap(_Order["default"].findById(orderId));
@@ -847,7 +847,8 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
           _context11.next = 9;
           return regeneratorRuntime.awrap(_Order["default"].updateOrderStatusAndToken(orderId, {
             status: 'approved',
-            token: token
+            token: token,
+            domain: domain
           }));
 
         case 9:
@@ -867,8 +868,8 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
           }));
 
         case 14:
-          // Kirimkan notifikasi ke pengguna dalam aplikasi
-          message = "Token aktif Anda adalah: ".concat(token);
+          // Kirimkan notifikasi ke pengguna dalam aplikasi (opsional: bisa ditambahkan informasi domain)
+          message = "Token aktif Anda adalah: ".concat(token, ". Domain Anda adalah: ").concat(domain);
           _context11.next = 17;
           return regeneratorRuntime.awrap(_Notification["default"].create({
             user_id: user.id,
@@ -877,11 +878,11 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
 
         case 17:
           _context11.next = 19;
-          return regeneratorRuntime.awrap((0, _notification.notifyUserWithToken)(user.email, user.name, token));
+          return regeneratorRuntime.awrap((0, _notification.notifyUserWithToken)(user.email, user.name, token, domain));
 
         case 19:
           return _context11.abrupt("return", res.status(200).json({
-            message: 'Token telah dikirimkan kepada pengguna dan email telah dikirim.'
+            message: 'Token dan domain telah dikirimkan kepada pengguna dan email telah dikirim.'
           }));
 
         case 22:
@@ -889,7 +890,7 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
           _context11.t0 = _context11["catch"](0);
           console.error(_context11.t0);
           return _context11.abrupt("return", res.status(500).json({
-            message: 'Terjadi kesalahan dalam mengirim token.'
+            message: 'Terjadi kesalahan dalam mengirim token dan domain.'
           }));
 
         case 26:

@@ -7,7 +7,7 @@ const FormPengisian = () => {
     const [searchParams] = useSearchParams();
     const [packageId, setPackageId] = useState('');
     const [gpuPackage, setGpuPackage] = useState(null);
-    const [durationDays, setDurationDays] = useState('');
+    const [durationHours, setDurationHours] = useState('');
     const [orderResult, setOrderResult] = useState(null);
     const [loadingOrder, setLoadingOrder] = useState(false);
     const [paymentProof, setPaymentProof] = useState(null);
@@ -31,9 +31,9 @@ const FormPengisian = () => {
             navigate('/semua-layanan');
         }
 
-        const storedDuration = localStorage.getItem('durationDays');
+        const storedDuration = localStorage.getItem('durationHours');
         if (storedDuration) {
-            setDurationDays(storedDuration);
+            setDurationHours(storedDuration);
         }
         // Scroll ke atas saat komponen mount
         if (formRef.current) {
@@ -44,14 +44,14 @@ const FormPengisian = () => {
     }, [searchParams, navigate]);
 
     useEffect(() => {
-        if (gpuPackage?.min_period_days && !localStorage.getItem('durationDays') && !durationDays) {
-            setDurationDays(String(gpuPackage.min_period_days));
+        if (gpuPackage?.min_period_hours && !localStorage.getItem('durationHours') && !durationHours) {
+            setDurationHours(String(gpuPackage.min_period_hours));
         }
-    }, [gpuPackage?.min_period_days, durationDays]);
+    }, [gpuPackage?.min_period_hours, durationHours]);
 
     useEffect(() => {
-        localStorage.setItem('durationDays', durationDays);
-    }, [durationDays]);
+        localStorage.setItem('durationHours', durationHours);
+    }, [durationHours]);
 
     useEffect(() => {
         if (orderResult?.orderId) {
@@ -79,8 +79,8 @@ const FormPengisian = () => {
     };
 
     const handleSelanjutnyaStep1 = () => {
-        if (!durationDays || parseInt(durationDays) < gpuPackage?.min_period_days) {
-            setDurationError(`Durasi harus minimal ${gpuPackage?.min_period_days} hari.`);
+        if (!durationHours || parseInt(durationHours) < gpuPackage?.min_period_hours) {
+            setDurationError(`Durasi harus minimal ${gpuPackage?.min_period_hours} jam.`);
             return;
         }
         setDurationError('');
@@ -88,13 +88,13 @@ const FormPengisian = () => {
     };
 
     const handleOrderConfirmation = () => {
-        const isDurationValidOnBackend = parseInt(durationDays) >= gpuPackage?.min_period_days;
+        const isDurationValidOnBackend = parseInt(durationHours) >= gpuPackage?.min_period_hours;
 
         if (!isDurationValidOnBackend) {
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal Membuat Pesanan',
-                text: `Durasi yang Anda pilih tidak valid. Silakan pilih durasi minimal ${gpuPackage?.min_period_days} hari.`,
+                text: `Durasi yang Anda pilih tidak valid. Silakan pilih durasi minimal ${gpuPackage?.min_period_hours} jam.`,
             }).then(() => {
                 setCurrentStep(1);
             });
@@ -103,7 +103,7 @@ const FormPengisian = () => {
 
         Swal.fire({
             title: 'Konfirmasi Pesanan',
-            text: `Apakah Anda yakin ingin membuat pesanan untuk paket ${gpuPackage?.name} dengan durasi ${durationDays} hari?`,
+            text: `Apakah Anda yakin ingin membuat pesanan untuk paket ${gpuPackage?.name} dengan durasi ${durationHours} jam?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, Buat Pesanan!',
@@ -130,7 +130,7 @@ const FormPengisian = () => {
                 },
                 body: JSON.stringify({
                     gpu_package_id: parseInt(packageId),
-                    duration_days: parseInt(durationDays),
+                    duration_hours: parseInt(durationHours),
                 }),
             });
 
@@ -313,26 +313,26 @@ const FormPengisian = () => {
                                 <div className="shadow-md rounded-md p-4 border border-gray-200 bg-gray-50">
                                     <h4 className="text-md font-semibold text-gray-700 mb-3">Pilih Durasi Sewa</h4>
                                     <div className="mb-3 flex items-center">
-                                        <label htmlFor="durationDays" className="w-1/3 text-gray-600 font-semibold">Durasi (hari):</label>
+                                        <label htmlFor="durationHours" className="w-1/3 text-gray-600 font-semibold">Durasi (jam):</label>
                                         <input
                                             type="number"
-                                            id="durationDays"
+                                            id="durationHours"
                                             className="shadow appearance-none border rounded w-2/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline border-blue-300 focus:border-blue-500"
-                                            value={durationDays}
-                                            onChange={(e) => setDurationDays(e.target.value)}
-                                            min={gpuPackage?.min_period_days}
+                                            value={durationHours}
+                                            onChange={(e) => setDurationHours(e.target.value)}
+                                            min={gpuPackage?.min_period_hours}
                                             required
-                                            placeholder={`Minimal ${gpuPackage?.min_period_days} hari`}
+                                            placeholder={`Minimal ${gpuPackage?.min_period_hours} jam`}
                                         />
                                     </div>
                                     {durationError && <p className="text-red-500 text-sm italic mt-1">{durationError}</p>}
                                     <div className="mt-1">
-                                        <p className="text-gray-600 text-sm">Masukkan jumlah hari. Minimal adalah {gpuPackage?.min_period_days} hari.</p>
+                                        <p className="text-gray-600 text-sm">Masukkan jumlah jam. Minimal adalah {gpuPackage?.min_period_hours} jam.</p>
                                     </div>
                                     <button
                                         onClick={handleSelanjutnyaStep1}
                                         className="inline-flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline shadow-md transition duration-300 mt-4"
-                                        disabled={!durationDays || parseInt(durationDays) < gpuPackage?.min_period_days}
+                                        disabled={!durationHours || parseInt(durationHours) < gpuPackage?.min_period_hours}
                                     >
                                         Selanjutnya
                                     </button>
@@ -342,11 +342,36 @@ const FormPengisian = () => {
                             {currentStep === 2 && (
                                 <div className="shadow-md rounded-md p-4 border border-gray-200 bg-gray-50">
                                     <h4 className="text-md font-semibold text-gray-700 mb-3">Konfirmasi Pesanan</h4>
-                                    <div className="space-y-2">
-                                        <p className="text-gray-700"><span className="font-semibold">Nama Paket:</span> {gpuPackage?.name}</p>
-                                        <p className="text-gray-700"><span className="font-semibold">Durasi Sewa:</span> {durationDays} hari</p>
-                                        {/* Tambahkan detail pesanan lain jika perlu */}
-                                    </div>
+                                    <dl className="grid grid-cols-2 gap-y-2">
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">Nama Paket:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.name}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">Memory GPU MIG H100:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.memory_gpu}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">CPU:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.vcpu}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">RAM:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.ram}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">SSD:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.ssd}</dd>
+                                        </div>
+                                        <div>
+                                            <dt className="font-semibold text-gray-700">Durasi Sewa:</dt>
+                                            <dd className="text-gray-700">{durationHours} jam</dd>
+                                        </div>
+                                        <div className="col-span-2"> {/* Deskripsi dibuat span 2 kolom agar lebih lebar */}
+                                            <dt className="font-semibold text-gray-700">Deskripsi:</dt>
+                                            <dd className="text-gray-700">{gpuPackage?.description}</dd>
+                                        </div>
+                                    </dl>
                                     {orderCreated ? (
                                         <button
                                             onClick={() => setCurrentStep(3)}
@@ -412,7 +437,7 @@ const FormPengisian = () => {
                                     </div>
                                     <div className="space-y-2 mb-4">
                                         <p className="text-gray-700"><span className="font-semibold">Paket:</span> {gpuPackage?.name}</p>
-                                        <p className="text-gray-700"><span className="font-semibold">Durasi:</span> {durationDays} hari</p>
+                                        <p className="text-gray-700"><span className="font-semibold">Durasi:</span> {durationHours} jam</p>
                                         <p className="text-gray-700"><span className="font-semibold">ID Pesanan:</span> {orderResult?.orderId}</p>
                                     </div>
                                     <div className="flex items-center mb-4">

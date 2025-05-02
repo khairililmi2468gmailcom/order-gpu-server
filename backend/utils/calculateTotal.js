@@ -1,6 +1,4 @@
 // src/utils/calculateTotal.js
-export const calculateTotalCost = (pricePerHour, durationDays) => {
-    const hoursPerDay = 24;
-    return parseFloat(pricePerHour) * hoursPerDay * durationDays;
-  };
-  
+export const calculateTotalCost = (pricePerHour, durationHours) => {
+    return parseFloat(pricePerHour) * parseFloat(durationHours);
+};

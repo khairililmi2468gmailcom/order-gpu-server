@@ -28,7 +28,7 @@ const paymentStatusAlias = {
 
 const filterOptions = [
     { value: 'package_name', label: 'Nama Paket' },
-    { value: 'duration_days', label: 'Durasi' },
+    { value: 'duration_hours', label: 'Durasi' },
     { value: 'total_cost', label: 'Harga' },
     { value: 'is_active', label: 'Status Token', hasSubOptions: true },
     { value: 'status', label: 'Status Pesanan', hasSubOptions: true },
@@ -107,8 +107,8 @@ const ListOrders = () => {
             const [filterKey, filterValue] = Object.entries(activeFilter)[0];
             if (filterKey === 'package_name') {
                 results = results.sort((a, b) => sortDirection === 'asc' ? a.package_name.localeCompare(b.package_name) : b.package_name.localeCompare(a.package_name));
-            } else if (filterKey === 'duration_days') {
-                results = results.sort((a, b) => sortDirection === 'asc' ? a.duration_days - b.duration_days : b.duration_days - a.duration_days);
+            } else if (filterKey === 'duration_hours') {
+                results = results.sort((a, b) => sortDirection === 'asc' ? a.duration_hours - b.duration_hours : b.duration_hours - a.duration_hours);
             } else if (filterKey === 'total_cost') {
                 results = results.sort((a, b) => sortDirection === 'asc' ? a.total_cost - b.total_cost : b.total_cost - a.total_cost);
             } else if (filterKey === 'is_active') {
@@ -513,7 +513,7 @@ const ListOrders = () => {
                         </div>
                     )}
                 </div>
-                {activeFilter && (activeFilter.package_name !== undefined || activeFilter.duration_days !== undefined || activeFilter.total_cost !== undefined || activeFilter.created_at !== undefined) && (
+                {activeFilter && (activeFilter.package_name !== undefined || activeFilter.duration_hours !== undefined || activeFilter.total_cost !== undefined || activeFilter.created_at !== undefined) && (
                     <button onClick={handleSortDirectionChange} className="focus:outline-none text-gray-700 hover:text-gray-900 text-sm flex items-center ml-2">
                         Urutkan {filterLabel}: {sortDirection === 'asc' ? <AiOutlineSortAscending className="h-4 w-4 ml-1" /> : <AiOutlineSortDescending className="h-4 w-4 ml-1" />}
                     </button>
@@ -527,8 +527,8 @@ const ListOrders = () => {
                             <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'package_name', label: 'Nama Paket' })}>
                                 Nama Paket {activeFilter && activeFilter.package_name !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
                             </th>
-                            <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'duration_days', label: 'Durasi' })}>
-                                Durasi {activeFilter && activeFilter.duration_days !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
+                            <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'duration_hours', label: 'Durasi' })}>
+                                Durasi {activeFilter && activeFilter.duration_hours !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
                             </th>
                             <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'total_cost', label: 'Harga' })}>
                                 Total Biaya {activeFilter && activeFilter.total_cost !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
@@ -549,7 +549,7 @@ const ListOrders = () => {
                             currentOrders.map(order => (
                                 <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50">
                                     <td className="px-5 py-3 text-left">{order.package_name}</td>
-                                    <td className="px-5 py-3 text-left">{order.duration_days} hari</td>
+                                    <td className="px-5 py-3 text-left">{order.duration_hours} jam</td>
                                     <td className="px-5 py-3 text-left">Rp {order.total_cost.toLocaleString('id-ID')}</td>
                                     <td className="px-5 py-3 text-left">
                                         <span className={`relative inline-block px-3 py-1 font-semibold text-sm rounded-full ${order.status === 'pending_payment' ? 'bg-yellow-200 text-yellow-700' :

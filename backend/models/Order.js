@@ -21,10 +21,10 @@ const Order = {
   },
 
   // Fungsi untuk memperbarui status pesanan dan mengaktifkan token
-  async updateOrderStatusAndToken(orderId, { status, token }) {
+  async updateOrderStatusAndToken(orderId, { status, token , domain}) {
     const [result] = await db.query(
-      'UPDATE orders SET status = ?, token = ?, is_active = 1 WHERE id = ?',
-      [status, token, orderId]
+      'UPDATE orders SET status = ?, token = ?, domain = ?, is_active = 1 WHERE id = ?',
+      [status, token, domain, orderId]
     );
     return result;
   },

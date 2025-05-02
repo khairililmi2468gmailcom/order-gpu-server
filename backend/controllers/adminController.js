@@ -171,7 +171,7 @@ export const updateTokenStatus = async (req, res) => {
 //   }
 // };
 export const updateOrderToken = async (req, res) => {
-  const { order_id, token } = req.body;
+  const { order_id, token, domain } = req.body; 
 
   if (!token || typeof token !== 'string') {
     return res.status(400).json({ error: 'Token harus berupa string dan tidak boleh kosong' });
@@ -184,16 +184,16 @@ export const updateOrderToken = async (req, res) => {
       return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
     }
 
-    // Update token hanya di kolom token
+    // Update token dan domain
     await pool.query(
-      'UPDATE orders SET token = ?, updated_at = NOW() WHERE id = ?',
-      [token, order_id]
+      'UPDATE orders SET token = ?, domain = ?, updated_at = NOW() WHERE id = ?',
+      [token, domain, order_id]
     );
 
-    res.json({ message: 'Token berhasil diupdate' });
+    res.json({ message: 'Token dan domain berhasil diupdate' });
   } catch (err) {
-    console.error('Update Token Error:', err);
-    res.status(500).json({ error: 'Gagal mengupdate token' });
+    // console.error('Update Token dan Domain Error:', err);
+    res.status(500).json({ error: 'Gagal mengupdate token dan domain' });
   }
 };
 
@@ -308,11 +308,12 @@ export const getAllPayments = async (req, res) => {
           o.id AS order_id,
           o.user_id,
           o.gpu_package_id,
-          o.duration_days,
+          o.duration_hours,
           o.total_cost,
           o.token,
           o.is_active,
           o.status AS order_status,
+          o.domain,
           o.start_date,
           o.end_date,
           o.created_at AS order_created_at,
@@ -325,7 +326,10 @@ export const getAllPayments = async (req, res) => {
           g.price_per_hour,
           g.vcpu,
           g.ram,
-          g.min_period_days
+          g.min_period_hours,
+          g.ssd,
+          g.memory_gpu,
+          g.description	
        FROM payments p 
        JOIN orders o ON p.order_id = o.id 
        JOIN users u ON o.user_id = u.id
@@ -390,15 +394,15 @@ export const updatePassword = async (req, res) => {
 
 export const sendTokenToUser = async (req, res) => {
   try {
-    const { orderId, token } = req.body; // Ambil ID pesanan dan token yang akan dikirim
+    const { orderId, token, domain } = req.body; // Ambil domain dari req.body
     const order = await Order.findById(orderId);
 
     if (!order || order.is_active === 0) {
       return res.status(404).json({ message: 'Pesanan tidak ditemukan atau belum aktif.' });
     }
 
-    // Perbarui status pesanan dan set token aktif
-    await Order.updateOrderStatusAndToken(orderId, { status: 'approved', token });
+    // Perbarui status pesanan, set token aktif, dan set domain
+    await Order.updateOrderStatusAndToken(orderId, { status: 'approved', token, domain });
 
     // Ambil informasi pengguna terkait pesanan ini
     const user = await User.findById(order.user_id);
@@ -407,19 +411,19 @@ export const sendTokenToUser = async (req, res) => {
       return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
     }
 
-    // Kirimkan notifikasi ke pengguna dalam aplikasi
-    const message = `Token aktif Anda adalah: ${token}`;
+    // Kirimkan notifikasi ke pengguna dalam aplikasi (opsional: bisa ditambahkan informasi domain)
+    const message = `Token aktif Anda adalah: ${token}. Domain Anda adalah: ${domain}`;
     await Notification.create({
       user_id: user.id,
       message: message
     });
 
-    // Kirimkan email ke pengguna dengan token
-    await notifyUserWithToken(user.email, user.name, token);
+    // Kirimkan email ke pengguna dengan token dan domain
+    await notifyUserWithToken(user.email, user.name, token, domain); // Tambahkan domain ke fungsi email
 
-    return res.status(200).json({ message: 'Token telah dikirimkan kepada pengguna dan email telah dikirim.' });
+    return res.status(200).json({ message: 'Token dan domain telah dikirimkan kepada pengguna dan email telah dikirim.' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Terjadi kesalahan dalam mengirim token.' });
+    return res.status(500).json({ message: 'Terjadi kesalahan dalam mengirim token dan domain.' });
   }
 };

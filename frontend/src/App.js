@@ -22,6 +22,7 @@ import UbahPassword from './pages/ubahpassword/UbahPassword';
 import Profile from './pages/profile/Profile';
 import ForgotPasswordPage from './pages/login/ForgotPasswordPage';
 import ResetPasswordPage from './pages/login/ResetPasswordPage';
+import { jwtDecode } from 'jwt-decode'; 
 
 function App() {
   const location = useLocation();
@@ -31,7 +32,7 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('ID');
   const [isLoggedInApp, setIsLoggedInApp] = useState(false);
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // <<<<<<<<<<<<<< ini tambahan
+  const [isLoading, setIsLoading] = useState(true); 
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdmin = user?.role === 'admin';
 
@@ -41,12 +42,40 @@ function App() {
     const checkLoginStatus = () => {
       const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
-      setIsLoggedInApp(!!token);
-      setUser(storedUser ? JSON.parse(storedUser) : null);
+
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token);
+          const currentTime = Math.floor(Date.now() / 1000); 
+          if (decodedToken.exp < currentTime) {
+            // Token kedaluwarsa
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setIsLoggedInApp(false);
+            setUser(null);
+            console.log('Token kedaluwarsa, silakan login kembali.');
+            navigate('/login');
+          } else {
+            // Token masih valid
+            setIsLoggedInApp(true);
+            setUser(storedUser ? JSON.parse(storedUser) : null);
+          }
+        } catch (error) {
+          // Token tidak valid atau tidak dapat didekode
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsLoggedInApp(false);
+          setUser(null);
+          console.error('Error mendekode token:', error);
+        }
+      } else {
+        setIsLoggedInApp(false);
+        setUser(null);
+      }
       setIsLoading(false);
     };
 
-    checkLoginStatus(); // Jalankan pertama kali
+    checkLoginStatus();
     window.addEventListener('storage', checkLoginStatus);
 
     const handleAdminLogout = () => {
@@ -61,6 +90,7 @@ function App() {
       window.removeEventListener('adminLogout', handleAdminLogout);
     };
   }, [navigate]);
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -88,7 +118,6 @@ function App() {
   };
 
   if (isLoading) {
-    // Tampilkan loading kosong / spinner / atau bahkan return null
     return null;
   }
 

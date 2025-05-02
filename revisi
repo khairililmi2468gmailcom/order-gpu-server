@@ -1,4 +1,45 @@
 1. (problem)setelah login di pemesan langsung ke footer✅
 1.1. (add) setelah login ke section product card ✅
-2. tambah domain input untuk dikirim ke user
-3. timer durasi aktif token 2 hari ketika diklik, link domainya disable copy harus diklik
+2. (add) buat sesion login
+2. (add) tambah domain input untuk dikirim ke user
+3. (add)timer durasi aktif token 2 hari ketika diklik, link domainya disable copy harus diklik
+4. perbaikan data ubah struktur backend api dan front end✅
+GPU H100 USK-SC (12 MIG GPU)
+	- Memory GPU MIG H100: 12 GB
+	- RAM: 70 GB
+	- CPU: 8 Cores
+	- SSD: 1 TB
+	- Dengan Pytorch atau TensorFlow terkonfigurasi
+	- Price: Rp 10.000/jam
+	- Periode minimal 12 jam
+
+GPU H100 USK-SE (2 MIG GPU)
+	- Memory GPU MIG H100: 12 GB
+	- RAM: 70 GB
+	- CPU: 8 Cores
+	- SSD: 1 TB
+	- Tanpa Pytorch atau TensorFlow terkonfigurasi
+	- Price: Rp 10.000/jam
+	- Periode minimal 12 jam 
+
+GPU H100 USK-LC (3 MIG GPU)
+	- Memory GPU MIG H100: 22 GB
+	- RAM: 128 GB
+	- CPU: 12 Cores
+	- SSD: 1 TB
+	- Dengan Pytorch atau TensorFlow terkonfigurasi
+	- Price: Rp 25.000/jam
+	- Periode minimal 12 jam
+
+GPU H100 USK-LE (1 MIG GPU)
+	- Memory GPU MIG H100: 22 GB
+	- RAM: 128 GB
+	- CPU: 12 Cores
+	- SSD: 1 TB
+	- Tanpa Pytorch atau TensorFlow terkonfigurasi
+	- Price: Rp 25.000/jam
+	- Periode minimal 12 jam
+	
+	
+info@usk.ac.id —> support_gpu@cs.usk.ac.id
++6221 230 2345 —> +62 851 0142 0565

@@ -3,16 +3,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { calculateTotalCost } from '../utils/calculateTotal.js';
 
 export const createOrder = async (req, res) => {
-  const { gpu_package_id, duration_days } = req.body;
+  const { gpu_package_id, duration_hours } = req.body;
   const userId = req.user.id;
 
   try {
     // Validasi input awal
-    if (!gpu_package_id || !duration_days) {
-      return res.status(400).json({ error: true, message: 'gpu_package_id dan duration_days wajib diisi' });
+    if (!gpu_package_id || !duration_hours) {
+      return res.status(400).json({ error: true, message: 'gpu_package_id dan duration_hours wajib diisi' });
     }
 
-    if (typeof duration_days !== 'number' || duration_days <= 0) {
+    if (typeof duration_hours !== 'number' || duration_hours <= 0) {
       return res.status(400).json({ error: true, message: 'Durasi harus berupa angka dan lebih dari 0' });
     }
 
@@ -23,23 +23,23 @@ export const createOrder = async (req, res) => {
     }
 
     const packageData = gpuPackage[0];
-    const minPeriodDays = packageData.min_period_days || 1; // Default kalau null di DB
+    const minPeriodHours = packageData.min_period_hours || 1; // Default kalau null di DB
 
     // Validasi durasi sesuai paket
-    if (duration_days < minPeriodDays) {
+    if (duration_hours < minPeriodHours) {
       return res.status(400).json({
         error: true,
-        message: `Durasi minimal untuk paket ini adalah ${minPeriodDays} hari`
+        message: `Durasi minimal untuk paket ini adalah ${minPeriodHours} Jam`
       });
     }
 
     // Hitung total biaya
-    const totalCost = calculateTotalCost(packageData.price_per_hour, duration_days);
+    const totalCost = calculateTotalCost(packageData.price_per_hour, duration_hours);
 
     // Simpan pesanan
     const [result] = await pool.query(
-      'INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status) VALUES (?, ?, ?, ?, ?)',
-      [userId, gpu_package_id, duration_days, totalCost, 'pending_payment']
+      'INSERT INTO orders (user_id, gpu_package_id, duration_hours, total_cost, status) VALUES (?, ?, ?, ?, ?)',
+      [userId, gpu_package_id, duration_hours, totalCost, 'pending_payment']
     );
 
     // Respon sukses

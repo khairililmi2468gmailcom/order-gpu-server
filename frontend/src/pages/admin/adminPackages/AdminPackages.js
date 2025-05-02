@@ -103,6 +103,7 @@ function AdminPackages() {
             confirmButtonText: 'Simpan',
             showCancelButton: true,
             cancelButtonText: 'Batal',
+            allowOutsideClick: false,
             preConfirm: () => {
                 if (formInstance) {
                     return formInstance.validateForm();
@@ -258,6 +259,8 @@ function AdminPackages() {
             </div>
         );
     }
+
+    
 
 
     return (
