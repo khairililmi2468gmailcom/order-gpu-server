@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useFadeInOnScroll } from '../../../hooks/useFadeInOnScrool';
 import { CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const ITEMS_PER_PAGE = 4;
@@ -52,7 +52,16 @@ const ProductCard = React.forwardRef((props, ref) => {
     const [sortBy, setSortBy] = useState('created_at_desc');
     const [isFilterLoading, setIsFilterLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const token = localStorage.getItem('token');
+
+    // State untuk backoff pada fetch awal
+    const [fetchRetryCount, setFetchRetryCount] = useState(0);
+    const [fetchRetryDelay, setFetchRetryDelay] = useState(1000); // 1 detik awal
+
+    // State untuk backoff pada load more
+    const [loadMoreRetryCount, setLoadMoreRetryCount] = useState(0);
+    const [loadMoreRetryDelay, setLoadMoreRetryDelay] = useState(1000); // 1 detik awal
 
     const handlePesanClick = (packageId) => {
         if (token) {
@@ -65,7 +74,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                 confirmButtonText: 'Login',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    navigate('/login'); // Redirect ke halaman login
+                    navigate('/login', { state: { from: location.pathname } }); // Kirim info halaman asal
                 }
             });
         }
@@ -91,35 +100,45 @@ const ProductCard = React.forwardRef((props, ref) => {
         }
     };
 
-    useEffect(() => {
-        const fetchGpuPackages = async () => {
-            try {
-                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/packages`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} `);
-                }
-                const data = await response.json();
-                setGpuPackages(data);
-
-                const sortedData = sortPackages(data, sortBy);
-                setVisiblePackages(sortedData.slice(0, ITEMS_PER_PAGE));
-                setLoadedCount(ITEMS_PER_PAGE);
-
-                setLoading(false);
-                if (sortedData.length > ITEMS_PER_PAGE) {
-                    setShowMore(true);
-                } else {
-                    setShowMore(false);
-                }
-                cardRefs.current = sortedData.map(() => React.createRef());
-                setIsCardVisible(sortedData.map(() => false));
-            } catch (e) {
-                setError(e);
-                setLoading(false);
+    const fetchGpuPackages = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/packages`);
+            if (response.status === 429) {
+                console.warn('Fetch GPU Packages: Menerima 429, mencoba lagi setelah', fetchRetryDelay);
+                setTimeout(fetchGpuPackages, fetchRetryDelay);
+                setFetchRetryDelay(prevDelay => prevDelay * 2);
+                setFetchRetryCount(prevCount => prevCount + 1);
+                return;
             }
-        };
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setGpuPackages(data);
+            const sortedData = sortPackages(data, sortBy);
+            setVisiblePackages(sortedData.slice(0, ITEMS_PER_PAGE));
+            setLoadedCount(ITEMS_PER_PAGE);
+            setShowMore(sortedData.length > ITEMS_PER_PAGE);
+            cardRefs.current = sortedData.map(() => React.createRef());
+            setIsCardVisible(sortedData.map(() => false));
+            setLoading(false);
+            setFetchRetryCount(0);
+            setFetchRetryDelay(1000);
+        } catch (e) {
+            setError(e);
+            setLoading(false);
+            setFetchRetryCount(0);
+            setFetchRetryDelay(1000);
+        }
+    };
+
+    useEffect(() => {
         fetchGpuPackages();
-    }, [sortBy]); // Re-fetch and sort when sortBy changes
+    }, [sortBy]);
+
+    
+
     useEffect(() => {
         const sortPackagesAndUpdateState = (packages, criteria) => {
             const sortedPackages = sortPackages(packages, criteria);
@@ -127,17 +146,14 @@ const ProductCard = React.forwardRef((props, ref) => {
             setLoadedCount(ITEMS_PER_PAGE);
             cardRefs.current = sortedPackages.map(() => React.createRef());
             setIsCardVisible(sortedPackages.map(() => false));
-            if (sortedPackages.length > ITEMS_PER_PAGE) {
-                setShowMore(true);
-            } else {
-                setShowMore(false);
-            }
+            setShowMore(sortedPackages.length > ITEMS_PER_PAGE);
         };
 
         if (gpuPackages.length > 0) {
             sortPackagesAndUpdateState(gpuPackages, sortBy);
         }
     }, [gpuPackages, sortBy]);
+    
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {

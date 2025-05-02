@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { RocketLaunchIcon, CheckCircleIcon, InformationCircleIcon, ListBulletIcon } from '@heroicons/react/24/outline';
@@ -20,6 +20,7 @@ const FormPengisian = () => {
     const [isPackageLoading, setIsPackageLoading] = useState(true);
     const [currentStep, setCurrentStep] = useState(1);
     const [orderCreated, setOrderCreated] = useState(false);
+    const formRef = useRef(null);
 
     useEffect(() => {
         const id = searchParams.get('packageId');
@@ -33,6 +34,12 @@ const FormPengisian = () => {
         const storedDuration = localStorage.getItem('durationDays');
         if (storedDuration) {
             setDurationDays(storedDuration);
+        }
+        // Scroll ke atas saat komponen mount
+        if (formRef.current) {
+            formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [searchParams, navigate]);
 
@@ -224,11 +231,16 @@ const FormPengisian = () => {
     const handleKembali = () => {
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
+            // Scroll ke atas form saat kembali ke step sebelumnya
+            if (formRef.current) {
+                formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         } else {
             navigate(-1);
         }
     };
-
     const goToStep = (stepNumber) => {
         if (stepNumber <= currentStep) {
             setCurrentStep(stepNumber);
@@ -263,7 +275,7 @@ const FormPengisian = () => {
     };
 
     return (
-        <div className="container mx-auto mt-8 p-6 bg-white shadow-md rounded-md">
+        <div ref={formRef} className="container mx-auto mt-8 p-6 bg-white shadow-md rounded-md">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Formulir Pemesanan</h2>
             <div className="md:flex">
                 <div className="w-full md:w-1/3 pr-8">

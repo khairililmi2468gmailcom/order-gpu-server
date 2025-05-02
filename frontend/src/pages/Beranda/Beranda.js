@@ -58,6 +58,7 @@ const Beranda = () => {
   const [isMounted, setIsMounted] = useState(false);
   const landingRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isHashProcessed, setIsHashProcessed] = useState(false); // State untuk menandai apakah hash sudah diproses
 
   useEffect(() => {
     setIsMounted(true);
@@ -139,6 +140,35 @@ const Beranda = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+  
+  useEffect(() => {
+    const handleHashChangeOnMount = () => {
+      if (window.location.hash === '#produk-layanan-section' && produkRef.current && !isHashProcessed) {
+        // Tambahkan sedikit penundaan sebelum scroll
+        setTimeout(() => {
+          const sectionTop = produkRef.current.offsetTop;
+          const sectionHeight = produkRef.current.offsetHeight;
+          const viewportHeight = window.innerHeight;
+          const scrollToY = sectionTop + (sectionHeight - viewportHeight) / 2;
+
+          window.scrollTo({
+            top: Math.max(0, scrollToY),
+            behavior: 'smooth',
+          });
+
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          setIsHashProcessed(true); // Tandai bahwa hash sudah diproses
+        }, 100); // Penundaan 100ms (bisa disesuaikan)
+      }
+    };
+
+    handleHashChangeOnMount();
+
+    // Bersihkan state isHashProcessed saat komponen unmount atau jika hash berubah lagi (opsional)
+    return () => {
+      setIsHashProcessed(false);
+    };
+  }, [produkRef, isHashProcessed]); 
 
 
   const handleIntersection = (entry) => {
@@ -246,11 +276,10 @@ const Beranda = () => {
       </section>
       {/* Bagian Produk & Layanan */}
       <section
-        ref={produkRef} // Gunakan ref dari hook
-        id="produk-layanan-section"
+        ref={produkRef} 
         className={`py-16 bg-gray-100 transition-opacity duration-700 ${isProdukVisible ? 'opacity-100' : 'opacity-0'}`}
       >
-        <ProdukLayananSection />
+        <ProdukLayananSection ref={produkRef}/>
       </section>
       {/* Bagian Solusi (Asumsi Anda akan menambahkan ini) */}
       <section

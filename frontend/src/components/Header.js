@@ -74,7 +74,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             const isScrollingDown = currentScrollY > lastScrollY;
             const isDesktop = screenWidth >= desktopBreakpoint;
             const isMedium = screenWidth < desktopBreakpoint && screenWidth >= mediumBreakpoint;
-            const desktopTranslateY = -contactBarHeight ;
+            const desktopTranslateY = -contactBarHeight;
             const mobileTranslateY = -contactBarHeight + 20;
             const mediumTranslateY = -contactBarHeight;
 
@@ -277,101 +277,12 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                         </div>
                     </div>
 
-                    {/* Tombol & dropdown bahasa */}
-                    <div className="hidden md:flex items-center space-x-6">
-                        {!isLoggedInLocal ? (
-                            <>
-                                <NavLink
-                                    to="/login"
-                                    className="bg-transparent border-2 border-white text-white shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 hover:text-primary transition duration-300"
-                                >
-                                    Login
-                                </NavLink>
 
-                                <button className="bg-white text-secondary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
-                                    Hubungi Kami
-                                </button>
-                            </>
-                        ) : (
-                            <div className="flex items-center space-x-6">
-                                <div className="relative z-20" ref={notificationRef}>
-                                    <button
-                                        onClick={toggleNotificationDropdown}
-                                        className="focus:outline-none text-white text-base font-bold relative"
-                                    >
-                                        <FontAwesomeIcon icon={faBell} className="text-xl" />
-                                        {notifications.filter(n => n.status === 'unread').length > 0 && (
-                                            <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
-                                                {notifications.filter(n => n.status === 'unread').length}
-                                            </span>
-                                        )}
-                                    </button>
-                                    {notificationDropdownOpen && (
-                                        <NotificationDropdown
-                                            notifications={notifications}
-                                            onRead={handleReadNotification}
-                                        />
-                                    )}
-                                </div>
-                                <div className="relative z-20" ref={profileRef}>
-                                    <button
-                                        onClick={toggleProfileDropdown}
-                                        className="flex items-center gap-2 focus:outline-none text-white text-base font-bold"
-                                    >
-                                        <FontAwesomeIcon icon={faUserCircle} className="text-xl" />
-                                        <span>Profile</span>
-                                        <FontAwesomeIcon
-                                            icon={faCaretDown}
-                                            className={`text-xs transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''
-                                                }`}
-                                        />
-                                    </button>
-                                    {profileDropdownOpen && (
-                                        <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-[1000]">
-                                            {user?.role === 'admin' && (
-                                                <Link
-                                                    to="/admin"
-                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                                >
-                                                    Dashboard
-                                                </Link>
-                                            )}
-                                            <Link
-                                                to="/profile"
-                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            >
-                                                My Profile
-                                            </Link>
-                                            <Link
-                                                to="/listorders"
-                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            >
-                                                List Order
-                                            </Link>
-                                            <Link
-                                                to="/ubahpassword"
-                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                            >
-                                                Ubah Password
-                                            </Link>
-                                            <button
-                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
-                                                onClick={handleLogout}
-                                            >
-                                                Logout
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                    </div>
                 </div>
             </div>
             {/* Navbar */}
             <nav className={`bg-white text-black shadow-md py-6 lg:py-5 px-4 md:px-8 transition-transform duration-300 ease-in-out z-10 relative`} style={{ transform: `translateY(${navbarTranslateY}px)` }}>
-                <div className="max-w-screen-lg mx-auto flex justify-between items-center">
+                <div className="max-w-screen-xl mx-auto flex justify-between items-center">
                     {/* Logo */}
                     <Link to="/" className="flex-shrink-0">
                         <img
@@ -484,7 +395,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                             >
                                                 RentGPU Data Center
                                             </NavLink>
-                                            
+
                                             <NavLink
                                                 to="/cloudeka"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
@@ -509,7 +420,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                             >
                                                 GpuUSK
                                             </NavLink>
-                                            
+
                                             <NavLink
                                                 to="/finance"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
@@ -643,39 +554,135 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                 </div>
                             )}
                         </div>
+
+                    </div>
+                    {/* Tombol & dropdown bahasa */}
+                    <div className="hidden md:flex items-center space-x-4">
+                        {!isLoggedInLocal ? (
+                            <>
+                                <NavLink
+                                    to="/login"
+                                    className="bg-transparent border-2 border-primary text-primary shadow-md rounded-full px-8 py-2.5 text-base font-bold hover:bg-secondary hover:text-white transition duration-300"
+                                >
+                                    Login
+                                </NavLink>
+
+                                <button className="bg-white text-secondary shadow-md border-1 border-gray-500 rounded-full px-8 py-2.5 text-base font-bold hover:bg-gray-100 transition duration-300">
+                                    Hubungi Kami
+                                </button>
+                            </>
+                        ) : (
+                            <div className="flex items-center space-x-6">
+                                <div className="relative z-20" ref={notificationRef}>
+                                    <button
+                                        onClick={toggleNotificationDropdown}
+                                        className="focus:outline-none text-gray-600 text-base font-bold relative"
+                                    >
+                                        <FontAwesomeIcon icon={faBell} className="text-xl" />
+                                        {notifications.filter(n => n.status === 'unread').length > 0 && (
+                                            <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
+                                                {notifications.filter(n => n.status === 'unread').length}
+                                            </span>
+                                        )}
+                                    </button>
+                                    {notificationDropdownOpen && (
+                                        <NotificationDropdown
+                                            notifications={notifications}
+                                            onRead={handleReadNotification}
+                                        />
+                                    )}
+                                </div>
+                                <div className="relative z-20" ref={profileRef}>
+                                    <button
+                                        onClick={toggleProfileDropdown}
+                                        className="flex items-center gap-2 focus:outline-none text-gray-500 text-base font-bold"
+                                    >
+                                        <FontAwesomeIcon icon={faUserCircle} className="text-xl" />
+                                        <span>Profile</span>
+                                        <FontAwesomeIcon
+                                            icon={faCaretDown}
+                                            className={`text-xs transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''
+                                                }`}
+                                        />
+                                    </button>
+                                    {profileDropdownOpen && (
+                                        <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-md shadow-md w-64 z-[1000]">
+                                            {user?.role === 'admin' && (
+                                                <Link
+                                                    to="/admin"
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                                >
+                                                    Dashboard
+                                                </Link>
+                                            )}
+                                            <Link
+                                                to="/profile"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                My Profile
+                                            </Link>
+                                            <Link
+                                                to="/listorders"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                List Order
+                                            </Link>
+                                            <Link
+                                                to="/ubahpassword"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                            >
+                                                Ubah Password
+                                            </Link>
+                                            <button
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left focus:outline-none text-base"
+                                                onClick={handleLogout}
+                                            >
+                                                Logout
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                     </div>
 
-
-                    {/* Hamburger Menu (Mobile) */}
-                    <div className="md:hidden">
-                        <div className='flex items-center min-w-full'>
-                            <button
-                                onClick={toggleNotificationDropdown}
-                                className="focus:outline-none text-black text-base font-bold relative mr-4" // Tambahkan mr-4 untuk margin kanan
-                            >
-                                <FontAwesomeIcon icon={faBell} className="text-xl" />
-                                {notifications.filter(n => n.status === 'unread').length > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
-                                        {notifications.filter(n => n.status === 'unread').length}
-                                    </span>
+                   {/* Hamburger Menu (Mobile) */}
+                   <div className="md:hidden">
+                        <div className='flex items-center min-w-full justify-between'>
+                            <div className="flex items-center">
+                                {isLoggedInLocal && (
+                                    <div className="relative z-20 mr-4" ref={notificationRef}>
+                                        <button
+                                            onClick={toggleNotificationDropdown}
+                                            className="focus:outline-none text-black text-base font-bold relative"
+                                        >
+                                            <FontAwesomeIcon icon={faBell} className="text-xl" />
+                                            {notifications.filter(n => n.status === 'unread').length > 0 && (
+                                                <span className="absolute -top-1 -right-1 bg-red-500 rounded-full text-xs text-white w-4 h-4 flex items-center justify-center animate-pulse">
+                                                    {notifications.filter(n => n.status === 'unread').length}
+                                                </span>
+                                            )}
+                                        </button>
+                                        {notificationDropdownOpen && (
+                                            <NotificationDropdown
+                                                notifications={notifications}
+                                                onRead={handleReadNotification}
+                                            />
+                                        )}
+                                    </div>
                                 )}
-                            </button>
-                            {notificationDropdownOpen && (
-                                <NotificationDropdown
-                                    notifications={notifications}
-                                    onRead={handleReadNotification}
-                                />
-                            )}
-                            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none text-white">
-                                {/* Icon Hamburger */}
-                                <svg className="w-6 h-6 fill-black" viewBox="0 0 24 24">
-                                    {mobileMenuOpen ? (
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 0 1 1.414 1.414l-4.828 4.829z" />
-                                    ) : (
-                                        <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2z" />
-                                    )}
-                                </svg>
-                            </button>
+                                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none text-white">
+                                    {/* Icon Hamburger */}
+                                    <svg className="w-6 h-6 fill-black" viewBox="0 0 24 24">
+                                        {mobileMenuOpen ? (
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.41 l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 0 1 1.414 1.414l-4.828 4.829z" />
+                                        ) : (
+                                            <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2z" />
+                                        )}
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

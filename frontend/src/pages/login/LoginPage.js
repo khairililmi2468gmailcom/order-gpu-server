@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -13,10 +13,17 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const loginPageRef = useRef(null); 
 
     useEffect(() => {
         if (location.state?.registeredEmail) {
             setEmail(location.state.registeredEmail);
+        }
+        // Scroll ke atas setelah komponen di-mount
+        if (loginPageRef.current) {
+            loginPageRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+        } else {
+            window.scrollTo(0, 0);
         }
     }, [location.state?.registeredEmail]);
 
@@ -72,10 +79,10 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
                     localStorage.setItem('token', response.data.token);
                     localStorage.setItem('user', JSON.stringify(response.data.user)); // Kalau mau sekalian simpan user info
                     onLoginSuccess(); // Panggil fungsi props untuk update App.js
-                    if (response.data.user.role === 'admin') { // Sesuaikan cek role kalau perlu
+                    if (response.data.user.role === 'admin') {
                         navigate('/admin');
                     } else {
-                        navigate('/');
+                        navigate('/#produk-layanan-section'); 
                     }
                 });
 
@@ -122,7 +129,7 @@ const LoginPage = ({ onLoginSuccess }) => { // Terima onLoginSuccess sebagai pro
     };
 
     return (
-        <div className="bg-animated-bg bg-cover bg-center min-h-screen flex justify-center items-center">
+        <div ref={loginPageRef} className="bg-animated-bg bg-cover bg-center min-h-screen flex justify-center items-center">
             <div className="bg-white bg-opacity-80 p-10 rounded-lg shadow-xl w-full max-w-md">
                 <h2 className="text-2xl font-semibold text-indigo-600 mb-6 text-center">Login</h2>
                 <form onSubmit={handleLogin} className="space-y-4">
