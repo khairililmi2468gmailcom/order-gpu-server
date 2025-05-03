@@ -44,14 +44,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setProfileDropdownOpen(false);
             }
-            if (langRef.current && !langRef.current.contains(event.target)) {
-                setLanguageDropdownOpen(false);
-            }
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-                setNotificationDropdownOpen(false);
-            }
+            
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
