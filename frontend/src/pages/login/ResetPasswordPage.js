@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useSearchParams } from 'react-router-dom'; // Import hook untuk query params
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 const ResetPasswordPage = () => {
     const [token, setToken] = useState('');
@@ -10,6 +12,8 @@ const ResetPasswordPage = () => {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [newPasswordError, setNewPasswordError] = useState('');
     const [confirmNewPasswordError, setConfirmNewPasswordError] = useState('');
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams(); // Dapatkan objek query params
@@ -94,6 +98,14 @@ const ResetPasswordPage = () => {
         }
     };
 
+
+    const toggleNewPasswordVisibility = () => {
+        setShowNewPassword(!showNewPassword);
+    };
+
+    const toggleConfirmNewPasswordVisibility = () => {
+        setShowConfirmNewPassword(!showConfirmNewPassword);
+    };
     return (
         <div className="bg-animated-bg bg-cover bg-center min-h-screen flex justify-center items-center">
             <div className="bg-white bg-opacity-80 p-10 rounded-lg shadow-xl w-full max-w-md">
@@ -116,26 +128,38 @@ const ResetPasswordPage = () => {
                         <label htmlFor="newPassword" className="block text-gray-700 text-sm font-bold mb-2">
                             Password Baru
                         </label>
-                        <input
-                            type="password"
-                            id="newPassword"
-                            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${newPasswordError && 'border-red-500'}`}
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                        />
+                        <div className="relative">
+
+                            <input
+                                type={showNewPassword ? 'text' : 'password'}
+                                id="newPassword"
+                                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${newPasswordError && 'border-red-500'}`}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer" onClick={toggleNewPasswordVisibility}>
+                                <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} className="h-5 w-5" />
+                            </div>
+                        </div>
                         {newPasswordError && <p className="text-red-500 text-xs italic">{newPasswordError}</p>}
                     </div>
                     <div>
                         <label htmlFor="confirmNewPassword" className="block text-gray-700 text-sm font-bold mb-2">
                             Konfirmasi Password Baru
                         </label>
-                        <input
-                            type="password"
-                            id="confirmNewPassword"
-                            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${confirmNewPasswordError && 'border-red-500'}`}
-                            value={confirmNewPassword}
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        />
+                        <div className="relative">
+
+                            <input
+                                type={showConfirmNewPassword ? 'text' : 'password'}
+                                id="confirmNewPassword"
+                                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${confirmNewPasswordError && 'border-red-500'}`}
+                                value={confirmNewPassword}
+                                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer" onClick={toggleConfirmNewPasswordVisibility}>
+                                <FontAwesomeIcon icon={showConfirmNewPassword ? faEyeSlash : faEye} className="h-5 w-5" />
+                            </div>
+                        </div>
                         {confirmNewPasswordError && <p className="text-red-500 text-xs italic">{confirmNewPasswordError}</p>}
                     </div>
                     <button
