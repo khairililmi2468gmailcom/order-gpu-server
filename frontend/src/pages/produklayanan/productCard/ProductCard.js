@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFadeInOnScroll } from '../../../hooks/useFadeInOnScrool';
 import { CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -37,6 +37,22 @@ const sortPackages = (packages, criteria) => {
     }
 };
 
+export const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+};
+
 const ProductCard = React.forwardRef((props, ref) => {
     const [gpuPackages, setGpuPackages] = useState([]);
     const [visiblePackages, setVisiblePackages] = useState([]);
@@ -51,6 +67,7 @@ const ProductCard = React.forwardRef((props, ref) => {
     const [ctaRef, isCtaVisible] = useFadeInOnScroll({ threshold: 0.2 });
     const [sortBy, setSortBy] = useState('created_at_desc');
     const [isFilterLoading, setIsFilterLoading] = useState(false);
+    const debouncedSortBy = useDebounce(sortBy, 500); // Tunda selama 500ms
     const navigate = useNavigate();
     const location = useLocation();
     const token = localStorage.getItem('token');
@@ -85,7 +102,7 @@ const ProductCard = React.forwardRef((props, ref) => {
         setIsFilterLoading(true);
         setTimeout(() => {
             setIsFilterLoading(false);
-        }, 1000); // Simulasi loading filter
+        }, 500); // Simulasi loading filter yang dipercepat agar terasa responsif dengan debounce
     };
 
     const handleLoadMoreStepChange = (event) => {
@@ -116,7 +133,7 @@ const ProductCard = React.forwardRef((props, ref) => {
             }
             const data = await response.json();
             setGpuPackages(data);
-            const sortedData = sortPackages(data, sortBy);
+            const sortedData = sortPackages(data, debouncedSortBy);
             setVisiblePackages(sortedData.slice(0, ITEMS_PER_PAGE));
             setLoadedCount(ITEMS_PER_PAGE);
             setShowMore(sortedData.length > ITEMS_PER_PAGE);
@@ -135,25 +152,8 @@ const ProductCard = React.forwardRef((props, ref) => {
 
     useEffect(() => {
         fetchGpuPackages();
-    }, [sortBy]);
+    }, [debouncedSortBy]); // Hanya fetch ketika debouncedSortBy berubah
 
-    
-
-    useEffect(() => {
-        const sortPackagesAndUpdateState = (packages, criteria) => {
-            const sortedPackages = sortPackages(packages, criteria);
-            setVisiblePackages(sortedPackages.slice(0, ITEMS_PER_PAGE));
-            setLoadedCount(ITEMS_PER_PAGE);
-            cardRefs.current = sortedPackages.map(() => React.createRef());
-            setIsCardVisible(sortedPackages.map(() => false));
-            setShowMore(sortedPackages.length > ITEMS_PER_PAGE);
-        };
-
-        if (gpuPackages.length > 0) {
-            sortPackagesAndUpdateState(gpuPackages, sortBy);
-        }
-    }, [gpuPackages, sortBy]);
-    
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -185,7 +185,7 @@ const ProductCard = React.forwardRef((props, ref) => {
     const handleLoadMore = () => {
         setLoadingMore(true);
         setTimeout(() => {
-            const sortedPackages = sortPackages(gpuPackages, sortBy);
+            const sortedPackages = sortPackages(gpuPackages, debouncedSortBy);
             const nextCount = loadedCount + loadMoreStep;
             const nextPackages = sortedPackages.slice(0, nextCount);
             setVisiblePackages(nextPackages);
@@ -194,9 +194,20 @@ const ProductCard = React.forwardRef((props, ref) => {
                 setShowMore(false);
             }
             setLoadingMore(false);
-        }, 1000); // Simulasi loading
+        }, 500); // Simulasi loading yang dipercepat
     };
 
+    const handleReset = () => {
+        setLoadedCount(ITEMS_PER_PAGE);
+        setSortBy('created_at_desc'); // Reset urutan ke default
+    };
+
+    const handleLoadLess = () => {
+        const newLoadedCount = Math.max(ITEMS_PER_PAGE, loadedCount - loadMoreStep);
+        setVisiblePackages(sortPackages(gpuPackages, debouncedSortBy).slice(0, newLoadedCount));
+        setLoadedCount(newLoadedCount);
+        setShowMore(newLoadedCount < gpuPackages.length);
+    };
 
     if (loading) {
         return (
@@ -210,20 +221,6 @@ const ProductCard = React.forwardRef((props, ref) => {
     if (error) {
         return <div className="text-center text-red-500">Terjadi kesalahan saat memuat data: {error.message}</div>;
     }
-    const handleReset = () => {
-        setLoadedCount(ITEMS_PER_PAGE);
-        setSortBy('created_at_desc'); // Reset urutan ke default
-        const sortedPackages = sortPackages(gpuPackages, 'created_at_desc');
-        setVisiblePackages(sortedPackages.slice(0, ITEMS_PER_PAGE));
-        setShowMore(sortedPackages.length > ITEMS_PER_PAGE);
-    };
-
-    const handleLoadLess = () => {
-        const newLoadedCount = Math.max(ITEMS_PER_PAGE, loadedCount - loadMoreStep);
-        setVisiblePackages(sortPackages(gpuPackages, sortBy).slice(0, newLoadedCount));
-        setLoadedCount(newLoadedCount);
-        setShowMore(newLoadedCount < gpuPackages.length);
-    };
 
     return (
         <>
@@ -253,7 +250,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                         >
                             <option className="bg-white hover:bg-gray-100 text-gray-900" value={4}>4 Item</option>
                             <option className="bg-white hover:bg-gray-100 text-gray-900" value={8}>8 Item</option>
-                            <option className="bg-w4 Itemhite hover:bg-gray-100 text-gray-900" value={16}>16 Item</option>
+                            <option className="bg-white hover:bg-gray-100 text-gray-900" value={16}>16 Item</option>
                             <option className="bg-white hover:bg-gray-100 text-gray-900" value={50}>50 Item</option>
                             <option className="bg-white hover:bg-gray-100 text-gray-900" value={100}>100 Item</option>
                         </select>

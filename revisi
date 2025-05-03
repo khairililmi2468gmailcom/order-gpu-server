@@ -1,8 +1,8 @@
 1. (problem)setelah login di pemesan langsung ke footer✅
 1.1. (add) setelah login ke section product card ✅
-2. (add) buat sesion login
+2. (add) buat sesion login✅
 2. (add) tambah domain input untuk dikirim ke user✅
-3. (add)timer durasi aktif token 2 hari ketika diklik, link domainya disable copy harus diklik
+3. (add)timer durasi aktif token 2 hari ketika diklik, link domainya disable copy harus diklik✅
 4. perbaikan data ubah struktur backend api dan front end✅
 GPU H100 USK-SC (12 MIG GPU)
 	- Memory GPU MIG H100: 12 GB
@@ -41,5 +41,5 @@ GPU H100 USK-LE (1 MIG GPU)
 	- Periode minimal 12 jam
 	
 	
-info@usk.ac.id —> support_gpu@cs.usk.ac.id
-+6221 230 2345 —> +62 851 0142 0565
+info@usk.ac.id —> support_gpu@cs.usk.ac.id✅
++6221 230 2345 —> +62 851 0142 0565✅

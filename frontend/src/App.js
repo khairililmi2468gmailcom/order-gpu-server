@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Beranda from './pages/Beranda/Beranda';
 import ProdukLayanan from './pages/produklayanan/ProdukLayanan';
@@ -22,7 +22,8 @@ import UbahPassword from './pages/ubahpassword/UbahPassword';
 import Profile from './pages/profile/Profile';
 import ForgotPasswordPage from './pages/login/ForgotPasswordPage';
 import ResetPasswordPage from './pages/login/ResetPasswordPage';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 function App() {
   const location = useLocation();
@@ -32,9 +33,49 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('ID');
   const [isLoggedInApp, setIsLoggedInApp] = useState(false);
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastActivity, setLastActivity] = useState(Date.now());
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdmin = user?.role === 'admin';
+
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsLoggedInApp(false);
+    setUser(null);
+    navigate('/login');
+  }, [navigate]);
+  const refreshToken = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/refresh`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      localStorage.setItem('token', response.data.token);
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userObject = JSON.parse(storedUser);
+        localStorage.setItem('user', JSON.stringify({ ...userObject, token: response.data.token }));
+        setUser({ ...userObject, token: response.data.token });
+      }
+      console.log('Token diperbarui.');
+      setLastActivity(Date.now()); // Perbarui waktu aktivitas setelah refresh berhasil
+    } catch (error) {
+      console.error('Gagal memperbarui token:', error);
+      handleLogout();
+    }
+  }, [handleLogout]);
 
   useEffect(() => {
     setNavigator(navigate);
@@ -45,15 +86,10 @@ function App() {
       if (token) {
         try {
           const decodedToken = jwtDecode(token);
-          const currentTime = Math.floor(Date.now() / 1000); 
+          const currentTime = Math.floor(Date.now() / 1000);
           if (decodedToken.exp < currentTime) {
-            // Token kedaluwarsa
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            setIsLoggedInApp(false);
-            setUser(null);
             console.log('Token kedaluwarsa, silakan login kembali.');
-            navigate('/login');
+            handleLogout();
           } else {
             // Token masih valid
             setIsLoggedInApp(true);
@@ -61,11 +97,8 @@ function App() {
           }
         } catch (error) {
           // Token tidak valid atau tidak dapat didekode
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setIsLoggedInApp(false);
-          setUser(null);
           console.error('Error mendekode token:', error);
+          handleLogout();
         }
       } else {
         setIsLoggedInApp(false);
@@ -84,20 +117,33 @@ function App() {
     };
     window.addEventListener('adminLogout', handleAdminLogout);
 
+    // Inactivity Timeout Logic
+    let inactivityTimer;
+    const inactivityTimeout = 10 * 60 * 1000; // 10 menit dalam milidetik
+
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(handleLogout, inactivityTimeout);
+    };
+
+    const activityEvents = ['mousemove', 'keydown', 'scroll', 'click'];
+    activityEvents.forEach(event => {
+      window.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Set timer awal saat komponen mount dan setiap kali ada perubahan route (sebagai indikasi aktivitas)
+    resetInactivityTimer();
+    navigate(location.pathname); // Trigger re-render dan reset timer saat route berubah
+
     return () => {
       window.removeEventListener('storage', checkLoginStatus);
       window.removeEventListener('adminLogout', handleAdminLogout);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetInactivityTimer);
+      });
+      clearTimeout(inactivityTimer);
     };
-  }, [navigate]);
-
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsLoggedInApp(false);
-    setUser(null);
-    navigate('/login');
-  };
+  }, [navigate, handleLogout, location.pathname]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const handleLanguageSelect = (lang) => {

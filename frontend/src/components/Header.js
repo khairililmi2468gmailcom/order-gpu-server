@@ -40,10 +40,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            console.log('Header: handleClickOutside'); // Tambahkan log
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setProfileDropdownOpen(false);
-            }
+            
             
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -160,7 +157,6 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     };
 
     const toggleNotificationDropdown = () => {
-        console.log('Header: toggleNotificationDropdown'); // Tambahkan log
         setNotificationDropdownOpen(!notificationDropdownOpen);
         if (profileDropdownOpen) {
             setProfileDropdownOpen(false);

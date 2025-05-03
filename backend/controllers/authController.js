@@ -46,7 +46,7 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Password salah' });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '2d' }); // role penting untuk middleware
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '20m' }); // role penting untuk middleware
     res.json({ token, user: { id: user.id, name: user.name, role: user.role, email: user.email, phone: user.phone } });
   } catch (err) {
     console.error('Login Error:', err); // Tambahan log
@@ -73,7 +73,7 @@ export const refreshToken = (req, res) => {
     const newToken = jwt.sign(
       { id, email, role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Token baru 1 jam lagi valid
+      { expiresIn: '20m' } // Token baru 20 menit lagi valid
     );
 
     res.status(200).json({ token: newToken });
