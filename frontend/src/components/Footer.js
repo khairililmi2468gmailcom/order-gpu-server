@@ -41,18 +41,35 @@ const Footer = () => {
             </li>
             <li className="flex items-center">
               <FontAwesomeIcon icon={faEnvelope} className="mr-3" />
-              <span>info@usk.ac.id</span>
+              <a href="mailto:support_gpu@cs.usk.ac.id" className="hover:text-white">
+                support_gpu@cs.usk.ac.id
+              </a>
             </li>
             <li className="flex items-center">
               <FontAwesomeIcon icon={faPhone} className="mr-3" />
-              <span>+62 651 7551275</span>
+              <a
+                href="https://wa.me/6285101420565"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white"
+              >
+                +62 851 0142 0565
+              </a>
             </li>
             <li className="flex items-center">
               <FontAwesomeIcon icon={faGlobe} className="mr-3" />
-              <Link to="/" className="hover:text-white">www.usk.ac.id</Link>
+              <a
+                href="https://usk.ac.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white"
+              >
+                www.usk.ac.id
+              </a>
             </li>
           </ul>
         </div>
+
 
         {/* Tautan Cepat */}
         <div>

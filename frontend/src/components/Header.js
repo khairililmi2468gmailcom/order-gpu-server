@@ -40,13 +40,14 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
+            console.log('Header: handleClickOutside'); // Tambahkan log
             if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setProfileDropdownOpen(false);
             }
             if (langRef.current && !langRef.current.contains(event.target)) {
                 setLanguageDropdownOpen(false);
             }
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) { // Add this
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
                 setNotificationDropdownOpen(false);
             }
         };
@@ -54,6 +55,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
 
     useEffect(() => {
         setIsLoggedInLocal(isLoggedIn);
@@ -164,6 +166,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
     };
 
     const toggleNotificationDropdown = () => {
+        console.log('Header: toggleNotificationDropdown'); // Tambahkan log
         setNotificationDropdownOpen(!notificationDropdownOpen);
         if (profileDropdownOpen) {
             setProfileDropdownOpen(false);
@@ -172,7 +175,6 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
             setLanguageDropdownOpen(false);
         }
     };
-
     const fetchNotifications = useCallback(async () => {
         if (isLoggedInLocal && user) {
             try {
@@ -253,17 +255,6 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
   ${scrolled ? (contactBarVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'}`}>
                 {/* Desktop: Email & Telepon di kiri */}
                 <div className="w-full animate-slideDown flex flex-col md:flex-row items-start md:items-center justify-between">
-                    {/* Kontak kiri desktop */}
-                    {/* <div className="hidden md:flex items-center space-x-4 text-white font-bold">
-                        <div className="flex items-center text-sm">
-                            <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
-                            <span>info@usk.ac.id</span>
-                        </div>
-                        <div className="flex items-center text-sm">
-                            <FontAwesomeIcon icon={faPhone} className="mr-2" />
-                            <span>+6221 230 2345</span>
-                        </div>
-                    </div> */}
 
                     {/* Kontak kiri mobile */}
                     <div className="flex md:hidden items-center text-white">
@@ -573,7 +564,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                             </>
                         ) : (
                             <div className="flex items-center space-x-6">
-                                <div className="relative z-20" ref={notificationRef}>
+                                <div className="relative z-20" >
                                     <button
                                         onClick={toggleNotificationDropdown}
                                         className="focus:outline-none text-gray-600 text-base font-bold relative"
@@ -586,10 +577,12 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                         )}
                                     </button>
                                     {notificationDropdownOpen && (
-                                        <NotificationDropdown
-                                            notifications={notifications}
-                                            onRead={handleReadNotification}
-                                        />
+                                        <div className="absolute right-0 top-10 z-50">
+                                            <NotificationDropdown
+                                                notifications={notifications}
+                                                onRead={handleReadNotification}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                                 <div className="relative z-20" ref={profileRef}>
@@ -647,8 +640,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
 
                     </div>
 
-                   {/* Hamburger Menu (Mobile) */}
-                   <div className="md:hidden">
+                    {/* Hamburger Menu (Mobile) */}
+                    <div className="md:hidden">
                         <div className='flex items-center min-w-full justify-between'>
                             <div className="flex items-center">
                                 {isLoggedInLocal && (

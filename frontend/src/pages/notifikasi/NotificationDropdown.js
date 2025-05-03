@@ -31,29 +31,17 @@ const NotificationDropdown = ({ notifications, onRead }) => {
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [isViewingDetails, setIsViewingDetails] = useState(false);
     const dropdownRef = useRef(null);
-    const [isMobile, setIsMobile] = useState(false);
 
     const handleNotificationClick = (notification) => {
-        if (!isMobile) return; // Hanya proses di mobile
-        
         setSelectedNotification(notification);
         setIsViewingDetails(true);
         onRead(notification.id);
     };
+
     const handleBackToList = () => {
         setSelectedNotification(null);
         setIsViewingDetails(false);
     };
-
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 1024); // Breakpoint lg di Tailwind
-        };
-
-        checkMobile(); // Pengecekan awal
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
 
     const getFormattedTime = (dateString) => {
         try {
