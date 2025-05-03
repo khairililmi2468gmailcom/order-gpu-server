@@ -564,7 +564,7 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                             </>
                         ) : (
                             <div className="flex items-center space-x-6">
-                                <div className="relative z-20" >
+                                <div className="relative z-20" ref={notificationRef}>
                                     <button
                                         onClick={toggleNotificationDropdown}
                                         className="focus:outline-none text-gray-600 text-base font-bold relative"
