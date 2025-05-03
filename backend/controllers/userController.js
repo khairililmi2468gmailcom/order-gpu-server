@@ -1,6 +1,7 @@
 // src/controllers/userController.js
 import pool from '../config/db.js';
 import bcrypt from 'bcryptjs';
+import Order from '../models/Order.js';
 
 export const getMyOrders = async (req, res) => {
   if (!req.user || !req.user.id) {
@@ -150,3 +151,63 @@ export const updatePassword = async (req, res) => {
   }
 };
 
+
+export const startUsage = async (req, res) => {
+  try {
+      const { orderId } = req.body;
+      const order = await Order.findById(orderId);
+
+      if (!order) {
+          return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+      }
+
+      if (!order.start_date) {
+          const startDate = new Date();
+          const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
+
+          const updateResult = await Order.findByIdAndUpdate(orderId, {
+              start_date: startDate,
+              end_date: endDate,
+              is_active: 1
+          });
+
+          if (updateResult.affectedRows > 0) {
+              const updatedOrder = await Order.findById(orderId);
+              return res.status(200).json({ message: 'Waktu penggunaan pesanan dimulai.', order: updatedOrder });
+          } else {
+              return res.status(500).json({ message: 'Gagal memperbarui status pesanan.' });
+          }
+      } else {
+          return res.status(200).json({ message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.', order });
+      }
+  } catch (error) {
+      console.error("Gagal mencatat awal penggunaan:", error);
+      return res.status(500).json({ message: 'Terjadi kesalahan saat mencatat awal penggunaan.' });
+  }
+};
+
+export const deactivateOrder = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const order = await Order.findById(id);
+
+      if (!order) {
+          return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+      }
+
+      if (order.is_active === 0) {
+          return res.status(200).json({ message: 'Pesanan sudah tidak aktif.' });
+      }
+
+      const updateResult = await Order.findByIdAndUpdate(id, { is_active: 0 });
+
+      if (updateResult.affectedRows > 0) {
+          return res.status(200).json({ message: 'Pesanan berhasil dinonaktifkan.' });
+      } else {
+          return res.status(500).json({ message: 'Gagal menonaktifkan pesanan.' });
+      }
+  } catch (error) {
+      console.error("Gagal menonaktifkan pesanan:", error);
+      return res.status(500).json({ message: 'Terjadi kesalahan saat menonaktifkan pesanan.' });
+  }
+};

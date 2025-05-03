@@ -397,9 +397,9 @@ export const sendTokenToUser = async (req, res) => {
     const { orderId, token, domain } = req.body; // Ambil domain dari req.body
     const order = await Order.findById(orderId);
 
-    if (!order || order.is_active === 0) {
-      return res.status(404).json({ message: 'Pesanan tidak ditemukan atau belum aktif.' });
-    }
+    // if (!order || order.is_active === 0) {
+    //   return res.status(404).json({ message: 'Pesanan tidak ditemukan atau belum aktif.' });
+    // }
 
     // Perbarui status pesanan, set token aktif, dan set domain
     await Order.updateOrderStatusAndToken(orderId, { status: 'approved', token, domain });
@@ -412,7 +412,7 @@ export const sendTokenToUser = async (req, res) => {
     }
 
     // Kirimkan notifikasi ke pengguna dalam aplikasi (opsional: bisa ditambahkan informasi domain)
-    const message = `Token aktif Anda adalah: ${token}. Domain Anda adalah: ${domain}`;
+    const message = `Token yang dikirim adalah: ${token}. Domain Anda adalah: ${domain}`;
     await Notification.create({
       user_id: user.id,
       message: message
@@ -427,3 +427,5 @@ export const sendTokenToUser = async (req, res) => {
     return res.status(500).json({ message: 'Terjadi kesalahan dalam mengirim token dan domain.' });
   }
 };
+
+

@@ -21,13 +21,27 @@ const Order = {
   },
 
   // Fungsi untuk memperbarui status pesanan dan mengaktifkan token
-  async updateOrderStatusAndToken(orderId, { status, token , domain}) {
+  async updateOrderStatusAndToken(orderId, { status, token, domain }) {
     const [result] = await db.query(
       'UPDATE orders SET status = ?, token = ?, domain = ?, is_active = 1 WHERE id = ?',
       [status, token, domain, orderId]
     );
     return result;
   },
+
+  // Fungsi untuk memperbarui pesanan berdasarkan ID
+  async findByIdAndUpdate(id, data) {
+    const setClauses = Object.keys(data)
+      .map(key => `${key} = ?`)
+      .join(', ');
+    const values = Object.values(data);
+    values.push(id); // Tambahkan ID ke array values untuk klausa WHERE
+
+    const sql = `UPDATE orders SET ${setClauses} WHERE id = ?`;
+    const [result] = await db.query(sql, values);
+    return result;
+  },
+
 
   // Fungsi untuk mencari pesanan dengan kondisi khusus
   async findActiveOrderWithToken() {
@@ -41,6 +55,22 @@ const Order = {
   async getAllOrders() {
     const [rows] = await db.query('SELECT * FROM orders');
     return rows;
+  },
+
+  async findExpiredActiveOrders() {
+    try {
+      const sql = `
+        SELECT id
+        FROM orders
+        WHERE is_active = 1
+        AND end_date < NOW()
+      `;
+      const [rows] = await db.query(sql);
+      return rows;
+    } catch (error) {
+      console.error("Gagal melakukan query findExpiredActiveOrders:", error);
+      throw error;
+    }
   },
   
   // Fungsi untuk membuat pesanan baru

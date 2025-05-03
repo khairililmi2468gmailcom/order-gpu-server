@@ -10,6 +10,9 @@ import {
     ShimmerButton,
     ShimmerThumbnail
 } from 'react-shimmer-effects';
+import { ClockIcon, DownloadIcon, PlayIcon } from 'lucide-react';
+import moment from 'moment';
+import InvoiceButton, { generateOrderPDF } from '../../../utils/generateInvoicePDF';
 
 const statusAlias = {
     pending_payment: 'Pending',
@@ -24,6 +27,7 @@ const paymentStatusAlias = {
     pending: 'Pending',
     paid: 'Paid',
     rejected: 'Rejected',
+    verified: 'Terverifikasi',
 };
 
 const filterOptions = [
@@ -37,12 +41,16 @@ const filterOptions = [
 ];
 
 const ListOrders = () => {
+    const [refreshInterval, setRefreshInterval] = useState(5000);
+    const [remainingTimes, setRemainingTimes] = useState({});
+    const [expiredOrders, setExpiredOrders] = useState({});
+
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-
+    const currentUser = JSON.parse(localStorage.getItem('user'));
     // Paginasi
     const [currentPage, setCurrentPage] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -63,11 +71,14 @@ const ListOrders = () => {
     const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
     const [isOpeningGift, setIsOpeningGift] = useState(false);
     const giftModalRef = useRef(null);
+    const [selectedDomain, setSelectedDomain] = useState(null);
 
     // Modal Edit Bukti Pembayaran
     const [isEditProofModalOpen, setIsEditProofModalOpen] = useState(false);
     const [selectedOrderForProof, setSelectedOrderForProof] = useState(null);
     const [paymentProofFile, setPaymentProofFile] = useState(null);
+
+
 
     const fetchOrders = useCallback(async () => {
         setLoading(true);
@@ -89,9 +100,54 @@ const ListOrders = () => {
             setLoading(false);
         }
     }, [token]);
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const newRemainingTimes = {};
+            const currentExpiredOrders = { ...expiredOrders };
+            orders.forEach(order => {
+                if (order.end_date) {
+                    const endTime = moment(order.end_date);
+                    const now = moment();
+                    const duration = moment.duration(endTime.diff(now));
+                    const remainingSeconds = Math.floor(duration.asSeconds());
+
+                    if (remainingSeconds >= 0) {
+                        newRemainingTimes[order.id] = {
+                            hours: duration.hours(),
+                            minutes: duration.minutes(),
+                            seconds: duration.seconds(),
+                            isAboutToExpire: remainingSeconds <= 30,
+                            isExpired: remainingSeconds === 0,
+                        };
+                        if (remainingSeconds === 0 && !currentExpiredOrders[order.id]) {
+                            currentExpiredOrders[order.id] = true;
+                            // Panggil API untuk menonaktifkan (jika frontend bertanggung jawab)
+                            // fetch(...)
+                        }
+                    } else {
+                        newRemainingTimes[order.id] = {
+                            hours: 0,
+                            minutes: 0,
+                            seconds: 0,
+                            isAboutToExpire: true,
+                            isExpired: true,
+                        };
+                        currentExpiredOrders[order.id] = true;
+                    }
+                }
+            });
+            setRemainingTimes(newRemainingTimes);
+            setExpiredOrders(currentExpiredOrders);
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [orders, fetchOrders, expiredOrders]); // Tambahkan expiredOrders sebagai dependency jika mempengaruhi efek
+
 
     useEffect(() => {
         fetchOrders();
+        // const intervalId = setInterval(fetchOrders, refreshInterval);
+        // return () => clearInterval(intervalId);
     }, [fetchOrders]);
 
     useEffect(() => {
@@ -206,9 +262,10 @@ const ListOrders = () => {
         });
     };
 
-    const openTokenModal = (tokenValue) => {
+    const openTokenModal = (tokenValue, domainValue) => {
         setSelectedToken(tokenValue);
         setIsTokenModalOpen(true);
+        setSelectedDomain(domainValue);
         setIsOpeningGift(true);
         setTimeout(() => {
             setIsOpeningGift(false);
@@ -394,6 +451,52 @@ const ListOrders = () => {
         );
     }
 
+
+    const handleDomainOrTokenInteraction = async (orderId) => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/start-usage`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Atau token pengguna jika ini di sisi pengguna
+                },
+                body: JSON.stringify({ orderId: orderId }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            // console.log('Penggunaan dimulai:', responseData.message);
+            // Mungkin perlu memicu re-fetch data pesanan di frontend
+            fetchOrders(responseData.order); // Jika backend mengembalikan data pesanan yang diperbarui
+        } catch (error) {
+            console.error("Gagal mencatat awal penggunaan:", error);
+            Swal.fire('Error!', 'Gagal mencatat awal penggunaan.', 'error');
+        }
+    };
+    const handleStartUsageConfirmation = (order) => {
+        Swal.fire({
+            title: 'Konfirmasi Mulai Penggunaan',
+            text: 'Anda yakin ingin memulai penggunaan layanan ini? Setelah dimulai, waktu akan terus berjalan dan tidak dapat diulang.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Mulai!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                handleDomainOrTokenInteraction(order.id);
+            }
+        });
+    };
+
+
+
+
+
     if (error) {
         return <div className="flex justify-center items-center h-screen text-red-500">Terjadi kesalahan: {error}</div>;
     }
@@ -534,7 +637,7 @@ const ListOrders = () => {
                                 Total Biaya {activeFilter && activeFilter.total_cost !== undefined && (sortDirection === 'asc' ? '▲' : '▼')}
                             </th>
                             <th className="px-5 py-3 text-left">Status</th>
-                            <th className="px-5 py-3 text-left">Token</th>
+                            <th className="px-5 py-3 text-left">Token & Domain</th>
                             <th className="px-5 py-3 text-left">Status Token</th>
                             <th className="px-5 py-3 text-left">Status Pembayaran</th>
                             <th className="px-5 py-3 text-left cursor-pointer" onClick={() => selectFilter({ value: 'created_at', label: 'Tanggal Pesan' })}>
@@ -565,7 +668,7 @@ const ListOrders = () => {
                                     </td>
                                     <td className="px-5 py-3 text-left">
                                         {order.token ? (
-                                            <button onClick={() => openTokenModal(order.token)} className="text-blue-500 hover:text-blue-700 focus:outline-none flex items-center">
+                                            <button onClick={() => openTokenModal(order.token, order.domain)} className="text-blue-500 hover:text-blue-700 focus:outline-none flex items-center">
                                                 <GiftIcon className="h-5 w-5 inline-block mr-1" /> Lihat Token
                                             </button>
                                         ) : (
@@ -580,8 +683,11 @@ const ListOrders = () => {
                                     <td className="px-5 py-3 text-left">
                                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${order.payment_status === 'pending' ? 'bg-yellow-200 text-yellow-700' :
                                             order.payment_status === 'paid' ? 'bg-green-200 text-green-700' :
-                                                order.payment_status === 'rejected' ? 'bg-red-200 text-red-700' : 'bg-gray-200 text-gray-700'}`}>
-                                            {paymentStatusAlias[order.payment_status]}
+                                                order.payment_status === 'rejected' ? 'bg-red-200 text-red-700' :
+                                                    order.payment_status === 'verified' ? 'bg-blue-200 text-blue-700' :
+                                                        'bg-gray-200 text-gray-700'
+                                            }`}>
+                                            {paymentStatusAlias[order.payment_status] || order.payment_status}
                                         </span>
                                     </td>
                                     <td className="px-5 py-3 text-left">
@@ -598,27 +704,80 @@ const ListOrders = () => {
                                     </td>
                                     <td className="px-5 py-3 text-left">
                                         {order.proof_url ? (
-                                            <button onClick={() => window.open(`http://localhost:4000/${order.proof_url}`, '_blank')} className="text-green-500 hover:text-green-700 focus:outline-none flex items-center">
-                                                <PhotoIcon className="h-5 w-5 inline-block mr-1" /> Lihat Bukti
-                                            </button>
+                                            <div className="items-center space-y-2">
+                                                <button
+                                                    onClick={() => window.open(`http://localhost:4000/${order.proof_url}`, '_blank')}
+                                                    className="text-green-500 hover:text-green-700 focus:outline-none flex items-center"
+                                                >
+                                                    <PhotoIcon className="h-5 w-5 inline-block mr-1" /> Lihat
+                                                </button>
+                                                <InvoiceButton order={order} userName={currentUser} />
+                                            </div>
                                         ) : (
                                             <span className="text-gray-500 italic">Belum diupload</span>
                                         )}
                                     </td>
-                                    <td className="px-5 py-3 text-left flex items-center">
-                                        <button
-                                            onClick={() => openEditProofModal(order)}
-                                            className="text-blue-500 hover:text-blue-700 focus:outline-none flex items-center mr-2"
-                                        >
-                                            <PencilSquareIcon className="h-5 w-5 inline-block" /> Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteOrder(order.id)}
-                                            className="text-red-500 hover:text-red-700 focus:outline-none flex items-center"
-                                        >
-                                            <TrashIcon className="h-5 w-5 inline-block" /> Hapus
-                                        </button>
+                                    <td className="px-2 py-3 text-left">
+                                        <div className="flex flex-col items-start">
+                                            <div className="flex items-center space-x-2 mb-4">
+                                                <button
+                                                    onClick={() => openEditProofModal(order)}
+                                                    className="text-blue-500 hover:text-blue-700 focus:outline-none flex items-center"
+                                                >
+                                                    <PencilSquareIcon className="h-5 w-5 inline-block mr-1" /> Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteOrder(order.id)}
+                                                    className="text-red-500 hover:text-red-700 focus:outline-none flex items-center"
+                                                >
+                                                    <TrashIcon className="h-5 w-5 inline-block" /> Hapus
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                {!order.start_date && order.token && (
+                                                    <button
+                                                        onClick={() => handleStartUsageConfirmation(order)}
+                                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline flex items-center"
+                                                    >
+                                                        <PlayIcon className="h-4 w-4 mr-1" /> Mulai
+                                                    </button>
+                                                )}
+
+                                                {order.token && order.start_date && remainingTimes[order.id] && (
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="flex items-center whitespace-nowrap">
+                                                            <ClockIcon className="h-4 w-4 mr-1 text-green-500" />
+                                                            Mulai:{" "}
+                                                            {new Date(order.start_date).toLocaleTimeString("id-ID", {
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                            })}
+                                                        </span>
+                                                        {!remainingTimes[order.id].isExpired ? (
+                                                            <span
+                                                                className={`flex items-center font-semibold whitespace-nowrap ${remainingTimes[order.id]
+                                                                    .isAboutToExpire
+                                                                    ? "text-red-500"
+                                                                    : "text-green-500"
+                                                                    }`}
+                                                            >
+                                                                <ClockIcon className="h-4 w-4 mr-1" />
+                                                                Sisa: {remainingTimes[order.id].hours}j{" "}
+                                                                {remainingTimes[order.id].minutes}m{" "}
+                                                                {remainingTimes[order.id].seconds}s
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center font-semibold whitespace-nowrap text-red-500">
+                                                                <ClockIcon className="h-4 w-4 mr-1" />
+                                                                Waktu Habis
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </td>
+
                                 </tr>
                             ))
                         ) : (
@@ -672,24 +831,46 @@ const ListOrders = () => {
                                     Membuka hadiah...
                                 </div>
                             ) : (
-                                <p className="text-sm text-gray-500 mb-4 text-center">
-                                    Token Anda adalah: <span className="font-semibold text-blue-600">{selectedToken}</span>
-                                    <button
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(selectedToken);
-                                            Swal.fire({
-                                                icon: 'success',
-                                                title: 'Berhasil!',
-                                                text: 'Token berhasil disalin ke clipboard.',
-                                                timer: 1500,
-                                                showConfirmButton: false,
-                                            });
-                                        }}
-                                        className="ml-2 text-green-500 hover:text-green-700 focus:outline-none text-xs"
-                                    >
-                                        (Salin)
-                                    </button>
-                                </p>
+                                <div className="flex flex-col items-center">
+                                    <p className="text-sm text-gray-500 mb-2 text-center">
+                                        Token Anda adalah: <span className="font-semibold text-blue-600">{selectedToken}</span>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(selectedToken);
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Berhasil!',
+                                                    text: 'Token berhasil disalin ke clipboard.',
+                                                    timer: 1500,
+                                                    showConfirmButton: false,
+                                                });
+                                            }}
+                                            className="ml-2 text-green-500 hover:text-green-700 focus:outline-none text-xs"
+                                        >
+                                            (Salin)
+                                        </button>
+                                    </p>
+                                    {selectedDomain && (
+                                        <p className="text-sm text-gray-500 mb-4 text-center">
+                                            Domain Anda adalah: <span className="font-semibold text-indigo-600">{selectedDomain}</span>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(selectedDomain);
+                                                    Swal.fire({
+                                                        icon: 'success',
+                                                        title: 'Berhasil!',
+                                                        text: 'Domain berhasil disalin ke clipboard.',
+                                                        timer: 1500,
+                                                        showConfirmButton: false,
+                                                    });
+                                                }}
+                                                className="ml-2 text-green-500 hover:text-green-700 focus:outline-none text-xs"
+                                            >
+                                                (Salin)
+                                            </button>
+                                        </p>
+                                    )}
+                                </div>
                             )}
                             <div className="mt-4 flex justify-end">
                                 <button
@@ -704,7 +885,6 @@ const ListOrders = () => {
                     </div>
                 </div>
             )}
-
             {/* Edit Bukti Pembayaran Modal */}
             {isEditProofModalOpen && selectedOrderForProof && (
                 <div className="fixed z-50 inset-0 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">

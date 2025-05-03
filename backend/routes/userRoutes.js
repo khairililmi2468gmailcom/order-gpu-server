@@ -1,7 +1,7 @@
 // src/routes/userRoutes.js
 import express from 'express';
 import { authenticate } from '../middlewares/auth.js';
-import { deleteOrder, getMyOrders, updatePassword, updateProfile } from '../controllers/userController.js';
+import { deactivateOrder, deleteOrder, getMyOrders, startUsage, updatePassword, updateProfile } from '../controllers/userController.js';
 import { createOrder } from '../controllers/orderController.js';
 import { getAllPackages, getPackageById } from '../controllers/packageController.js';
 import { getGpuToken } from '../controllers/userController.js';
@@ -23,5 +23,7 @@ router.put('/notifications/:id/read', authenticate, markNotificationAsRead);
 router.post('/visitors', recordVisit);
 router.get('/visitors/today', getTodayVisitors);
 router.get('/visitors/total', getTotalVisitors);
+router.put('/start-usage', authenticate, startUsage);
+router.put('/orders/:id/deactivate', authenticate, deactivateOrder); 
 
 export default router;

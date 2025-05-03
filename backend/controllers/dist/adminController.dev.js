@@ -833,33 +833,22 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
 
         case 4:
           order = _context11.sent;
-
-          if (!(!order || order.is_active === 0)) {
-            _context11.next = 7;
-            break;
-          }
-
-          return _context11.abrupt("return", res.status(404).json({
-            message: 'Pesanan tidak ditemukan atau belum aktif.'
-          }));
-
-        case 7:
-          _context11.next = 9;
+          _context11.next = 7;
           return regeneratorRuntime.awrap(_Order["default"].updateOrderStatusAndToken(orderId, {
             status: 'approved',
             token: token,
             domain: domain
           }));
 
-        case 9:
-          _context11.next = 11;
+        case 7:
+          _context11.next = 9;
           return regeneratorRuntime.awrap(_User["default"].findById(order.user_id));
 
-        case 11:
+        case 9:
           user = _context11.sent;
 
           if (user) {
-            _context11.next = 14;
+            _context11.next = 12;
             break;
           }
 
@@ -867,38 +856,38 @@ var sendTokenToUser = function sendTokenToUser(req, res) {
             message: 'Pengguna tidak ditemukan.'
           }));
 
-        case 14:
+        case 12:
           // Kirimkan notifikasi ke pengguna dalam aplikasi (opsional: bisa ditambahkan informasi domain)
-          message = "Token aktif Anda adalah: ".concat(token, ". Domain Anda adalah: ").concat(domain);
-          _context11.next = 17;
+          message = "Token yang dikirim adalah: ".concat(token, ". Domain Anda adalah: ").concat(domain);
+          _context11.next = 15;
           return regeneratorRuntime.awrap(_Notification["default"].create({
             user_id: user.id,
             message: message
           }));
 
-        case 17:
-          _context11.next = 19;
+        case 15:
+          _context11.next = 17;
           return regeneratorRuntime.awrap((0, _notification.notifyUserWithToken)(user.email, user.name, token, domain));
 
-        case 19:
+        case 17:
           return _context11.abrupt("return", res.status(200).json({
             message: 'Token dan domain telah dikirimkan kepada pengguna dan email telah dikirim.'
           }));
 
-        case 22:
-          _context11.prev = 22;
+        case 20:
+          _context11.prev = 20;
           _context11.t0 = _context11["catch"](0);
           console.error(_context11.t0);
           return _context11.abrupt("return", res.status(500).json({
             message: 'Terjadi kesalahan dalam mengirim token dan domain.'
           }));
 
-        case 26:
+        case 24:
         case "end":
           return _context11.stop();
       }
     }
-  }, null, null, [[0, 22]]);
+  }, null, null, [[0, 20]]);
 };
 
 exports.sendTokenToUser = sendTokenToUser;

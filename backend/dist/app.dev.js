@@ -25,6 +25,8 @@ var _paymentRoutes = _interopRequireDefault(require("./routes/paymentRoutes.js")
 
 var _visitorRoutes = _interopRequireDefault(require("./routes/visitorRoutes.js"));
 
+var _deactivationJobs = _interopRequireDefault(require("./cronJobs/deactivationJobs.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 // app.js
@@ -67,7 +69,9 @@ app.use('/api/auth', _authRoutes["default"]);
 app.use('/api/user', _userRoutes["default"]);
 app.use('/api', _visitorRoutes["default"]);
 app.use('/api/admin', _adminRoutes["default"]);
-app.use('/api/payment', _paymentRoutes["default"]); // Optional: define root route to test '/' if needed
+app.use('/api/payment', _paymentRoutes["default"]); // Jalankan cron job saat server dimulai
+
+(0, _deactivationJobs["default"])(); // Optional: define root route to test '/' if needed
 
 app.get('/', function (req, res) {
   res.status(200).json({

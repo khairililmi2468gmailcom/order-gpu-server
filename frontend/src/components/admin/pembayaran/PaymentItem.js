@@ -151,7 +151,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                     setLocalOrder(prevOrder => ({
                         ...prevOrder,
                         token: newToken,
-                        domain: newDomain 
+                        domain: newDomain
                     }));
                     onUpdateOrder(responseData.data);
                     Swal.fire('Berhasil!', `Token berhasil diupdate menjadi "${newToken}" ${newDomain ? `dan domain menjadi "${newDomain}"` : ''}.`, 'success');
@@ -166,8 +166,21 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const handleSendTokenNotification = async () => {
         Swal.fire({
             title: 'Kirim Notifikasi Token Pengguna',
-            html: `<p class="swal2-html-container" style="margin-bottom: 1em; font-size: 1rem; text-align: center;">Anda akan mengirimkan notifikasi token berikut kepada pengguna terkait pesanan ini, pastikan token sudah diaktifkan:</p>
-                   <input id="tokenInput" class="swal2-input" placeholder="Token Pengguna" value="${localOrder.token || ''}" readonly>`,
+            html: `
+            <p class="swal2-html-container" style="margin-bottom: 1em; font-size: 1rem; text-align: center;">
+                Anda akan mengirimkan notifikasi token berikut kepada pengguna terkait pesanan ini, pastikan token sudah diaktifkan:
+            </p>
+            <div style="margin-bottom: 0.5em;">
+                <label for="tokenInput" style="display: block; margin-bottom: 0.2em; font-weight: bold;">Token Pengguna:</label>
+                <input id="tokenInput" class="swal2-input" placeholder="Token Pengguna" value="${localOrder.token || ''}" readonly style="background-color: #f8f9fa; color: #495057; cursor: not-allowed;">
+            </div>
+            ${localOrder.domain ? `
+            <div>
+                <label for="domainInput" style="display: block; margin-bottom: 0.2em; font-weight: bold;">Domain Pengguna:</label>
+                <input id="domainInput" class="swal2-input" placeholder="Domain Pengguna" value="${localOrder.domain}" readonly style="background-color: #f8f9fa; color: #495057; cursor: not-allowed;">
+            </div>
+            ` : ''}
+        `,
             showCancelButton: true,
             confirmButtonText: 'Kirim Notifikasi',
             preConfirm: async () => {
@@ -212,6 +225,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                                     body: JSON.stringify({
                                         orderId: localOrder.order_id,
                                         token: existingToken,
+                                        domain: localOrder.domain,
                                     }),
                                 });
                                 // console.log(order.order_id);
@@ -302,6 +316,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
             }
         });
     };
+
 
     return (
         <tr className={`hover:bg-gray-50 ${isPaymentRejected ? 'bg-red-100 hover:bg-red-200' : ''} text-sm`}>
@@ -413,7 +428,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         </div>
                         <div className="flex flex-col items-center">
                             <button
-                                onClick={handleToggleTokenStatus}
+                                // onClick={handleToggleTokenStatus}
                                 className="inline-flex items-center justify-center p-1 border border-gray-500 text-gray-500 hover:bg-gray-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                                 title={isActive ? "Nonaktifkan Token" : "Aktifkan Token"}
                             >

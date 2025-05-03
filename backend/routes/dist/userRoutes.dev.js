@@ -39,5 +39,7 @@ router.put('/notifications/:id/read', _auth.authenticate, _notificationControlle
 router.post('/visitors', _visitorController.recordVisit);
 router.get('/visitors/today', _visitorController.getTodayVisitors);
 router.get('/visitors/total', _visitorController.getTotalVisitors);
+router.put('/start-usage', _auth.authenticate, _userController.startUsage);
+router.put('/orders/:id/deactivate', _auth.authenticate, _userController.deactivateOrder);
 var _default = router;
 exports["default"] = _default;

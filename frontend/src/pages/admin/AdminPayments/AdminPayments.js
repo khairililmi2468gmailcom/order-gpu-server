@@ -64,13 +64,16 @@ function AdminPayments() {
     }, [token, fetchOrders]);
 
     const handleUpdateOrder = (updatedOrder) => {
+        if (!updatedOrder?.order_id) return;
+    
         setOrders(prev =>
-            prev.map(order =>
-                order && updatedOrder && order.order_id === updatedOrder.order_id ? updatedOrder : order
+            prev.filter(Boolean).map(order =>
+                order?.order_id === updatedOrder.order_id ? updatedOrder : order
             )
         );
         fetchOrders();
     };
+    
     
     if (loading) {
         return (

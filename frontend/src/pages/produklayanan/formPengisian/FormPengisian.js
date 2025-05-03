@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { RocketLaunchIcon, CheckCircleIcon, InformationCircleIcon, ListBulletIcon } from '@heroicons/react/24/outline';
+import PaymentSuccess from './PaymentSuccess';
 
 const FormPengisian = () => {
     const [searchParams] = useSearchParams();
@@ -167,18 +168,32 @@ const FormPengisian = () => {
 
     const handlePaymentProofChange = (e) => {
         const file = e.target.files[0];
-        setPaymentProof(file);
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPaymentProofPreview(reader.result);
-            };
-            reader.readAsDataURL(file);
-        } else {
+        
+        if (!file) return;
+    
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Format tidak didukung',
+                text: 'Hanya file dengan format PNG, JPG, atau JPEG yang diperbolehkan.',
+            });
+            e.target.value = ''; // reset input file
+            setPaymentProof(null);
             setPaymentProofPreview(null);
+            return;
         }
+    
+        setPaymentProof(file);
+    
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPaymentProofPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
     };
+    
 
     const handleUploadConfirmation = () => {
         Swal.fire({
@@ -394,8 +409,15 @@ const FormPengisian = () => {
 
                             {currentStep === 3 && orderResult?.orderId && (
                                 <div className="shadow-md rounded-md p-4 border border-gray-200 bg-gray-50">
+                                    {orderResult?.totalCost && (
+                                        <div className="mb-4 p-3 rounded-md bg-blue-100 border border-blue-200 text-blue-700">
+                                            <p className="font-semibold">Jumlah yang harus dibayar:</p>
+                                            <p className="text-lg font-bold">Rp {orderResult.totalCost.toLocaleString('id-ID')}</p>
+                                        </div>
+                                    )}
                                     <p className="mb-3 text-gray-600">Silakan upload bukti pembayaran untuk pesanan Anda.</p>
                                     <form className="mt-4">
+                                        {/* Form upload bukti pembayaran seperti sebelumnya */}
                                         <div className="mb-4">
                                             <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                                                 <div className="flex flex-col items-center justify-center pt-2 pb-3">
@@ -428,30 +450,14 @@ const FormPengisian = () => {
                                     </form>
                                 </div>
                             )}
-
+                            
                             {currentStep === 4 && orderResult?.orderId && paymentProof && (
-                                <div className="shadow-md rounded-md p-4 border border-gray-200 bg-green-100 text-green-700">
-                                    <div className="flex items-center mb-3">
-                                        <CheckCircleIcon className="w-6 h-6 mr-2 text-green-600" />
-                                        <h3 className="font-semibold text-lg">Pesanan Selesai!</h3>
-                                    </div>
-                                    <div className="space-y-2 mb-4">
-                                        <p className="text-gray-700"><span className="font-semibold">Paket:</span> {gpuPackage?.name}</p>
-                                        <p className="text-gray-700"><span className="font-semibold">Durasi:</span> {durationHours} jam</p>
-                                        <p className="text-gray-700"><span className="font-semibold">ID Pesanan:</span> {orderResult?.orderId}</p>
-                                    </div>
-                                    <div className="flex items-center mb-4">
-                                        <InformationCircleIcon className="w-6 h-6 mr-2 text-blue-500" />
-                                        <p className="text-sm text-gray-600">Paket Anda akan segera diproses. Token akses akan dikirimkan melalui email setelah verifikasi.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => navigate('/listorders')}
-                                        className="inline-flex items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline shadow-md transition duration-300"
-                                    >
-                                        <ListBulletIcon className="mr-2 h-5 w-5" />
-                                        Lihat Daftar Pesanan
-                                    </button>
-                                </div>
+                                <PaymentSuccess
+                                    orderResult={orderResult}
+                                    gpuPackage={gpuPackage}
+                                    durationHours={durationHours}
+                                    paymentProof={paymentProofPreview} // Atau paymentProof.name jika backend mengirim nama file
+                                />
                             )}
                         </div>
                     </div>

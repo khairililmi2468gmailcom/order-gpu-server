@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import visitorRoutes from './routes/visitorRoutes.js';
+import runDeactivationCronJob from './cronJobs/deactivationJobs.js';
 
 dotenv.config();
 
@@ -53,6 +54,8 @@ app.use('/api', visitorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 
+// Jalankan cron job saat server dimulai
+runDeactivationCronJob();
 // Optional: define root route to test '/' if needed
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'API is working' });

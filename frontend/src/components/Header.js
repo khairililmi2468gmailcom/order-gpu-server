@@ -269,11 +269,11 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                     <div className="flex md:hidden items-center text-white">
                         <div className="flex items-center text-xs mr-2">
                             <FontAwesomeIcon icon={faEnvelope} className="mr-1" size="sm" />
-                            <span>info@usk.ac.id</span>
+                            <span>support_gpu@cs.usk.ac.id</span>
                         </div>
                         <div className="flex items-center text-xs">
                             <FontAwesomeIcon icon={faPhone} className="mr-1" size="sm" />
-                            <span>+6221 230 2345</span>
+                            <span>+62 851 0142 0565</span>
                         </div>
                     </div>
 

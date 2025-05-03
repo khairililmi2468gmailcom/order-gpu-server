@@ -42,7 +42,6 @@ function App() {
     const checkLoginStatus = () => {
       const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
-
       if (token) {
         try {
           const decodedToken = jwtDecode(token);

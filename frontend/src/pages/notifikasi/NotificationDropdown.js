@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { formatDistanceToNow } from 'date-fns';
@@ -30,17 +30,30 @@ const getIconForNotification = (type) => {
 const NotificationDropdown = ({ notifications, onRead }) => {
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [isViewingDetails, setIsViewingDetails] = useState(false);
+    const dropdownRef = useRef(null);
+    const [isMobile, setIsMobile] = useState(false);
 
     const handleNotificationClick = (notification) => {
+        if (!isMobile) return; // Hanya proses di mobile
+        
         setSelectedNotification(notification);
         setIsViewingDetails(true);
         onRead(notification.id);
     };
-
     const handleBackToList = () => {
         setSelectedNotification(null);
         setIsViewingDetails(false);
     };
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024); // Breakpoint lg di Tailwind
+        };
+
+        checkMobile(); // Pengecekan awal
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const getFormattedTime = (dateString) => {
         try {
@@ -66,13 +79,28 @@ const NotificationDropdown = ({ notifications, onRead }) => {
         exit: { opacity: 0, x: 20, transition: { duration: 0.1 } },
     };
 
+    // Tambahkan useEffect untuk menutup dropdown saat klik di luar
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsViewingDetails(false); // Reset ke tampilan daftar
+                setSelectedNotification(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <motion.div
+            ref={dropdownRef} // Tambahkan ref di sini
             variants={dropdownVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute lg:top-full top-16 lg:right-0 right-1 mt-2 bg-white border border-gray-200 rounded-md shadow-lg w-96 z-50 overflow-hidden min-w-[300px]"
+            className="absolute lg:top-full top-12 lg:right-0 right-[-36px] mt-2 bg-white border border-gray-200 rounded-md shadow-lg w-96 z-50 overflow-hidden min-w-[300px]"
         >
             <AnimatePresence mode="wait">
                 {!isViewingDetails && (
@@ -129,7 +157,7 @@ const NotificationDropdown = ({ notifications, onRead }) => {
                         initial="initial"
                         animate="animate"
                         exit="exit"
-                        className="p-4"
+                        className="p-4 bg-white rounded-md shadow-md" // Tambahkan background putih dan shadow
                     >
                         <div className="flex items-center mb-4">
                             <button
@@ -144,7 +172,9 @@ const NotificationDropdown = ({ notifications, onRead }) => {
                         {selectedNotification.details && (
                             <div className="mt-4">
                                 <h3 className="text-md font-semibold text-gray-800">Detail Tambahan:</h3>
-                                <pre className="bg-gray-100 rounded-md p-2 text-sm">{JSON.stringify(selectedNotification.details, null, 2)}</pre>
+                                <pre className="bg-gray-100 rounded-md p-2 text-sm overflow-x-auto whitespace-pre-wrap">
+                                    {JSON.stringify(selectedNotification.details, null, 2)}
+                                </pre>
                             </div>
                         )}
                     </motion.div>

@@ -88,7 +88,7 @@ const FAQSection = () => {
                     isOpen={accordionStates[4]}
                     toggleAccordion={toggleAccordion}
                 >
-                    Kami menyediakan berbagai jenis GPU, termasuk NVIDIA Tesla, RTX, dan lainnya. Anda dapat memilih GPU yang paling sesuai dengan kebutuhan proyek Anda.
+                    Kami menyediakan berbagai jenis GPU, termasuk NVIDIA Tesla, RTX, dan lainnya.
                 </AccordionItem>
                 <AccordionItem
                     id="5"
