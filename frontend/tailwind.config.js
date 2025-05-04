@@ -35,9 +35,15 @@ module.exports = {
           '0%': { transform: 'translateY(-100%)', opacity: 0 },
           '100%': { transform: 'translateY(0)', opacity: 1 },
         },
+        'ping-custom': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '75%, 100%': { transform: 'scale(1.2)', opacity: '0' },
+        },
       },
       animation: {
         slideDown: 'slideDown 0.6s ease-out',
+        'ping-custom': 'ping-custom 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+
       },
       transitionProperty: {
         'opacity-transform': 'opacity, transform',
@@ -45,7 +51,7 @@ module.exports = {
       transitionTimingFunction: {
         'in-out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
-      
+
     },
   },
   plugins: [],

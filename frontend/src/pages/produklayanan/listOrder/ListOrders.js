@@ -13,6 +13,7 @@ import {
 import { ClockIcon, DownloadIcon, PlayIcon } from 'lucide-react';
 import moment from 'moment';
 import InvoiceButton, { generateOrderPDF } from '../../../utils/generateInvoicePDF';
+import countdownSound from '../../../assets/audio/10sec-digital-countdown.mp3';
 
 const statusAlias = {
     pending_payment: 'Pending',
@@ -44,6 +45,10 @@ const ListOrders = () => {
     const [refreshInterval, setRefreshInterval] = useState(5000);
     const [remainingTimes, setRemainingTimes] = useState({});
     const [expiredOrders, setExpiredOrders] = useState({});
+    const [isCountingDown, setIsCountingDown] = useState({});
+    const audioRef = useRef(new Audio(countdownSound));
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
+    const [showJustExpiredMessage, setShowJustExpiredMessage] = useState({});
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -100,10 +105,34 @@ const ListOrders = () => {
             setLoading(false);
         }
     }, [token]);
+
+    // Efek untuk menandai interaksi pengguna pertama
+    useEffect(() => {
+        const handleInteraction = () => {
+            setHasUserInteracted(true);
+            document.removeEventListener('mousedown', handleInteraction);
+            document.removeEventListener('touchstart', handleInteraction);
+            document.removeEventListener('keydown', handleInteraction);
+        };
+
+        document.addEventListener('mousedown', handleInteraction);
+        document.addEventListener('touchstart', handleInteraction);
+        document.addEventListener('keydown', handleInteraction);
+
+        return () => {
+            document.removeEventListener('mousedown', handleInteraction);
+            document.removeEventListener('touchstart', handleInteraction);
+            document.removeEventListener('keydown', handleInteraction);
+        };
+    }, []);
+
     useEffect(() => {
         const intervalId = setInterval(() => {
             const newRemainingTimes = {};
             const currentExpiredOrders = { ...expiredOrders };
+            const newIsCountingDown = {};
+            const newShowJustExpiredMessage = { ...showJustExpiredMessage };
+
             orders.forEach(order => {
                 if (order.end_date) {
                     const endTime = moment(order.end_date);
@@ -118,10 +147,28 @@ const ListOrders = () => {
                             seconds: duration.seconds(),
                             isAboutToExpire: remainingSeconds <= 30,
                             isExpired: remainingSeconds === 0,
+                            isWithinCountdown: remainingSeconds <= 10 && remainingSeconds > 0,
                         };
+                        // Aktifkan animasi hanya pada detik saat berada dalam 10 detik terakhir
+                        newIsCountingDown[order.id] = newRemainingTimes[order.id].isWithinCountdown;
+
+                        // Putar suara hanya sekali saat tepat mencapai 10 detik terakhir dan setelah interaksi
+                        if (remainingSeconds === 10 && hasUserInteracted) {
+                            // console.log("Audio diputar");
+                            audioRef.current.play().catch(error => {
+                                // console.error("Gagal memutar audio:", error);
+                            });
+                        }
+
+                        // Set showJustExpiredMessage hanya jika order baru pertama kali expired
                         if (remainingSeconds === 0 && !currentExpiredOrders[order.id]) {
                             currentExpiredOrders[order.id] = true;
-                            // Panggil API untuk menonaktifkan (jika frontend bertanggung jawab)
+                            newShowJustExpiredMessage[order.id] = true;
+                            setTimeout(() => {
+                                const updatedShowJustExpiredMessage = { ...showJustExpiredMessage };
+                                updatedShowJustExpiredMessage[order.id] = false;
+                                setShowJustExpiredMessage(updatedShowJustExpiredMessage);
+                            }, 1500);
                             // fetch(...)
                         }
                     } else {
@@ -131,18 +178,30 @@ const ListOrders = () => {
                             seconds: 0,
                             isAboutToExpire: true,
                             isExpired: true,
+                            isWithinCountdown: false,
                         };
                         currentExpiredOrders[order.id] = true;
+                        newIsCountingDown[order.id] = false;
+                        // Set showJustExpiredMessage hanya jika order baru pertama kali expired
+                        if (!currentExpiredOrders[order.id]) {
+                            newShowJustExpiredMessage[order.id] = true;
+                            setTimeout(() => {
+                                const updatedShowJustExpiredMessage = { ...showJustExpiredMessage };
+                                updatedShowJustExpiredMessage[order.id] = false;
+                                setShowJustExpiredMessage(updatedShowJustExpiredMessage);
+                            }, 1500);
+                        }
                     }
                 }
             });
             setRemainingTimes(newRemainingTimes);
             setExpiredOrders(currentExpiredOrders);
+            setIsCountingDown(newIsCountingDown);
+            setShowJustExpiredMessage(newShowJustExpiredMessage);
         }, 1000);
 
         return () => clearInterval(intervalId);
-    }, [orders, fetchOrders, expiredOrders]); // Tambahkan expiredOrders sebagai dependency jika mempengaruhi efek
-
+    }, [orders, fetchOrders, expiredOrders, isCountingDown, showJustExpiredMessage]);
 
     useEffect(() => {
         fetchOrders();
@@ -733,7 +792,7 @@ const ListOrders = () => {
                                                     <TrashIcon className="h-5 w-5 inline-block" /> Hapus
                                                 </button>
                                             </div>
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex flex-col space-y-2">
                                                 {!order.start_date && order.token && (
                                                     <button
                                                         onClick={() => handleStartUsageConfirmation(order)}
@@ -744,7 +803,7 @@ const ListOrders = () => {
                                                 )}
 
                                                 {order.token && order.start_date && remainingTimes[order.id] && (
-                                                    <div className="flex items-center space-x-2">
+                                                    <div className="flex flex-col space-y-2"> 
                                                         <span className="flex items-center whitespace-nowrap">
                                                             <ClockIcon className="h-4 w-4 mr-1 text-green-500" />
                                                             Mulai:{" "}
@@ -753,23 +812,47 @@ const ListOrders = () => {
                                                                 minute: "2-digit",
                                                             })}
                                                         </span>
-                                                        {!remainingTimes[order.id].isExpired ? (
-                                                            <span
-                                                                className={`flex items-center font-semibold whitespace-nowrap ${remainingTimes[order.id]
-                                                                    .isAboutToExpire
-                                                                    ? "text-red-500"
-                                                                    : "text-green-500"
-                                                                    }`}
-                                                            >
+                                                        {!remainingTimes[order.id]?.isExpired ? (
+                                                            <span className="flex items-center font-light whitespace-nowrap">
                                                                 <ClockIcon className="h-4 w-4 mr-1" />
-                                                                Sisa: {remainingTimes[order.id].hours}j{" "}
-                                                                {remainingTimes[order.id].minutes}m{" "}
-                                                                {remainingTimes[order.id].seconds}s
+                                                                Sisa:{" "}
+                                                                {remainingTimes[order.id]?.isWithinCountdown ? (
+                                                                    <span className={`text-red-500 animate-ping-custom text-sm font-semibold`}>
+                                                                        {remainingTimes[order.id]?.seconds}s
+                                                                    </span>
+                                                                ) : (
+                                                                    <>
+                                                                        {remainingTimes[order.id]?.hours > 0 && (
+                                                                            <span className={remainingTimes[order.id]?.isAboutToExpire ? "text-red-500" : "text-green-500"}>
+                                                                                {remainingTimes[order.id]?.hours}j{" "}
+                                                                            </span>
+                                                                        )}
+                                                                        {remainingTimes[order.id]?.minutes > 0 && (
+                                                                            <span className={remainingTimes[order.id]?.isAboutToExpire ? "text-red-500" : "text-green-500"}>
+                                                                                {remainingTimes[order.id]?.minutes}m{" "}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className={remainingTimes[order.id]?.isAboutToExpire ? "text-red-500" : "text-green-500"}>
+                                                                            {remainingTimes[order.id]?.seconds}s
+                                                                        </span>
+                                                                    </>
+                                                                )}
                                                             </span>
                                                         ) : (
-                                                            <span className="flex items-center font-semibold whitespace-nowrap text-red-500">
+                                                            <span className="flex items-center font-medium whitespace-nowrap text-red-500">
                                                                 <ClockIcon className="h-4 w-4 mr-1" />
-                                                                Waktu Habis
+                                                                {showJustExpiredMessage[order.id] ? (
+                                                                    "Waktu Habis"
+                                                                ) : (
+                                                                    <>
+                                                                        Berakhir pada:{" "}
+                                                                        {order.end_date &&
+                                                                            new Date(order.end_date).toLocaleTimeString("id-ID", {
+                                                                                hour: "2-digit",
+                                                                                minute: "2-digit",
+                                                                            })}
+                                                                    </>
+                                                                )}
                                                             </span>
                                                         )}
                                                     </div>

@@ -36,3 +36,23 @@
     transform: rotate(360deg);
   }
 }
+
+
+@keyframes ping-custom {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-custom {
+  animation: ping-custom 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-ping-custom {
+  font-size: 0.875rem; /* Contoh ukuran teks yang lebih kecil (sesuaikan sesuai kebutuhan) */
+}
