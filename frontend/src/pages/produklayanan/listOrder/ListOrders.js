@@ -77,6 +77,8 @@ const ListOrders = () => {
     const [isOpeningGift, setIsOpeningGift] = useState(false);
     const giftModalRef = useRef(null);
     const [selectedDomain, setSelectedDomain] = useState(null);
+    const [urlToOpen, setUrlToOpen] = useState(null);
+
 
     // Modal Edit Bukti Pembayaran
     const [isEditProofModalOpen, setIsEditProofModalOpen] = useState(false);
@@ -199,6 +201,19 @@ const ListOrders = () => {
             setIsCountingDown(newIsCountingDown);
             setShowJustExpiredMessage(newShowJustExpiredMessage);
         }, 1000);
+        if (urlToOpen) {
+            const orderToOpen = orders.find(order => order.id === urlToOpen);
+            if (orderToOpen && orderToOpen.start_date) {
+                const targetUrl = orderToOpen.domain;
+                if (targetUrl) {
+                    window.open(targetUrl, '_blank');
+                } else {
+                    console.warn("Domain tidak tersedia untuk order:", orderToOpen.id);
+                }
+                setUrlToOpen(null); // Reset state setelah URL dibuka
+            }
+        }
+
 
         return () => clearInterval(intervalId);
     }, [orders, fetchOrders, expiredOrders, isCountingDown, showJustExpiredMessage]);
@@ -793,17 +808,21 @@ const ListOrders = () => {
                                                 </button>
                                             </div>
                                             <div className="flex flex-col space-y-2">
-                                                {!order.start_date && order.token && (
-                                                    <button
-                                                        onClick={() => handleStartUsageConfirmation(order)}
-                                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline flex items-center"
-                                                    >
-                                                        <PlayIcon className="h-4 w-4 mr-1" /> Mulai
-                                                    </button>
-                                                )}
-
+                                                {
+                                                    !order.start_date && order.token && (
+                                                        <button
+                                                            onClick={() => {
+                                                                handleStartUsageConfirmation(order);
+                                                                setUrlToOpen(order.id);
+                                                            }}
+                                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline flex items-center"
+                                                        >
+                                                            <PlayIcon className="h-4 w-4 mr-1" /> Mulai
+                                                        </button>
+                                                    )
+                                                }
                                                 {order.token && order.start_date && remainingTimes[order.id] && (
-                                                    <div className="flex flex-col space-y-2"> 
+                                                    <div className="flex flex-col space-y-2">
                                                         <span className="flex items-center whitespace-nowrap">
                                                             <ClockIcon className="h-4 w-4 mr-1 text-green-500" />
                                                             Mulai:{" "}

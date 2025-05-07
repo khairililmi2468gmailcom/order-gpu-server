@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Waktu pembuatan: 01 Bulan Mei 2025 pada 11.59
+-- Waktu pembuatan: 04 Bulan Mei 2025 pada 04.22
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -608,7 +608,43 @@ INSERT INTO `access_log` (`id`, `ip`, `user_agent`, `endpoint`, `accessed_at`) V
 (565, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 16:48:35'),
 (566, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 16:48:35'),
 (567, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 16:49:07'),
-(568, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 16:49:07');
+(568, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 16:49:07'),
+(569, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:39:39'),
+(570, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:39:39'),
+(571, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:45:59'),
+(572, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:45:59'),
+(573, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:50:17'),
+(574, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-01 18:50:17'),
+(575, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:19'),
+(576, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:19'),
+(577, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:36'),
+(578, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:36'),
+(579, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:47'),
+(580, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 20:53:47'),
+(581, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 21:48:37'),
+(582, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 21:48:37'),
+(583, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:17:22'),
+(584, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:17:22'),
+(585, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:18:00'),
+(586, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:18:00'),
+(587, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:43:28'),
+(588, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:43:28'),
+(589, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:44:29'),
+(590, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-02 22:44:29'),
+(591, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:02:01'),
+(592, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:02:01'),
+(593, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:39:27'),
+(594, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:39:27'),
+(595, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:45:18'),
+(596, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 06:45:18'),
+(597, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 08:18:24'),
+(598, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 08:18:24'),
+(599, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 13:17:02'),
+(600, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 13:17:02'),
+(601, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 13:26:17'),
+(602, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 13:26:17'),
+(603, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 17:48:32'),
+(604, '::1', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '/api/admin/stats', '2025-05-03 17:48:33');
 
 -- --------------------------------------------------------
 
@@ -622,26 +658,23 @@ CREATE TABLE `gpu_packages` (
   `price_per_hour` int(12) DEFAULT NULL,
   `vcpu` varchar(50) DEFAULT NULL,
   `ram` varchar(50) DEFAULT NULL,
-  `min_period_days` int(11) DEFAULT NULL,
+  `min_period_hours` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `ssd` varchar(50) DEFAULT NULL,
+  `memory_gpu` varchar(50) DEFAULT NULL,
+  `description` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `gpu_packages`
 --
 
-INSERT INTO `gpu_packages` (`id`, `name`, `price_per_hour`, `vcpu`, `ram`, `min_period_days`, `created_at`, `updated_at`) VALUES
-(3, 'GPU Premium', 1000, '8', '32GB', 5, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(4, 'NVIDIA A100', 1500000, '7 UVc', '64', 1, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(5, 'NVIDIA A100 - Basic', 3, '4 vCPU', '16 GB', 1, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(6, 'NVIDIA A100 - Basic', 3, '4 vCPU', '16 GB', 1, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(7, 'GPU Fortex', 10000000, '12', '12', 12, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(12, 'GPU Garet', 2100000, '039123', '92103', 5, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(13, 'GPU Yarin', 12321321, 'cpu', '8', 2, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(16, 'GPU  Gaptek ', 100000, '2', '2', 2, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(17, 'GPU  Gaptek ', 100000, '2', '2', 2, '2025-04-27 14:25:25', '2025-04-27 14:25:25'),
-(33, 'Server NVIDIA-Fortex', 10000, '211VPC', '123', 2, '2025-04-28 16:17:33', '2025-04-29 00:03:28');
+INSERT INTO `gpu_packages` (`id`, `name`, `price_per_hour`, `vcpu`, `ram`, `min_period_hours`, `created_at`, `updated_at`, `ssd`, `memory_gpu`, `description`) VALUES
+(34, 'GPU H100 USK-SC (12 MIG GPU)', 10000, '8 Cores', '70 GB', 12, '2025-05-02 14:28:18', '2025-05-02 14:34:12', '1 TB', '12 GB', 'Dengan Pytorch atau TensorFlow terkonfigurasi'),
+(35, 'GPU H100 USK-SE (2 MIG GPU)', 10000, '8 Cores', '70 GB', 12, '2025-05-02 14:36:33', '2025-05-02 14:36:33', '1 TB', '12 GB', 'Tanpa Pytorch atau TensorFlow terkonfigurasi'),
+(36, 'GPU H100 USK-LC (3 MIG GPU)', 25000, '12 Cores', '128 GB', 12, '2025-05-02 14:39:19', '2025-05-02 22:34:23', '1 TB', '22 GB', 'Dengan Pytorch atau TensorFlow terkonfigurasi'),
+(37, 'GPU H100 USK-LE (1 MIG GPU)', 25000, '12 Cores', '128 GB', 12, '2025-05-02 14:40:05', '2025-05-02 14:40:05', '1 TB', '22 GB', 'Tanpa Pytorch atau TensorFlow terkonfigurasi');
 
 -- --------------------------------------------------------
 
@@ -665,7 +698,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `status`, `created_at`)
 (1, 30, 'Token aktif Anda adalah: abcd1234', 'read', '2025-04-29 14:31:36'),
 (2, 30, 'Token aktif Anda adalah: abcd12jljflafdauo2134', 'unread', '2025-04-29 14:37:08'),
 (3, 30, 'Token aktif Anda adalah: abcd12jljflafdauo2134', 'unread', '2025-04-29 14:41:36'),
-(4, 30, 'Token aktif Anda adalah: abcd12', 'unread', '2025-04-30 00:17:27'),
+(4, 30, 'Token aktif Anda adalah: abcd12', 'read', '2025-04-30 00:17:27'),
 (5, 30, 'Token aktif Anda adalah: abcd12213213', 'unread', '2025-04-30 00:46:45'),
 (6, 30, 'Token aktif Anda adalah: abcd12213213', 'unread', '2025-04-30 00:56:51'),
 (7, 30, 'Token aktif Anda adalah: abcd12213213', 'unread', '2025-04-30 01:53:47'),
@@ -676,7 +709,14 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `status`, `created_at`)
 (12, 30, 'Token aktif Anda adalah: abcd12213213', 'read', '2025-04-30 01:59:03'),
 (13, 30, 'Token aktif Anda adalah: abcd12213213', 'read', '2025-04-30 02:00:57'),
 (14, 33, 'Token aktif Anda adalah: iojoijoji241321', 'read', '2025-04-30 03:53:16'),
-(15, 30, 'Token aktif Anda adalah: abcd12213213', 'read', '2025-04-30 09:09:28');
+(15, 30, 'Token aktif Anda adalah: abcd12213213', 'read', '2025-04-30 09:09:28'),
+(16, 33, 'Token aktif Anda adalah: 13291. Domain Anda adalah: sasafdafadfa', 'read', '2025-05-02 23:24:23'),
+(17, 30, 'Token aktif Anda adalah: asldjslajda. Domain Anda adalah: iuofduaofda', 'read', '2025-05-02 23:39:53'),
+(18, 30, 'Token aktif Anda adalah: asldjslajda. Domain Anda adalah: iuofduaofda', 'read', '2025-05-02 23:47:43'),
+(19, 33, 'Token yang dikirim adalah: 13291. Domain Anda adalah: sasafdafadfa', 'unread', '2025-05-02 23:48:12'),
+(20, 30, 'Token yang dikirim adalah: asldjslajda. Domain Anda adalah: iuofduaofda', 'read', '2025-05-02 23:48:21'),
+(21, 30, 'Token yang dikirim adalah: jldfjlaj. Domain Anda adalah: ljfdlajfla', 'read', '2025-05-03 06:17:23'),
+(22, 30, 'Token yang dikirim adalah: zvcixuvoisu. Domain Anda adalah: uvfosgofusogfs', 'read', '2025-05-03 06:26:33');
 
 -- --------------------------------------------------------
 
@@ -688,7 +728,7 @@ CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `gpu_package_id` int(11) NOT NULL,
-  `duration_days` int(11) NOT NULL,
+  `duration_hours` int(11) NOT NULL,
   `total_cost` bigint(20) NOT NULL,
   `status` enum('pending_payment','pending_approval','approved','rejected','active','completed') DEFAULT 'pending_payment',
   `token` varchar(100) DEFAULT NULL,
@@ -697,34 +737,19 @@ CREATE TABLE `orders` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `gpu_token` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 0,
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `domain` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `gpu_package_id`, `duration_days`, `total_cost`, `status`, `token`, `start_date`, `end_date`, `created_at`, `gpu_token`, `is_active`, `updated_at`) VALUES
-(6, 28, 6, 3, 180, 'rejected', NULL, NULL, NULL, '2025-04-25 14:54:28', '278a5490-041d-4887-bee1-f2c652a5993f', 1, NULL),
-(7, 28, 5, 15, 900, 'pending_payment', NULL, NULL, NULL, '2025-04-25 16:29:21', NULL, 1, NULL),
-(8, 28, 5, 15, 900, 'approved', 'dauifdaoiufoidafdaf', NULL, NULL, '2025-04-25 16:30:21', '2ad0a709-d8ae-4dd2-8982-74be2da16ac8', 0, '2025-04-28 16:13:34'),
-(9, 28, 5, 15, 900, 'approved', '12830821fjdoaufdo', NULL, NULL, '2025-03-27 10:14:52', 'e506a542-7a47-4981-bee0-5277fc705750', 0, '2025-04-28 15:37:02'),
-(10, 28, 6, 10, 600, 'pending_approval', NULL, NULL, NULL, '2025-04-28 03:24:02', NULL, 0, '2025-04-28 15:23:32'),
-(11, 28, 6, 10, 600, 'rejected', NULL, NULL, NULL, '2025-04-28 04:13:01', NULL, 1, NULL),
-(12, 28, 6, 10, 600, 'approved', 'jivzjvcoizjvioxvz', NULL, NULL, '2025-01-28 05:45:43', '34aef567-3683-46a8-ac08-40510df30c2a', 0, '2025-04-28 15:51:14'),
-(13, 33, 7, 10, 2400000000, 'approved', NULL, NULL, NULL, '2025-04-28 11:34:08', 'e0eb68c3-2a30-45aa-9b0e-73d2dab23942', 1, '2025-04-29 23:40:00'),
-(15, 33, 12, 10, 504000000, 'pending_payment', NULL, NULL, NULL, '2025-04-28 15:38:02', NULL, 1, NULL),
-(16, 33, 12, 10, 504000000, 'approved', 'fdafdoafodafda', NULL, NULL, '2025-04-28 15:40:56', NULL, 0, '2025-04-29 07:39:30'),
-(17, 33, 12, 10, 504000000, 'pending_payment', NULL, NULL, NULL, '2025-04-29 01:43:56', NULL, 1, NULL),
-(18, 33, 3, 10, 240000, 'approved', 'ijljiljl', NULL, NULL, '2025-04-29 01:59:49', '03e25b4e-d8c2-4a16-80f2-cf71caf58a36', 1, '2025-04-29 09:06:35'),
-(19, 33, 12, 8, 403200000, 'pending_payment', NULL, NULL, NULL, '2025-04-29 02:27:52', NULL, 1, NULL),
-(20, 33, 13, 2, 591423408, 'approved', NULL, NULL, NULL, '2025-04-29 02:30:17', '769d79c3-7dbd-4fb7-b731-e3ed2c7378c9', 1, '2025-04-29 23:49:52'),
-(35, 33, 3, 5, 120000, 'approved', 'iojoijoji241321', NULL, NULL, '2025-04-29 06:58:43', '9ff3c352-617b-44f1-b652-9bb9f7591d35', 1, '2025-04-30 01:53:41'),
-(38, 33, 3, 5, 120000, 'pending_approval', NULL, NULL, NULL, '2025-04-29 07:19:34', NULL, 0, '2025-04-29 07:19:56'),
-(39, 33, 3, 5, 120000, 'pending_approval', NULL, NULL, NULL, '2025-04-29 08:57:03', NULL, 0, '2025-04-29 08:57:11'),
-(40, 30, 7, 12, 2880000000, 'approved', 'abcd12213213', NULL, NULL, '2025-04-29 14:21:35', '9afc0d81-28d9-4bb1-9ddb-9e2fe1244aa4', 1, '2025-04-30 00:56:44'),
-(41, 33, 3, 5, 120000, 'pending_approval', NULL, NULL, NULL, '2025-04-30 02:31:56', NULL, 0, '2025-04-30 02:32:04'),
-(42, 30, 3, 5, 120000, 'pending_payment', NULL, NULL, NULL, '2025-04-30 11:48:27', NULL, 0, NULL);
+INSERT INTO `orders` (`id`, `user_id`, `gpu_package_id`, `duration_hours`, `total_cost`, `status`, `token`, `start_date`, `end_date`, `created_at`, `gpu_token`, `is_active`, `updated_at`, `domain`) VALUES
+(44, 33, 36, 11, 275000, 'approved', '13291', NULL, NULL, '2025-05-02 15:10:59', 'fa86640b-aa3f-49e1-85fe-53ced132f0f3', 0, '2025-05-03 03:01:58', 'sasafdafadfa'),
+(59, 30, 35, 24, 240000, 'approved', 'jldfjlaj', '2025-05-03 13:17:52', '2025-05-04 13:17:52', '2025-05-03 04:47:59', 'effec831-e58c-490f-b1a8-4c3b35bb6acd', 0, '2025-05-04 02:20:14', 'ljfdlajfla'),
+(63, 30, 36, 12, 300000, 'approved', 'zvcixuvoisu', NULL, NULL, '2025-05-03 06:25:31', '136b17db-14fb-4b16-8fa9-529c44779e24', 0, '2025-05-03 23:06:51', 'uvfosgofusogfs'),
+(64, 30, 35, 15, 150000, 'pending_approval', NULL, NULL, NULL, '2025-05-03 10:45:13', NULL, 0, '2025-05-03 10:45:25', NULL);
 
 -- --------------------------------------------------------
 
@@ -748,9 +773,7 @@ INSERT INTO `password_resets` (`id`, `email`, `token`, `expires_at`, `created_at
 (1, 'tryusnita8105@gmail.com', 'faca6d481319d9d31be45b389049ebaef42abfe22d197711e6de6e0320125249', '2025-04-29 21:14:47', '2025-04-29 13:14:47'),
 (2, 'tryusnita8105@gmail.com', 'f8047766ac2a04f65e96ac8b5f278942e9f2270fd131b9e1e7e3f4776f0737e2', '2025-04-29 21:16:35', '2025-04-29 13:16:35'),
 (3, 'tryusnita8105@gmail.com', '7813b8542c3e3d6089998025f60bbfd9ce8051994d525ac2c260e56274255f65', '2025-04-29 21:18:30', '2025-04-29 13:18:30'),
-(4, 'tryusnita8105@gmail.com', 'f99415bcc1e742efd3b01b3a13885f6c985b1eb67adb267f8c333c70fafcacfe', '2025-04-29 21:21:57', '2025-04-29 13:21:57'),
-(8, 'akhtarfaiza23@gmail.com', '4b93f9e987ec5e4b90ac6636f55e2d5677af5cc48f250c82ca5dea7864c6cc21', '2025-04-30 11:04:07', '2025-04-30 03:04:07'),
-(9, 'akhtarfaiza23@gmail.com', 'a8b2ef64887cc75d3ecc5d018a4bf0362ccc095f32d7c1ffb54dcdfb289cad0e', '2025-04-30 11:07:56', '2025-04-30 03:07:56');
+(4, 'tryusnita8105@gmail.com', 'f99415bcc1e742efd3b01b3a13885f6c985b1eb67adb267f8c333c70fafcacfe', '2025-04-29 21:21:57', '2025-04-29 13:21:57');
 
 -- --------------------------------------------------------
 
@@ -772,21 +795,10 @@ CREATE TABLE `payments` (
 --
 
 INSERT INTO `payments` (`id`, `order_id`, `proof_url`, `status`, `verified_by`, `verified_at`) VALUES
-(1, 6, 'https://example.com/bukti/bukti1.png', 'rejected', 27, '2025-04-27 17:28:29'),
-(2, 8, 'uploads/proofs/4c478c97-4d8a-4e9e-98eb-b07b66add770.jpg', 'verified', 27, '2025-04-27 18:59:52'),
-(3, 9, 'uploads/proofs/bb2893ef-cc09-43e1-84d2-74f40955023d.jpg', 'verified', 27, '2025-04-27 17:34:17'),
-(4, 10, 'uploads/proofs/de6e6acd-08f4-47e3-bd24-264dbe791138.png', 'rejected', 27, '2025-04-28 11:12:41'),
-(5, 11, 'uploads/proofs/64f2da2f-b420-49bf-b709-50702ee01087.png', 'rejected', 27, '2025-04-28 11:17:25'),
-(6, 12, 'uploads/proofs/5aea7ff0-b93a-4b2b-83a3-bc0779981c6f.jpeg', 'verified', 27, '2025-04-28 22:24:21'),
-(7, 16, 'uploads/proofs/5a0e1249-8ce9-4830-ad34-96f95ee06182.jpeg', 'verified', 27, '2025-04-28 22:45:51'),
-(8, 18, 'uploads/proofs/75f2bb63-230a-45db-9f46-659f4b3f52b7.png', 'verified', 27, '2025-04-29 15:57:47'),
-(10, 35, 'uploads/proofs/f707915c-0560-4ccd-8fb0-4d805776dcfd.png', 'verified', 27, '2025-04-30 06:32:21'),
-(11, 38, 'uploads/proofs/c43fc96f-f9a6-43c9-adaf-4d0fbe3d40b8.png', 'pending', NULL, NULL),
-(12, 39, 'uploads/proofs/e5c15da8-fa7c-4d34-a729-ec31d6e589f6.png', 'pending', NULL, NULL),
-(13, 20, 'uploads/proofs/f2b071de-7f90-4bbd-aa2e-70ea00b82046.png', 'verified', 27, '2025-04-30 06:49:52'),
-(14, 13, 'uploads/proofs/a89d700f-6ceb-464e-9c09-27f3c0981d93.png', 'verified', 27, '2025-04-30 06:39:59'),
-(16, 40, 'uploads/proofs/fe14dee2-7962-4a2f-842f-5fcf04e1a195.jpeg', 'verified', 27, '2025-04-29 21:22:58'),
-(18, 41, 'uploads/proofs/2d9c5a11-dc7d-416e-8670-069b08005063.png', 'pending', NULL, NULL);
+(19, 44, 'uploads/proofs/86833698-4569-4db7-9a4a-a6c3460dea44.png', 'verified', 27, '2025-05-02 22:18:41'),
+(33, 59, 'uploads/proofs/06ddeca3-5b4f-4a23-ad50-f2e3bf2ff857.png', 'verified', 27, '2025-05-03 13:17:10'),
+(37, 63, 'uploads/proofs/06afec6f-7c6b-4d2f-84df-2ddf053fc85a.png', 'verified', 27, '2025-05-03 13:26:23'),
+(38, 64, 'uploads/proofs/1a170db0-bb7d-4b8f-ac38-aed767bf0f82.png', 'pending', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -814,7 +826,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `phone`, `create
 (27, 'Test User21', 'admin2@test.com', '$2b$10$JznyWlXZNVGQrKH0rqnIyOxzG4BIPGwpgvPEvHca54GNnEC5y9US2', 'admin', '081234567891', '2025-04-25 16:02:25'),
 (28, 'Test User', 'newuser2@test.com', '$2b$10$sle3H2cuEa4Gmh1enhcIB.cdunn3WVWXcfIBUdnlMUTBOighAIE.C', 'user', '08123456789', '2025-04-25 16:15:48'),
 (29, 'admin_qc_bm@14112019.kita', 'user3328@gmail.com', '$2b$10$5qWM6mBwkpAk4mx8vvyixeg/M9nuziQevyCOenrJNuyWuejVtgw32', 'user', '218308213121301', '2025-04-26 13:09:10'),
-(30, 'Rizki Maulana', 'akhtarfaiza23@gmail.com', '$2b$10$QoZ6j8IABKJeAZpZajenyu9pB4yzqtaTcNEzJjieoW43W5eNtbea6', 'user', '08123456789', '2025-04-26 14:06:35'),
+(30, 'Rizki Maulana', 'akhtarfaiza23@gmail.com', '$2b$10$rz.3IqYQsWsMrlSTun/0OeFk4S2vDLrJOn9kCjCQ9ENlAZDLp34e2', 'user', '08123456789', '2025-04-26 14:06:35'),
 (31, 'Nama Baru 2', 'tryusnita8105@gmail.com', '$2b$10$RXmtxlbLC58X7gKrpilHPeiWMx.PZjMvsvm9VjUbfjytmwyAcCtUG', 'user', '081234567890', '2024-04-24 14:15:11'),
 (32, 'faul', 'faul@gmail.com', '$2b$10$YAi8j1mH4ToqjXWn/kPy7.Q.vzv5JlgK/Fr0JWj9N7m3Rsr.pm0CO', 'user', '218308210382103', '2025-04-26 14:20:41'),
 (33, 'User Panjang Saja', 'userpanjang@test.com', '$2b$10$Jg7yqenNL1I7BIa.PEJjzuhsf8fyc1rJO9cGkVkCgjF0UlmRf9AOK', 'user', '321038021830', '2025-04-28 11:33:21'),
@@ -840,7 +852,10 @@ CREATE TABLE `visitors` (
 
 INSERT INTO `visitors` (`id`, `visit_date`, `visit_count`, `created_at`, `updated_at`) VALUES
 (1, '2025-04-30', 75, '2025-04-30 08:50:56', '2025-04-30 23:42:46'),
-(77, '2025-05-01', 18, '2025-05-01 00:30:01', '2025-05-01 09:50:46');
+(77, '2025-05-01', 28, '2025-05-01 00:30:01', '2025-05-01 14:27:05'),
+(105, '2025-05-02', 104, '2025-05-02 08:31:22', '2025-05-02 23:52:08'),
+(209, '2025-05-03', 161, '2025-05-03 00:35:13', '2025-05-03 23:46:08'),
+(370, '2025-05-04', 12, '2025-05-04 00:06:13', '2025-05-04 02:20:46');
 
 --
 -- Indexes for dumped tables
@@ -910,37 +925,37 @@ ALTER TABLE `visitors`
 -- AUTO_INCREMENT untuk tabel `access_log`
 --
 ALTER TABLE `access_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=569;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=605;
 
 --
 -- AUTO_INCREMENT untuk tabel `gpu_packages`
 --
 ALTER TABLE `gpu_packages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT untuk tabel `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT untuk tabel `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT untuk tabel `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
@@ -952,7 +967,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `visitors`
 --
 ALTER TABLE `visitors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=382;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
