@@ -154,60 +154,90 @@ export const updatePassword = async (req, res) => {
 
 export const startUsage = async (req, res) => {
   try {
-      const { orderId } = req.body;
-      const order = await Order.findById(orderId);
+    const { orderId } = req.body;
+    const order = await Order.findById(orderId);
 
-      if (!order) {
-          return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    if (!order) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    }
+
+    if (order.is_active === 1) { // Jika sudah aktif, kembalikan saja
+      return res.status(200).json({ message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.', order });
+    }
+
+    // Mulai transaksi
+    await pool.query('START TRANSACTION');
+
+    try {
+      // 1. Ambil data GPU Package untuk mendapatkan id_package
+      const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
+      if (!gpuPackage || gpuPackage.length === 0) {
+        throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
       }
 
-      if (!order.start_date) {
-          const startDate = new Date();
-          const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
-
-          const updateResult = await Order.findByIdAndUpdate(orderId, {
-              start_date: startDate,
-              end_date: endDate,
-              is_active: 1
-          });
-
-          if (updateResult.affectedRows > 0) {
-              const updatedOrder = await Order.findById(orderId);
-              return res.status(200).json({ message: 'Waktu penggunaan pesanan dimulai.', order: updatedOrder });
-          } else {
-              return res.status(500).json({ message: 'Gagal memperbarui status pesanan.' });
-          }
-      } else {
-          return res.status(200).json({ message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.', order });
+      // Pastikan stok masih tersedia sebelum memulai
+      if (gpuPackage[0].stock_available <= 0) {
+        throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
       }
+
+      // 2. Kurangi stok GPU
+      await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
+
+      // 3. Update order
+      const startDate = new Date();
+      const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
+
+      const updateResult = await Order.findByIdAndUpdate(orderId, {
+        start_date: startDate,
+        end_date: endDate,
+        is_active: 1,
+        status: 'active' // Ubah status menjadi 'active'
+      });
+
+      if (updateResult.affectedRows === 0) {
+        throw new Error('Gagal memperbarui status pesanan.');
+      }
+
+      // Commit transaksi jika semua berhasil
+      await pool.query('COMMIT');
+
+      const updatedOrder = await Order.findById(orderId); // Ambil data order terbaru
+      return res.status(200).json({ message: 'Waktu penggunaan pesanan dimulai.', order: updatedOrder });
+
+    } catch (transactionError) {
+      // Rollback transaksi jika terjadi kesalahan
+      await pool.query('ROLLBACK');
+      console.error("Transaction failed during startUsage:", transactionError);
+      return res.status(500).json({ message: transactionError.message || 'Terjadi kesalahan saat mencatat awal penggunaan (transaksi dibatalkan).' });
+    }
   } catch (error) {
-      console.error("Gagal mencatat awal penggunaan:", error);
-      return res.status(500).json({ message: 'Terjadi kesalahan saat mencatat awal penggunaan.' });
+    console.error("Gagal mencatat awal penggunaan:", error);
+    return res.status(500).json({ message: 'Terjadi kesalahan saat mencatat awal penggunaan.' });
   }
 };
 
 export const deactivateOrder = async (req, res) => {
   try {
-      const { id } = req.params;
-      const order = await Order.findById(id);
+    const { id } = req.params;
+    const order = await Order.findById(id);
 
-      if (!order) {
-          return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
-      }
+    if (!order) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    }
 
-      if (order.is_active === 0) {
-          return res.status(200).json({ message: 'Pesanan sudah tidak aktif.' });
-      }
+    if (order.is_active === 0) {
+      return res.status(200).json({ message: 'Pesanan sudah tidak aktif.' });
+    }
 
-      const updateResult = await Order.findByIdAndUpdate(id, { is_active: 0 });
+    const updateResult = await Order.findByIdAndUpdate(id, { is_active: 0 });
 
-      if (updateResult.affectedRows > 0) {
-          return res.status(200).json({ message: 'Pesanan berhasil dinonaktifkan.' });
-      } else {
-          return res.status(500).json({ message: 'Gagal menonaktifkan pesanan.' });
-      }
+    if (updateResult.affectedRows > 0) {
+      return res.status(200).json({ message: 'Pesanan berhasil dinonaktifkan.' });
+    } else {
+      return res.status(500).json({ message: 'Gagal menonaktifkan pesanan.' });
+    }
   } catch (error) {
-      console.error("Gagal menonaktifkan pesanan:", error);
-      return res.status(500).json({ message: 'Terjadi kesalahan saat menonaktifkan pesanan.' });
+    console.error("Gagal menonaktifkan pesanan:", error);
+    return res.status(500).json({ message: 'Terjadi kesalahan saat menonaktifkan pesanan.' });
   }
 };

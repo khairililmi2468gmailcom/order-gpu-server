@@ -11,14 +11,15 @@ export const createGpuPackage = async (req, res) => {
     memory_gpu,
     description,
     min_period_hours,
+    stock_available
   } = req.body;
 
   try {
     await pool.query(
       `INSERT INTO gpu_packages 
-        (name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours]
+        (name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available]
     );
 
     res.status(201).json({ message: 'GPU package berhasil dibuat' });
@@ -50,6 +51,7 @@ export const updateGpuPackage = async (req, res) => {
     memory_gpu,
     description,
     min_period_hours,
+    stock_available
   } = req.body;
 
   try {
@@ -60,9 +62,9 @@ export const updateGpuPackage = async (req, res) => {
 
     await pool.query(
       `UPDATE gpu_packages 
-        SET name = ?, price_per_hour = ?, vcpu = ?, ram = ?, ssd = ?, memory_gpu = ?, description = ?, min_period_hours = ? 
+        SET name = ?, price_per_hour = ?, vcpu = ?, ram = ?, ssd = ?, memory_gpu = ?, description = ?, min_period_hours = ?, stock_available = ? 
         WHERE id = ?`,
-      [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, id]
+      [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available, id]
     );
 
     res.json({ message: 'GPU package berhasil diupdate' });

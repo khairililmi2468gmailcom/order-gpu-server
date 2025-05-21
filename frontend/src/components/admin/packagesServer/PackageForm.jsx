@@ -10,21 +10,22 @@ const PackageForm = forwardRef((props, ref) => {
     const [ssd, setSsd] = useState('');
     const [memoryGpu, setMemoryGpu] = useState('');
     const [description, setDescription] = useState('');
-    const [minPeriodHours, setminPeriodHours] = useState('');
+    const [minPeriodHours, setMinPeriodHours] = useState(''); // Perbaikan: setminPeriodHours -> setMinPeriodHours
+    const [stockAvailable, setStockAvailable] = useState(''); // Tambahkan state untuk stok
 
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (initialPackage) {
             setName(initialPackage.name || '');
-            // Pastikan price_per_hour diinisialisasi sebagai string
             setPricePerHour(String(initialPackage.price_per_hour || ''));
             setVcpu(initialPackage.vcpu || '');
             setRam(initialPackage.ram || '');
             setSsd(initialPackage.ssd || '');
             setMemoryGpu(initialPackage.memory_gpu || '');
             setDescription(initialPackage.description || '');
-            setminPeriodHours(String(initialPackage.min_period_hours || ''));  // Konversi kembali ke jam untuk input
+            setMinPeriodHours(String(initialPackage.min_period_hours || ''));
+            setStockAvailable(String(initialPackage.stock_available || '0')); // Inisialisasi stok
         } else {
             setName('');
             setPricePerHour('');
@@ -33,7 +34,8 @@ const PackageForm = forwardRef((props, ref) => {
             setSsd('');
             setMemoryGpu('');
             setDescription('');
-            setminPeriodHours('');
+            setMinPeriodHours('');
+            setStockAvailable('0'); // Default ke 0 jika tidak ada initialPackage
         }
     }, [initialPackage]);
 
@@ -53,7 +55,6 @@ const PackageForm = forwardRef((props, ref) => {
             newErrors.pricePerHour = 'Harga per Jam harus diisi.';
             isValid = false;
         } else if (typeof pricePerHour !== 'string') {
-            // Tambahkan pengecekan tipe untuk berjaga-jaga
             newErrors.pricePerHour = 'Format harga tidak valid.';
             isValid = false;
         } else {
@@ -95,6 +96,16 @@ const PackageForm = forwardRef((props, ref) => {
             newErrors.minPeriodHours = 'Minimal Periode harus berupa angka positif.';
             isValid = false;
         }
+        
+        // --- Validasi untuk Stok Tersedia ---
+        if (!stockAvailable) {
+            newErrors.stockAvailable = 'Stok Tersedia harus diisi.';
+            isValid = false;
+        } else if (isNaN(Number(stockAvailable)) || Number(stockAvailable) < 0) {
+            newErrors.stockAvailable = 'Stok Tersedia harus berupa angka non-negatif.';
+            isValid = false;
+        }
+        // --- Akhir Validasi Stok Tersedia ---
 
         setErrors(newErrors);
         return isValid;
@@ -111,6 +122,7 @@ const PackageForm = forwardRef((props, ref) => {
                 memory_gpu: memoryGpu,
                 description,
                 min_period_hours: Number(minPeriodHours),
+                stock_available: Number(stockAvailable), // Sertakan stok tersedia
             };
             console.log('Data yang dikirim dari PackageForm:', formDataToSend);
             onSubmit(formDataToSend);
@@ -123,13 +135,14 @@ const PackageForm = forwardRef((props, ref) => {
             if (isValid) {
                 return {
                     name,
-                    price_per_hour: pricePerHour.replace(/\./g, ''), // Kirim harga tanpa format
+                    price_per_hour: pricePerHour.replace(/\./g, ''),
                     vcpu,
                     ram,
                     ssd,
                     memory_gpu: memoryGpu,
                     description,
-                    min_period_hours: Number(minPeriodHours), // Konversi jam ke hari saat validasi dari luar
+                    min_period_hours: Number(minPeriodHours),
+                    stock_available: Number(stockAvailable), // Sertakan stok tersedia
                 };
             }
             return false;
@@ -142,7 +155,8 @@ const PackageForm = forwardRef((props, ref) => {
             setSsd('');
             setMemoryGpu('');
             setDescription('');
-            setminPeriodHours('');
+            setMinPeriodHours('');
+            setStockAvailable('0'); // Reset stok
             setErrors({});
         },
     }));
@@ -160,7 +174,8 @@ const PackageForm = forwardRef((props, ref) => {
                 { label: 'RAM', id: 'ram', value: ram, setter: setRam, errorKey: 'ram', placeholder: 'RAM' },
                 { label: 'SSD', id: 'ssd', value: ssd, setter: setSsd, errorKey: 'ssd', placeholder: 'SSD' },
                 { label: 'Memory GPU', id: 'memoryGpu', value: memoryGpu, setter: setMemoryGpu, errorKey: 'memoryGpu', placeholder: 'GPU Memory' },
-                { label: 'Minimal Periode (Jam)', id: 'minPeriodHours', value: minPeriodHours, setter: setminPeriodHours, errorKey: 'minPeriodHours', type: 'number', placeholder: 'Minimal jam sewa' }
+                { label: 'Minimal Periode (Jam)', id: 'minPeriodHours', value: minPeriodHours, setter: setMinPeriodHours, errorKey: 'minPeriodHours', type: 'number', placeholder: 'Minimal jam sewa' },
+                { label: 'Stok Tersedia', id: 'stockAvailable', value: stockAvailable, setter: setStockAvailable, errorKey: 'stockAvailable', type: 'number', placeholder: 'Jumlah unit GPU yang tersedia' } // Tambahkan field stok
             ].map(({ label, id, value, setter, errorKey, placeholder, type = 'text' }) => (
                 <div className="mb-4" key={id}>
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={id}>

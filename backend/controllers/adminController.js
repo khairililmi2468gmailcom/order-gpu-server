@@ -6,7 +6,7 @@ import Notification from '../models/Notification.js';
 import Order from '../models/Order.js';
 import Password from '../models/Password.js';
 import bcrypt from 'bcryptjs';
-import { notifyUserWithToken } from '../utils/notification.js'; 
+import { notifyUserWithToken, notifyPaymentRejected} from '../utils/notification.js'; 
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -33,7 +33,7 @@ export const getAllOrders = async (req, res) => {
 };
 
 export const verifyPayment = async (req, res) => {
-  const { payment_id, status } = req.body;
+  const { payment_id, status, rejection_reason } = req.body; // Terima rejection_reason
 
   try {
     // Validasi status
@@ -48,35 +48,103 @@ export const verifyPayment = async (req, res) => {
     }
 
     const payment = paymentResult[0];
+
+    // Ambil order terkait untuk mendapatkan gpu_package_id dan user_id
+    const [orderResult] = await pool.query('SELECT gpu_package_id, user_id FROM orders WHERE id = ?', [payment.order_id]);
+    if (orderResult.length === 0) {
+        return res.status(404).json({ error: 'Order terkait tidak ditemukan' });
+    }
+    const order = orderResult[0]; // Dapatkan detail order
+    console.log(order);
+    // Ambil detail user untuk email
+    const [userResult] = await pool.query('SELECT email, name FROM users WHERE id = ?', [order.user_id]);
+    if (userResult.length === 0) {
+        // Ini adalah skenario yang tidak biasa, tapi baiknya ditangani
+        console.warn(`User ID ${order.user_id} tidak ditemukan untuk order ID ${payment.order_id}`);
+        // Anda bisa memutuskan untuk tetap melanjutkan atau mengembalikan error
+        // Untuk saat ini, kita akan tetap melanjutkan tapi tidak mengirim email notifikasi
+    }
+    const user = userResult[0]; // Dapatkan detail user
+
     const verifiedAt = new Date();
 
-    // Update tabel payments
-    await pool.query(
-      'UPDATE payments SET status = ?, verified_by = ?, verified_at = ? WHERE id = ?',
-      [status, req.user.id, verifiedAt, payment_id]
-    );
+    // Mulai transaksi untuk atomisitas
+    await pool.query('START TRANSACTION');
 
-    // Jika status "verified", update status order + tambahkan gpu_token
-    if (status === 'verified') {
-      const gpuToken = uuidv4(); // Token unik
-      await pool.query(
-        'UPDATE orders SET status = ?, gpu_token = ? WHERE id = ?',
-        ['approved', gpuToken, payment.order_id] // Update order status ke 'approved'
-      );
-    } else {
-      // Kalau status "rejected", ubah status order menjadi "rejected"
-      await pool.query(
-        'UPDATE orders SET status = ? WHERE id = ?',
-        ['rejected', payment.order_id]
-      );
+    try {
+        // Update tabel payments
+        await pool.query(
+            'UPDATE payments SET status = ?, verified_by = ?, verified_at = ? WHERE id = ?',
+            [status, req.user.id, verifiedAt, payment_id]
+        );
+
+        // Jika status "verified", update status order + tambahkan gpu_token
+        if (status === 'verified') {
+            const gpuToken = uuidv4(); // Token unik
+            // Anda mungkin perlu menentukan domain di sini atau mengambilnya dari pengaturan aplikasi
+            const domain = process.env.GPU_ACCESS_DOMAIN || 'example.com'; // Contoh domain
+
+            await pool.query(
+                'UPDATE orders SET status = ?, gpu_token = ?, domain = ? WHERE id = ?', // Tambahkan domain
+                ['approved', gpuToken, domain, payment.order_id] // Update order status ke 'approved'
+            );
+
+            // Kirim notifikasi email untuk verifikasi berhasil
+            if (user) {
+                await notifyUserWithToken(user.email, user.name, gpuToken, domain);
+            }
+
+        } else { // status === 'rejected'
+            // Kalau status "rejected", ubah status order menjadi "rejected"
+            await pool.query(
+                'UPDATE orders SET status = ? WHERE id = ?',
+                ['rejected', payment.order_id]
+            );
+
+            // KEMBALIKAN STOK GPU KARENA PEMBAYARAN DITOLAK
+            if (order.gpu_package_id) {
+                await pool.query(
+                    'UPDATE gpu_packages SET stock_available = stock_available + 1 WHERE id = ?',
+                    [order.gpu_package_id]
+                );
+                console.log(`Stok GPU untuk Paket ID ${order.gpu_package_id} dikembalikan karena pembayaran order ID ${payment.order_id} ditolak.`);
+            }
+
+            // Kirim notifikasi email untuk pembayaran ditolak
+            if (user) {
+                // Pastikan order.id, payment.id, gpuPackage.name, dan totalCost tersedia untuk email
+                // Jika data ini belum di-query, Anda perlu menambahkannya
+                // Untuk contoh ini, kita akan pakai data yang sudah ada dan tambahkan placeholder
+                const gpuPackageName = (await pool.query('SELECT name FROM gpu_packages WHERE id = ?', [order.gpu_package_id]))[0][0]?.name || 'Paket GPU Tidak Diketahui';
+                const totalCost = order.total_cost; //  total_cost yang dibayar
+
+                await notifyPaymentRejected(
+                    user.email,
+                    user.name,
+                    payment.order_id,
+                    gpuPackageName,
+                    totalCost,
+                    rejection_reason || 'Tidak ada alasan spesifik diberikan.' // Gunakan alasan dari admin
+                );
+            }
+        }
+
+        await pool.query('COMMIT'); // Commit transaksi jika berhasil
+
+        res.json({ message: `Pembayaran berhasil diverifikasi dengan status ${status}` });
+
+    } catch (transactionError) {
+        await pool.query('ROLLBACK'); // Rollback jika ada kesalahan dalam transaksi
+        console.error('Transaction Error during payment verification:', transactionError);
+        res.status(500).json({ error: 'Gagal verifikasi pembayaran (transaksi dibatalkan)' });
     }
 
-    res.json({ message: `Pembayaran berhasil diverifikasi dengan status ${status}` });
   } catch (err) {
     console.error('Verify Payment Error:', err);
     res.status(500).json({ error: 'Gagal verifikasi pembayaran' });
   }
 };
+
 export const approveOrder = async (req, res) => {
   const { order_id, action } = req.body;
 

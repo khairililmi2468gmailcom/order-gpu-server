@@ -132,7 +132,7 @@ var getAllOrders = function getAllOrders(req, res) {
 exports.getAllOrders = getAllOrders;
 
 var verifyPayment = function verifyPayment(req, res) {
-  var _req$body, payment_id, status, _ref5, _ref6, paymentResult, payment, verifiedAt, gpuToken;
+  var _req$body, payment_id, status, _ref5, _ref6, paymentResult, payment, _ref7, _ref8, orderResult, order, verifiedAt, gpuToken;
 
   return regeneratorRuntime.async(function verifyPayment$(_context2) {
     while (1) {
@@ -169,59 +169,119 @@ var verifyPayment = function verifyPayment(req, res) {
           }));
 
         case 11:
-          payment = paymentResult[0];
-          verifiedAt = new Date(); // Update tabel payments
+          payment = paymentResult[0]; // Ambil order terkait untuk mendapatkan gpu_package_id
 
-          _context2.next = 15;
+          _context2.next = 14;
+          return regeneratorRuntime.awrap(_db["default"].query('SELECT gpu_package_id FROM orders WHERE id = ?', [payment.order_id]));
+
+        case 14:
+          _ref7 = _context2.sent;
+          _ref8 = _slicedToArray(_ref7, 1);
+          orderResult = _ref8[0];
+
+          if (!(orderResult.length === 0)) {
+            _context2.next = 19;
+            break;
+          }
+
+          return _context2.abrupt("return", res.status(404).json({
+            error: 'Order terkait tidak ditemukan'
+          }));
+
+        case 19:
+          order = orderResult[0]; // Dapatkan detail order
+
+          verifiedAt = new Date(); // Mulai transaksi untuk atomisitas
+
+          _context2.next = 23;
+          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
+
+        case 23:
+          _context2.prev = 23;
+          _context2.next = 26;
           return regeneratorRuntime.awrap(_db["default"].query('UPDATE payments SET status = ?, verified_by = ?, verified_at = ? WHERE id = ?', [status, req.user.id, verifiedAt, payment_id]));
 
-        case 15:
+        case 26:
           if (!(status === 'verified')) {
-            _context2.next = 21;
+            _context2.next = 32;
             break;
           }
 
           gpuToken = (0, _uuid.v4)(); // Token unik
 
-          _context2.next = 19;
+          _context2.next = 30;
           return regeneratorRuntime.awrap(_db["default"].query('UPDATE orders SET status = ?, gpu_token = ? WHERE id = ?', ['approved', gpuToken, payment.order_id] // Update order status ke 'approved'
           ));
 
-        case 19:
-          _context2.next = 23;
+        case 30:
+          _context2.next = 38;
           break;
 
-        case 21:
-          _context2.next = 23;
+        case 32:
+          _context2.next = 34;
           return regeneratorRuntime.awrap(_db["default"].query('UPDATE orders SET status = ? WHERE id = ?', ['rejected', payment.order_id]));
 
-        case 23:
+        case 34:
+          if (!order.gpu_package_id) {
+            _context2.next = 38;
+            break;
+          }
+
+          _context2.next = 37;
+          return regeneratorRuntime.awrap(_db["default"].query('UPDATE gpu_packages SET stock_available = stock_available + 1 WHERE id = ?', [order.gpu_package_id]));
+
+        case 37:
+          console.log("Stok GPU untuk Paket ID ".concat(order.gpu_package_id, " dikembalikan karena pembayaran order ID ").concat(payment.order_id, " ditolak."));
+
+        case 38:
+          _context2.next = 40;
+          return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
+
+        case 40:
+          // Commit transaksi jika berhasil
           res.json({
             message: "Pembayaran berhasil diverifikasi dengan status ".concat(status)
           });
-          _context2.next = 30;
+          _context2.next = 49;
           break;
 
-        case 26:
-          _context2.prev = 26;
-          _context2.t0 = _context2["catch"](1);
-          console.error('Verify Payment Error:', _context2.t0);
+        case 43:
+          _context2.prev = 43;
+          _context2.t0 = _context2["catch"](23);
+          _context2.next = 47;
+          return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
+
+        case 47:
+          // Rollback jika ada kesalahan dalam transaksi
+          console.error('Transaction Error during payment verification:', _context2.t0);
+          res.status(500).json({
+            error: 'Gagal verifikasi pembayaran (transaksi dibatalkan)'
+          });
+
+        case 49:
+          _context2.next = 55;
+          break;
+
+        case 51:
+          _context2.prev = 51;
+          _context2.t1 = _context2["catch"](1);
+          console.error('Verify Payment Error:', _context2.t1);
           res.status(500).json({
             error: 'Gagal verifikasi pembayaran'
           });
 
-        case 30:
+        case 55:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[1, 26]]);
+  }, null, null, [[1, 51], [23, 43]]);
 };
 
 exports.verifyPayment = verifyPayment;
 
 var approveOrder = function approveOrder(req, res) {
-  var _req$body2, order_id, action, _ref7, _ref8, orders, gpuToken;
+  var _req$body2, order_id, action, _ref9, _ref10, orders, gpuToken;
 
   return regeneratorRuntime.async(function approveOrder$(_context3) {
     while (1) {
@@ -233,9 +293,9 @@ var approveOrder = function approveOrder(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM orders WHERE id = ?', [order_id]));
 
         case 4:
-          _ref7 = _context3.sent;
-          _ref8 = _slicedToArray(_ref7, 1);
-          orders = _ref8[0];
+          _ref9 = _context3.sent;
+          _ref10 = _slicedToArray(_ref9, 1);
+          orders = _ref10[0];
 
           if (orders[0]) {
             _context3.next = 9;
@@ -307,7 +367,7 @@ var approveOrder = function approveOrder(req, res) {
 exports.approveOrder = approveOrder;
 
 var getTokens = function getTokens(req, res) {
-  var _ref9, _ref10, tokens;
+  var _ref11, _ref12, tokens;
 
   return regeneratorRuntime.async(function getTokens$(_context4) {
     while (1) {
@@ -318,9 +378,9 @@ var getTokens = function getTokens(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM orders WHERE is_active = ?', [true]));
 
         case 3:
-          _ref9 = _context4.sent;
-          _ref10 = _slicedToArray(_ref9, 1);
-          tokens = _ref10[0];
+          _ref11 = _context4.sent;
+          _ref12 = _slicedToArray(_ref11, 1);
+          tokens = _ref12[0];
           res.json(tokens);
           _context4.next = 13;
           break;
@@ -344,7 +404,7 @@ var getTokens = function getTokens(req, res) {
 exports.getTokens = getTokens;
 
 var updateTokenStatus = function updateTokenStatus(req, res) {
-  var _req$body3, order_id, is_active, _ref11, _ref12, order, statusMessage;
+  var _req$body3, order_id, is_active, _ref13, _ref14, order, statusMessage;
 
   return regeneratorRuntime.async(function updateTokenStatus$(_context5) {
     while (1) {
@@ -367,9 +427,9 @@ var updateTokenStatus = function updateTokenStatus(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM orders WHERE id = ?', [order_id]));
 
         case 6:
-          _ref11 = _context5.sent;
-          _ref12 = _slicedToArray(_ref11, 1);
-          order = _ref12[0];
+          _ref13 = _context5.sent;
+          _ref14 = _slicedToArray(_ref13, 1);
+          order = _ref14[0];
 
           if (order[0]) {
             _context5.next = 11;
@@ -433,7 +493,7 @@ var updateTokenStatus = function updateTokenStatus(req, res) {
 exports.updateTokenStatus = updateTokenStatus;
 
 var updateOrderToken = function updateOrderToken(req, res) {
-  var _req$body4, order_id, token, domain, _ref13, _ref14, order;
+  var _req$body4, order_id, token, domain, _ref15, _ref16, order;
 
   return regeneratorRuntime.async(function updateOrderToken$(_context6) {
     while (1) {
@@ -456,9 +516,9 @@ var updateOrderToken = function updateOrderToken(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM orders WHERE id = ?', [order_id]));
 
         case 6:
-          _ref13 = _context6.sent;
-          _ref14 = _slicedToArray(_ref13, 1);
-          order = _ref14[0];
+          _ref15 = _context6.sent;
+          _ref16 = _slicedToArray(_ref15, 1);
+          order = _ref16[0];
 
           if (order[0]) {
             _context6.next = 11;
@@ -499,7 +559,7 @@ var updateOrderToken = function updateOrderToken(req, res) {
 exports.updateOrderToken = updateOrderToken;
 
 var getWebsiteStats = function getWebsiteStats(req, res) {
-  var _ref15, _ref16, visitorCount, _ref17, _ref18, userCount, _ref19, _ref20, orderCount, _ref21, _ref22, totalRevenue, _ref23, _ref24, pendingOrders, _ref25, _ref26, approvedOrders, _ref27, _ref28, monthlyNewUsersTotal, _ref29, _ref30, todayVisitors, _ref31, _ref32, monthlyRevenue, _ref33, _ref34, orderStatusCount, _ref35, _ref36, monthlyNewUsers, _ref37, _ref38, dailyVisitors;
+  var _ref17, _ref18, visitorCount, _ref19, _ref20, userCount, _ref21, _ref22, orderCount, _ref23, _ref24, totalRevenue, _ref25, _ref26, pendingOrders, _ref27, _ref28, approvedOrders, _ref29, _ref30, monthlyNewUsersTotal, _ref31, _ref32, todayVisitors, _ref33, _ref34, monthlyRevenue, _ref35, _ref36, orderStatusCount, _ref37, _ref38, monthlyNewUsers, _ref39, _ref40, dailyVisitors;
 
   return regeneratorRuntime.async(function getWebsiteStats$(_context7) {
     while (1) {
@@ -510,86 +570,86 @@ var getWebsiteStats = function getWebsiteStats(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query('SELECT COUNT(DISTINCT ip) AS visitor_count FROM access_log'));
 
         case 3:
-          _ref15 = _context7.sent;
-          _ref16 = _slicedToArray(_ref15, 1);
-          visitorCount = _ref16[0];
+          _ref17 = _context7.sent;
+          _ref18 = _slicedToArray(_ref17, 1);
+          visitorCount = _ref18[0];
           _context7.next = 8;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT COUNT(id) AS user_count FROM users'));
 
         case 8:
-          _ref17 = _context7.sent;
-          _ref18 = _slicedToArray(_ref17, 1);
-          userCount = _ref18[0];
+          _ref19 = _context7.sent;
+          _ref20 = _slicedToArray(_ref19, 1);
+          userCount = _ref20[0];
           _context7.next = 13;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT COUNT(id) AS order_count FROM orders'));
 
         case 13:
-          _ref19 = _context7.sent;
-          _ref20 = _slicedToArray(_ref19, 1);
-          orderCount = _ref20[0];
+          _ref21 = _context7.sent;
+          _ref22 = _slicedToArray(_ref21, 1);
+          orderCount = _ref22[0];
           _context7.next = 18;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT IFNULL(SUM(total_cost), 0) AS total_revenue FROM orders WHERE status = "approved"'));
 
         case 18:
-          _ref21 = _context7.sent;
-          _ref22 = _slicedToArray(_ref21, 1);
-          totalRevenue = _ref22[0];
+          _ref23 = _context7.sent;
+          _ref24 = _slicedToArray(_ref23, 1);
+          totalRevenue = _ref24[0];
           _context7.next = 23;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT COUNT(id) AS pending_order FROM orders WHERE status = "pending_payment"'));
 
         case 23:
-          _ref23 = _context7.sent;
-          _ref24 = _slicedToArray(_ref23, 1);
-          pendingOrders = _ref24[0];
+          _ref25 = _context7.sent;
+          _ref26 = _slicedToArray(_ref25, 1);
+          pendingOrders = _ref26[0];
           _context7.next = 28;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT COUNT(id) AS approved_order FROM orders WHERE status = "approved"'));
 
         case 28:
-          _ref25 = _context7.sent;
-          _ref26 = _slicedToArray(_ref25, 1);
-          approvedOrders = _ref26[0];
+          _ref27 = _context7.sent;
+          _ref28 = _slicedToArray(_ref27, 1);
+          approvedOrders = _ref28[0];
           _context7.next = 33;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT COUNT(*) AS this_month_new_users\n      FROM users\n      WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())\n    "));
 
         case 33:
-          _ref27 = _context7.sent;
-          _ref28 = _slicedToArray(_ref27, 1);
-          monthlyNewUsersTotal = _ref28[0];
+          _ref29 = _context7.sent;
+          _ref30 = _slicedToArray(_ref29, 1);
+          monthlyNewUsersTotal = _ref30[0];
           _context7.next = 38;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT COUNT(DISTINCT ip) AS today_visitors\n      FROM access_log\n      WHERE DATE(accessed_at) = CURDATE()\n    "));
 
         case 38:
-          _ref29 = _context7.sent;
-          _ref30 = _slicedToArray(_ref29, 1);
-          todayVisitors = _ref30[0];
+          _ref31 = _context7.sent;
+          _ref32 = _slicedToArray(_ref31, 1);
+          todayVisitors = _ref32[0];
           _context7.next = 43;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT \n        DATE_FORMAT(created_at, '%Y-%m') AS month,\n        SUM(total_cost) AS total\n      FROM orders\n      WHERE status = \"approved\"\n      GROUP BY month\n      ORDER BY month ASC\n    "));
 
         case 43:
-          _ref31 = _context7.sent;
-          _ref32 = _slicedToArray(_ref31, 1);
-          monthlyRevenue = _ref32[0];
+          _ref33 = _context7.sent;
+          _ref34 = _slicedToArray(_ref33, 1);
+          monthlyRevenue = _ref34[0];
           _context7.next = 48;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT \n        status,\n        COUNT(*) AS count\n      FROM orders\n      GROUP BY status\n    "));
 
         case 48:
-          _ref33 = _context7.sent;
-          _ref34 = _slicedToArray(_ref33, 1);
-          orderStatusCount = _ref34[0];
+          _ref35 = _context7.sent;
+          _ref36 = _slicedToArray(_ref35, 1);
+          orderStatusCount = _ref36[0];
           _context7.next = 53;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT \n        DATE_FORMAT(created_at, '%Y-%m') AS month,\n        COUNT(*) AS new_users\n      FROM users\n      GROUP BY month\n      ORDER BY month ASC\n    "));
 
         case 53:
-          _ref35 = _context7.sent;
-          _ref36 = _slicedToArray(_ref35, 1);
-          monthlyNewUsers = _ref36[0];
+          _ref37 = _context7.sent;
+          _ref38 = _slicedToArray(_ref37, 1);
+          monthlyNewUsers = _ref38[0];
           _context7.next = 58;
           return regeneratorRuntime.awrap(_db["default"].query("\n      SELECT \n        DATE(accessed_at) AS date,\n        COUNT(DISTINCT ip) AS visitors\n      FROM access_log\n      WHERE accessed_at >= CURDATE() - INTERVAL 30 DAY\n      GROUP BY date\n      ORDER BY date ASC\n    "));
 
         case 58:
-          _ref37 = _context7.sent;
-          _ref38 = _slicedToArray(_ref37, 1);
-          dailyVisitors = _ref38[0];
+          _ref39 = _context7.sent;
+          _ref40 = _slicedToArray(_ref39, 1);
+          dailyVisitors = _ref40[0];
           res.json({
             cards: {
               visitorCount: visitorCount[0].visitor_count,
@@ -642,7 +702,7 @@ var getWebsiteStats = function getWebsiteStats(req, res) {
 exports.getWebsiteStats = getWebsiteStats;
 
 var getAllPayments = function getAllPayments(req, res) {
-  var _ref39, _ref40, payments;
+  var _ref41, _ref42, payments;
 
   return regeneratorRuntime.async(function getAllPayments$(_context8) {
     while (1) {
@@ -653,9 +713,9 @@ var getAllPayments = function getAllPayments(req, res) {
           return regeneratorRuntime.awrap(_db["default"].query("SELECT \n          p.id AS payment_id,\n          p.order_id,\n          p.proof_url,\n          p.status AS payment_status,\n          p.verified_by,\n          p.verified_at,\n          \n          o.id AS order_id,\n          o.user_id,\n          o.gpu_package_id,\n          o.duration_hours,\n          o.total_cost,\n          o.token,\n          o.is_active,\n          o.status AS order_status,\n          o.domain,\n          o.start_date,\n          o.end_date,\n          o.created_at AS order_created_at,\n          o.updated_at AS order_updated_at,\n          \n          u.name AS user_name,\n          u.email AS user_email,\n\n          g.name AS gpu_package_name,\n          g.price_per_hour,\n          g.vcpu,\n          g.ram,\n          g.min_period_hours,\n          g.ssd,\n          g.memory_gpu,\n          g.description\t\n       FROM payments p \n       JOIN orders o ON p.order_id = o.id \n       JOIN users u ON o.user_id = u.id\n       JOIN gpu_packages g ON o.gpu_package_id = g.id"));
 
         case 3:
-          _ref39 = _context8.sent;
-          _ref40 = _slicedToArray(_ref39, 1);
-          payments = _ref40[0];
+          _ref41 = _context8.sent;
+          _ref42 = _slicedToArray(_ref41, 1);
+          payments = _ref42[0];
           res.json(payments);
           _context8.next = 13;
           break;

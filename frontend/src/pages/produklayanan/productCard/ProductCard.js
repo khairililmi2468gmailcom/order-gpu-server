@@ -328,6 +328,23 @@ const ProductCard = React.forwardRef((props, ref) => {
                             <CheckCircleIcon className="text-primary mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
                             <span className="text-xs sm:text-sm lg:text-sm xl:text-md">Periode minimal {gpu.min_period_hours} Jam</span>
                         </div>
+                        <div className="mb-3 sm:mb-3 flex items-center">
+                            {gpu.stock_available > 0 ? (
+                                <>
+                                    <CheckCircleIcon className="text-green-500 mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" />
+                                    <span className="text-xs sm:text-sm lg:text-sm xl:text-md font-semibold text-green-700">
+                                        Stok Tersedia: {gpu.stock_available}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="text-red-500 mr-2 h-5 w-5 sm:h-5 lg:h-6 xl:h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path></svg>
+                                    <span className="text-xs sm:text-sm lg:text-sm xl:text-md font-semibold text-red-700">
+                                        Stok Habis
+                                    </span>
+                                </>
+                            )}
+                        </div>
                         {gpu.description && <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">{gpu.description.substring(0, 80)}...</p>}
                         <div className="flex justify-center">
                             <button

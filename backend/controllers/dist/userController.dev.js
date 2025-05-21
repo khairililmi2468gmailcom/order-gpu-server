@@ -361,7 +361,8 @@ var updatePassword = function updatePassword(req, res) {
 exports.updatePassword = updatePassword;
 
 var startUsage = function startUsage(req, res) {
-  var orderId, order, startDate, endDate, updateResult, updatedOrder;
+  var orderId, order, _ref9, _ref10, gpuPackage, startDate, endDate, updateResult, updatedOrder;
+
   return regeneratorRuntime.async(function startUsage$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
@@ -384,71 +385,117 @@ var startUsage = function startUsage(req, res) {
           }));
 
         case 7:
-          if (order.start_date) {
-            _context6.next = 23;
+          if (!(order.is_active === 1)) {
+            _context6.next = 9;
             break;
           }
 
+          return _context6.abrupt("return", res.status(200).json({
+            message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.',
+            order: order
+          }));
+
+        case 9:
+          _context6.next = 11;
+          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
+
+        case 11:
+          _context6.prev = 11;
+          _context6.next = 14;
+          return regeneratorRuntime.awrap(_db["default"].query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]));
+
+        case 14:
+          _ref9 = _context6.sent;
+          _ref10 = _slicedToArray(_ref9, 1);
+          gpuPackage = _ref10[0];
+
+          if (!(!gpuPackage || gpuPackage.length === 0)) {
+            _context6.next = 19;
+            break;
+          }
+
+          throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
+
+        case 19:
+          if (!(gpuPackage[0].stock_available <= 0)) {
+            _context6.next = 21;
+            break;
+          }
+
+          throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
+
+        case 21:
+          _context6.next = 23;
+          return regeneratorRuntime.awrap(_db["default"].query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]));
+
+        case 23:
+          // 3. Update order
           startDate = new Date();
           endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
-          _context6.next = 12;
+          _context6.next = 27;
           return regeneratorRuntime.awrap(_Order["default"].findByIdAndUpdate(orderId, {
             start_date: startDate,
             end_date: endDate,
-            is_active: 1
+            is_active: 1,
+            status: 'active' // Ubah status menjadi 'active'
+
           }));
 
-        case 12:
+        case 27:
           updateResult = _context6.sent;
 
-          if (!(updateResult.affectedRows > 0)) {
-            _context6.next = 20;
+          if (!(updateResult.affectedRows === 0)) {
+            _context6.next = 30;
             break;
           }
 
-          _context6.next = 16;
+          throw new Error('Gagal memperbarui status pesanan.');
+
+        case 30:
+          _context6.next = 32;
+          return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
+
+        case 32:
+          _context6.next = 34;
           return regeneratorRuntime.awrap(_Order["default"].findById(orderId));
 
-        case 16:
+        case 34:
           updatedOrder = _context6.sent;
           return _context6.abrupt("return", res.status(200).json({
             message: 'Waktu penggunaan pesanan dimulai.',
             order: updatedOrder
           }));
 
-        case 20:
+        case 38:
+          _context6.prev = 38;
+          _context6.t0 = _context6["catch"](11);
+          _context6.next = 42;
+          return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
+
+        case 42:
+          console.error("Transaction failed during startUsage:", _context6.t0);
           return _context6.abrupt("return", res.status(500).json({
-            message: 'Gagal memperbarui status pesanan.'
+            message: _context6.t0.message || 'Terjadi kesalahan saat mencatat awal penggunaan (transaksi dibatalkan).'
           }));
 
-        case 21:
-          _context6.next = 24;
+        case 44:
+          _context6.next = 50;
           break;
 
-        case 23:
-          return _context6.abrupt("return", res.status(200).json({
-            message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.',
-            order: order
-          }));
-
-        case 24:
-          _context6.next = 30;
-          break;
-
-        case 26:
-          _context6.prev = 26;
-          _context6.t0 = _context6["catch"](0);
-          console.error("Gagal mencatat awal penggunaan:", _context6.t0);
+        case 46:
+          _context6.prev = 46;
+          _context6.t1 = _context6["catch"](0);
+          console.error("Gagal mencatat awal penggunaan:", _context6.t1);
           return _context6.abrupt("return", res.status(500).json({
             message: 'Terjadi kesalahan saat mencatat awal penggunaan.'
           }));
 
-        case 30:
+        case 50:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 26]]);
+  }, null, null, [[0, 46], [11, 38]]);
 };
 
 exports.startUsage = startUsage;

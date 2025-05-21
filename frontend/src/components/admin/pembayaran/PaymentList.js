@@ -6,7 +6,7 @@ import Pagination from './Pagination'; // Asumsi Anda memiliki komponen Paginati
 
 const itemsPerPageOptions = [5, 10, 25, 50, 100];
 
-const PaymentList = ({ orders, onVerifyPayment, handleUpdateOrder }) => {
+const PaymentList = ({ orders, onVerifyPayment, handleUpdateOrder  }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('default'); // Default state untuk pengurutan kombinasi
     const [sortOrder, setSortOrder] = useState('desc');

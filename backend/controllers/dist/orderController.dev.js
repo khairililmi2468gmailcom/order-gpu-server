@@ -11,6 +11,8 @@ var _uuid = require("uuid");
 
 var _calculateTotal = require("../utils/calculateTotal.js");
 
+var _Order = _interopRequireDefault(require("../models/Order.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -22,7 +24,7 @@ function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) ||
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var createOrder = function createOrder(req, res) {
-  var _req$body, gpu_package_id, duration_hours, userId, _ref, _ref2, gpuPackage, packageData, minPeriodHours, totalCost, _ref3, _ref4, result;
+  var _req$body, gpu_package_id, duration_hours, userId, _ref, _ref2, gpuPackage, packageData, minPeriodHours, totalCost, result;
 
   return regeneratorRuntime.async(function createOrder$(_context) {
     while (1) {
@@ -69,7 +71,7 @@ var createOrder = function createOrder(req, res) {
 
           return _context.abrupt("return", res.status(404).json({
             error: true,
-            message: 'Paket tidak ditemukan'
+            message: 'Paket GPU tidak ditemukan.'
           }));
 
         case 14:
@@ -88,41 +90,92 @@ var createOrder = function createOrder(req, res) {
           }));
 
         case 18:
+          if (!(packageData.stock_available <= 0)) {
+            _context.next = 20;
+            break;
+          }
+
+          return _context.abrupt("return", res.status(400).json({
+            error: true,
+            message: 'Maaf, stok GPU untuk paket ini sedang tidak tersedia.'
+          }));
+
+        case 20:
+          // --- Akhir Penambahan Logika Pemeriksaan Stok ---
           // Hitung total biaya
-          totalCost = (0, _calculateTotal.calculateTotalCost)(packageData.price_per_hour, duration_hours); // Simpan pesanan
+          // This is where totalCost is correctly calculated.
+          totalCost = (0, _calculateTotal.calculateTotalCost)(packageData.price_per_hour, duration_hours); // Mulai transaksi untuk memastikan konsistensi data
 
-          _context.next = 21;
-          return regeneratorRuntime.awrap(_db["default"].query('INSERT INTO orders (user_id, gpu_package_id, duration_hours, total_cost, status) VALUES (?, ?, ?, ?, ?)', [userId, gpu_package_id, duration_hours, totalCost, 'pending_payment']));
+          _context.next = 23;
+          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
 
-        case 21:
-          _ref3 = _context.sent;
-          _ref4 = _slicedToArray(_ref3, 1);
-          result = _ref4[0];
+        case 23:
+          _context.prev = 23;
+          _context.next = 26;
+          return regeneratorRuntime.awrap(_db["default"].query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [gpu_package_id]));
+
+        case 26:
+          _context.next = 28;
+          return regeneratorRuntime.awrap(_Order["default"].create({
+            user_id: userId,
+            gpu_package_id: gpu_package_id,
+            duration_hours: duration_hours,
+            // FIX: Change 'total_cost' to 'totalCost' to match the variable declaration above
+            total_cost: totalCost,
+            // <-- This line was changed
+            status: 'pending_payment'
+          }));
+
+        case 28:
+          result = _context.sent;
+          _context.next = 31;
+          return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
+
+        case 31:
           // Respon sukses
           res.status(201).json({
             error: false,
             orderId: result.insertId,
             totalCost: totalCost,
-            message: 'Pesanan berhasil dibuat'
+            message: 'Pesanan berhasil dibuat.'
           });
-          _context.next = 31;
+          _context.next = 40;
           break;
 
-        case 27:
-          _context.prev = 27;
-          _context.t0 = _context["catch"](2);
-          console.error(_context.t0);
+        case 34:
+          _context.prev = 34;
+          _context.t0 = _context["catch"](23);
+          _context.next = 38;
+          return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
+
+        case 38:
+          console.error('Transaction Error during order creation:', _context.t0); // Log error transaksi
+
           res.status(500).json({
             error: true,
-            message: 'Gagal membuat pesanan'
+            message: 'Gagal membuat pesanan akibat kesalahan transaksi.'
           });
 
-        case 31:
+        case 40:
+          _context.next = 46;
+          break;
+
+        case 42:
+          _context.prev = 42;
+          _context.t1 = _context["catch"](2);
+          console.error('Error creating order:', _context.t1); // Log error umum
+
+          res.status(500).json({
+            error: true,
+            message: 'Gagal membuat pesanan.'
+          });
+
+        case 46:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[2, 27]]);
+  }, null, null, [[2, 42], [23, 34]]);
 };
 
 exports.createOrder = createOrder;

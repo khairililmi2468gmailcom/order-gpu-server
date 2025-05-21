@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = async (to, subject, html) => {
   await transporter.sendMail({
-    from: `"Admin GPU ICT USK" <${process.env.EMAIL_USER}>`,
+    from: `"Admin GPU FMIPA USK" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,

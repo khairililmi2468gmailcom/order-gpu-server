@@ -74,13 +74,20 @@ const Order = {
   },
   
   // Fungsi untuk membuat pesanan baru
-  async create({ user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date }) {
+  // async create({ user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date }) {
+  //   const [result] = await db.query(
+  //     'INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+  //     [user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date]
+  //   );
+  //   return result;
+  // }
+  async create({ user_id, gpu_package_id, duration_hours, total_cost, status }) {
     const [result] = await db.query(
-      'INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date]
+      'INSERT INTO orders (user_id, gpu_package_id, duration_hours, total_cost, status) VALUES (?, ?, ?, ?, ?)',
+      [user_id, gpu_package_id, duration_hours, total_cost, status]
     );
     return result;
-  }
+  },
 };
 
 export default Order;

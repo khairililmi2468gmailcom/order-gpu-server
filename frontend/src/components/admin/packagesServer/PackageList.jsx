@@ -52,6 +52,9 @@ const PackageList = ({ packages, onEdit, onDelete, onRefresh, loading }) => {
                             Min. Periode
                         </th>
                         <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Stok Tersedia
+                        </th>
+                        <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Aksi
                         </th>
                     </tr>

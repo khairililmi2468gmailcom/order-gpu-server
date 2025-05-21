@@ -226,16 +226,23 @@ var Order = {
     }, null, null, [[0, 10]]);
   },
   // Fungsi untuk membuat pesanan baru
+  // async create({ user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date }) {
+  //   const [result] = await db.query(
+  //     'INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+  //     [user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date]
+  //   );
+  //   return result;
+  // }
   create: function create(_ref18) {
-    var user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date, _ref19, _ref20, result;
+    var user_id, gpu_package_id, duration_hours, total_cost, status, _ref19, _ref20, result;
 
     return regeneratorRuntime.async(function create$(_context9) {
       while (1) {
         switch (_context9.prev = _context9.next) {
           case 0:
-            user_id = _ref18.user_id, gpu_package_id = _ref18.gpu_package_id, duration_days = _ref18.duration_days, total_cost = _ref18.total_cost, status = _ref18.status, token = _ref18.token, start_date = _ref18.start_date, end_date = _ref18.end_date;
+            user_id = _ref18.user_id, gpu_package_id = _ref18.gpu_package_id, duration_hours = _ref18.duration_hours, total_cost = _ref18.total_cost, status = _ref18.status;
             _context9.next = 3;
-            return regeneratorRuntime.awrap(_db["default"].query('INSERT INTO orders (user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [user_id, gpu_package_id, duration_days, total_cost, status, token, start_date, end_date]));
+            return regeneratorRuntime.awrap(_db["default"].query('INSERT INTO orders (user_id, gpu_package_id, duration_hours, total_cost, status) VALUES (?, ?, ?, ?, ?)', [user_id, gpu_package_id, duration_hours, total_cost, status]));
 
           case 3:
             _ref19 = _context9.sent;

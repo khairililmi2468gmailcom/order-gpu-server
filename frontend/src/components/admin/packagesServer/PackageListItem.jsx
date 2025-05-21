@@ -8,6 +8,8 @@ const PackageListItem = ({ packageData, onEdit, onDelete }) => {
             <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{packageData.vcpu}</td>
             <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{packageData.ram}</td>
             <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{packageData.min_period_hours} Jam</td>
+            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{packageData.stock_available} </td>
+
             <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
                 <button
                     onClick={() => onEdit(packageData)}

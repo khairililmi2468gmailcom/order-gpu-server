@@ -12,6 +12,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const [hasToken, setHasToken] = useState(order.token !== null && order.token !== undefined && order.token !== ''); // State untuk keberadaan token
     const [isActive, setIsActive] = useState(order.is_active); // State untuk status token aktif/nonaktif
     const [localOrder, setLocalOrder] = useState(order);
+    const [isSessionEnded, setIsSessionEnded] = useState(false);
 
     // Mendapatkan token dari localStorage
     const adminToken = localStorage.getItem('token');
@@ -20,6 +21,17 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
         setLocalOrder(order);
         setHasToken(order.token !== null && order.token !== undefined && order.token !== '');
         setIsActive(order.is_active);
+        if (order.end_date) {
+            const endDate = new Date(order.end_date);
+            const now = new Date();
+            // Atur jam, menit, detik, dan milidetik 'now' ke 00:00:00 untuk perbandingan hanya berdasarkan tanggal
+            now.setHours(0, 0, 0, 0);
+            endDate.setHours(0, 0, 0, 0); // Atur juga end_date ke 00:00:00 untuk perbandingan yang adil
+
+            setIsSessionEnded(now > endDate);
+        } else {
+            setIsSessionEnded(false); // Jika tidak ada end_date, asumsikan sesi belum berakhir
+        }
     }, [order]);
 
     const handleOpenModal = () => {
@@ -35,19 +47,44 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     };
 
     const handleVerify = (status) => {
-        Swal.fire({
-            title: `Konfirmasi ${status === 'verified' ? 'Verifikasi' : 'Tolak'}`,
-            text: `Anda yakin ingin ${status === 'verified' ? 'memverifikasi' : 'menolak'} pembayaran ini?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                onVerifyPayment(order.payment_id, status);
-            }
-        });
+        if (status === 'rejected') {
+            Swal.fire({
+                title: 'Tolak Pembayaran',
+                text: 'Mohon masukkan alasan penolakan:',
+                input: 'textarea', // Menggunakan textarea untuk input alasan
+                inputPlaceholder: 'Contoh: Bukti pembayaran tidak jelas / Jumlah tidak sesuai.',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Alasan tidak boleh kosong!';
+                    }
+                },
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Tolak',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const rejectionReason = result.value;
+                    // Kirim alasan penolakan ke backend
+                    onVerifyPayment(order.payment_id, status, rejectionReason);
+                }
+            });
+        } else { // Verified status
+            Swal.fire({
+                title: `Konfirmasi Verifikasi`,
+                text: `Anda yakin ingin memverifikasi pembayaran ini?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Tidak',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    onVerifyPayment(order.payment_id, status);
+                }
+            });
+        }
     };
+
 
     const handleSendToken = async () => {
         Swal.fire({
@@ -351,13 +388,15 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                 </div>
             </td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{order.duration_hours} Jam</td>
-            <td className="px-3 py-2 whitespace-nowrap text-gray-700">{
-                order.order_status === 'pending_approval' ? 'Menunggu' :
-                    order.order_status === 'pending_payment' ? 'Menunggu Bayar' :
-                        order.order_status === 'approved' ? 'Disetujui' :
-                            order.order_status === 'rejected' ? 'Ditolak' :
-                                order.order_status === 'active' ? 'Aktif' : 'Selesai'
-            }</td>
+            <td className="px-3 py-2 whitespace-nowrap text-gray-700">
+                {
+                    order.order_status === 'pending_approval' ? 'Menunggu' :
+                        order.order_status === 'pending_payment' ? 'Menunggu Bayar' :
+                            order.order_status === 'approved' ? 'Disetujui' :
+                                order.order_status === 'rejected' ? 'Ditolak' :
+                                    order.order_status === 'active' ? 'Aktif' : 'Selesai'
+                }
+            </td>
             <td className="px-3 py-2 whitespace-nowrap text-gray-700">{
                 order.payment_status === 'pending' ? 'Menunggu' :
                     order.payment_status === 'verified' ? 'Terverifikasi' : 'Ditolak'
@@ -418,7 +457,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         <span className="text-xs text-gray-500 mt-0.5">Input</span>
                     </div>
                 )}
-                {isPaymentVerified && isOrderApproved && hasToken && (
+                {isPaymentVerified && isOrderApproved && hasToken && !isSessionEnded && (
                     <div className="space-x-2 flex">
                         <div className="flex flex-col items-center">
                             <button onClick={handleUpdateToken} className="inline-flex items-center justify-center p-1 border border-yellow-500 text-yellow-500 hover:bg-yellow-100 font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2" title="Update Token">
@@ -446,6 +485,11 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                             </button>
                             <span className="text-xs text-gray-500 mt-0.5">Kirim</span>
                         </div>
+                    </div>
+                )}
+                {isSessionEnded && (
+                    <div className="text-red-600 font-semibold text-center text-sm p-2 rounded-md bg-red-100 border border-red-200">
+                        Sesi Telah Berakhir
                     </div>
                 )}
                 {isPaymentRejected && (

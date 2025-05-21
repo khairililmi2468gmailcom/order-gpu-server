@@ -31,15 +31,30 @@ function AdminPayments() {
         }
     }, [token]);
 
-    const handleVerifyPayment = async (paymentId, status) => {
+     
+    // Fungsi handleVerifyPayment yang sudah ada, perlu menerima 'rejectionReason'
+    const handleVerifyPayment = async (paymentId, status, rejectionReason = null) => {
+        Swal.fire({
+            title: status === 'verified' ? 'Memverifikasi Pembayaran...' : 'Menolak Pembayaran...',
+            text: status === 'verified' ? 'Mohon tunggu, proses verifikasi sedang berjalan.' : 'Mohon tunggu, kami sedang memproses penolakan dan mengirim notifikasi.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
         try {
+            const bodyData = { payment_id: paymentId, status: status };
+            if (rejectionReason) {
+                bodyData.rejection_reason = rejectionReason; // Tambahkan alasan jika ada
+            }
+
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/payments/verify`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ payment_id: paymentId, status: status }),
+                body: JSON.stringify(bodyData), // Kirim bodyData yang diperbarui
             });
 
             const data = await response.json();
@@ -49,7 +64,7 @@ function AdminPayments() {
             }
 
             Swal.fire('Berhasil!', data.message, 'success').then(() => {
-                fetchOrders();
+                fetchOrders(); // Asumsi fungsi ini me-refresh daftar order
             });
         } catch (error) {
             console.error("Gagal memverifikasi pembayaran:", error);

@@ -133,7 +133,7 @@ function App() {
 
     // Set timer awal saat komponen mount dan setiap kali ada perubahan route (sebagai indikasi aktivitas)
     resetInactivityTimer();
-    navigate(location.pathname); // Trigger re-render dan reset timer saat route berubah
+    // navigate(location.pathname); 
 
     return () => {
       window.removeEventListener('storage', checkLoginStatus);

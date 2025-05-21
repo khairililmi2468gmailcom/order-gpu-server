@@ -18,16 +18,16 @@ function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) ||
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var createGpuPackage = function createGpuPackage(req, res) {
-  var _req$body, name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours;
+  var _req$body, name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available;
 
   return regeneratorRuntime.async(function createGpuPackage$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          _req$body = req.body, name = _req$body.name, price_per_hour = _req$body.price_per_hour, vcpu = _req$body.vcpu, ram = _req$body.ram, ssd = _req$body.ssd, memory_gpu = _req$body.memory_gpu, description = _req$body.description, min_period_hours = _req$body.min_period_hours;
+          _req$body = req.body, name = _req$body.name, price_per_hour = _req$body.price_per_hour, vcpu = _req$body.vcpu, ram = _req$body.ram, ssd = _req$body.ssd, memory_gpu = _req$body.memory_gpu, description = _req$body.description, min_period_hours = _req$body.min_period_hours, stock_available = _req$body.stock_available;
           _context.prev = 1;
           _context.next = 4;
-          return regeneratorRuntime.awrap(_db["default"].query("INSERT INTO gpu_packages \n        (name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours) \n        VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours]));
+          return regeneratorRuntime.awrap(_db["default"].query("INSERT INTO gpu_packages \n        (name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available) \n        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available]));
 
         case 4:
           res.status(201).json({
@@ -92,14 +92,14 @@ var getGpuPackages = function getGpuPackages(req, res) {
 exports.getGpuPackages = getGpuPackages;
 
 var updateGpuPackage = function updateGpuPackage(req, res) {
-  var id, _req$body2, name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, _ref3, _ref4, gpuPackage;
+  var id, _req$body2, name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available, _ref3, _ref4, gpuPackage;
 
   return regeneratorRuntime.async(function updateGpuPackage$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           id = req.params.id;
-          _req$body2 = req.body, name = _req$body2.name, price_per_hour = _req$body2.price_per_hour, vcpu = _req$body2.vcpu, ram = _req$body2.ram, ssd = _req$body2.ssd, memory_gpu = _req$body2.memory_gpu, description = _req$body2.description, min_period_hours = _req$body2.min_period_hours;
+          _req$body2 = req.body, name = _req$body2.name, price_per_hour = _req$body2.price_per_hour, vcpu = _req$body2.vcpu, ram = _req$body2.ram, ssd = _req$body2.ssd, memory_gpu = _req$body2.memory_gpu, description = _req$body2.description, min_period_hours = _req$body2.min_period_hours, stock_available = _req$body2.stock_available;
           _context3.prev = 2;
           _context3.next = 5;
           return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM gpu_packages WHERE id = ?', [id]));
@@ -120,7 +120,7 @@ var updateGpuPackage = function updateGpuPackage(req, res) {
 
         case 10:
           _context3.next = 12;
-          return regeneratorRuntime.awrap(_db["default"].query("UPDATE gpu_packages \n        SET name = ?, price_per_hour = ?, vcpu = ?, ram = ?, ssd = ?, memory_gpu = ?, description = ?, min_period_hours = ? \n        WHERE id = ?", [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, id]));
+          return regeneratorRuntime.awrap(_db["default"].query("UPDATE gpu_packages \n        SET name = ?, price_per_hour = ?, vcpu = ?, ram = ?, ssd = ?, memory_gpu = ?, description = ?, min_period_hours = ?, stock_available = ? \n        WHERE id = ?", [name, price_per_hour, vcpu, ram, ssd, memory_gpu, description, min_period_hours, stock_available, id]));
 
         case 12:
           res.json({
