@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import PaymentModal from './PaymentModal';
 import Swal from 'sweetalert2';
-import { Pencil, Zap, CheckCircle, Send } from 'lucide-react';
+import { Pencil, Zap, CheckCircle, Send, CheckCircleIcon } from 'lucide-react';
 import loadingGif from '../../../assets/GIF/loading.gif';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,7 +14,7 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
     const [isActive, setIsActive] = useState(order.is_active); // State untuk status token aktif/nonaktif
     const [localOrder, setLocalOrder] = useState(order);
     const [isSessionEnded, setIsSessionEnded] = useState(false);
-
+    const [isCompletedStatus, setIsCompletedStatus] = useState(false);
     // Mendapatkan token dari localStorage
     const adminToken = localStorage.getItem('token');
 
@@ -21,6 +22,8 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
         setLocalOrder(order);
         setHasToken(order.token !== null && order.token !== undefined && order.token !== '');
         setIsActive(order.is_active);
+        setIsCompletedStatus(order.order_status === 'completed');
+
         if (order.end_date) {
             const endDate = new Date(order.end_date);
             const now = new Date();
@@ -427,6 +430,13 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                 </div>
             </td>
             <td className="px-3 py-2 whitespace-nowrap">
+                {isActive ?(
+                    <span className="inline-flex items-center text-green-600 font-semibold text-xs p-1 rounded-md bg-green-100 border border-green-200">
+                        <CheckCircleIcon className="w-4 h-4 mr-1" />
+                        GPU Sedang Aktif
+                    </span>
+                ): null}
+                
                 {order.payment_status === 'pending' && (
                     <div className="space-x-1 flex">
                         <div className="flex flex-col items-center">
@@ -487,11 +497,13 @@ const PaymentItem = ({ order, onVerifyPayment, onUpdateOrder }) => {
                         </div>
                     </div>
                 )}
-                {isSessionEnded && (
-                    <div className="text-red-600 font-semibold text-center text-sm p-2 rounded-md bg-red-100 border border-red-200">
+                {isCompletedStatus && (
+                <div className="text-red-600 font-semibold text-center text-sm p-2 rounded-md bg-red-100 border border-red-200 flex items-center justify-center">
+                          <XMarkIcon className="w-4 h-4 mr-1" /> 
                         Sesi Telah Berakhir
                     </div>
                 )}
+
                 {isPaymentRejected && (
                     <span className="inline-flex items-center text-red-600 font-semibold text-xs">
                         <svg className="w-5 h-5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>

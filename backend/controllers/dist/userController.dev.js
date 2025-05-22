@@ -174,17 +174,18 @@ var getGpuToken = function getGpuToken(req, res) {
 exports.getGpuToken = getGpuToken;
 
 var deleteOrder = function deleteOrder(req, res) {
-  var orderId, userId, _ref5, _ref6, orders;
+  var orderId, userId, _ref5, _ref6, orders, orderToDelete;
 
   return regeneratorRuntime.async(function deleteOrder$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           orderId = req.params.id;
-          userId = req.user.id;
+          userId = req.user.id; // Asumsi req.user.id tersedia dari middleware autentikasi
+
           _context3.prev = 2;
           _context3.next = 5;
-          return regeneratorRuntime.awrap(_db["default"].query('SELECT * FROM orders WHERE id = ? AND user_id = ?', [orderId, userId]));
+          return regeneratorRuntime.awrap(_db["default"].query('SELECT id, is_active, status FROM orders WHERE id = ? AND user_id = ?', [orderId, userId]));
 
         case 5:
           _ref5 = _context3.sent;
@@ -201,34 +202,74 @@ var deleteOrder = function deleteOrder(req, res) {
           }));
 
         case 10:
-          _context3.next = 12;
+          orderToDelete = orders[0]; // --- Penambahan Logika Validasi Status Aktif ---
+          // Pesanan tidak bisa dihapus jika is_active = 1 DAN status = 'active'
+
+          if (!(orderToDelete.is_active === 1 && orderToDelete.status === 'active')) {
+            _context3.next = 13;
+            break;
+          }
+
+          return _context3.abrupt("return", res.status(400).json({
+            error: 'Pesanan aktif tidak dapat dihapus.'
+          }));
+
+        case 13:
+          _context3.next = 15;
+          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
+
+        case 15:
+          _context3.prev = 15;
+          _context3.next = 18;
           return regeneratorRuntime.awrap(_db["default"].query('DELETE FROM payments WHERE order_id = ?', [orderId]));
 
-        case 12:
-          _context3.next = 14;
+        case 18:
+          _context3.next = 20;
           return regeneratorRuntime.awrap(_db["default"].query('DELETE FROM orders WHERE id = ?', [orderId]));
 
-        case 14:
+        case 20:
+          _context3.next = 22;
+          return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
+
+        case 22:
+          // Commit transaksi jika semua berhasil
           res.json({
             message: 'Order berhasil dihapus'
           });
-          _context3.next = 21;
+          _context3.next = 31;
           break;
 
-        case 17:
-          _context3.prev = 17;
-          _context3.t0 = _context3["catch"](2);
-          console.error(_context3.t0);
+        case 25:
+          _context3.prev = 25;
+          _context3.t0 = _context3["catch"](15);
+          _context3.next = 29;
+          return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
+
+        case 29:
+          // Rollback jika ada kesalahan dalam transaksi
+          console.error('Transaction Error during order deletion:', _context3.t0);
+          res.status(500).json({
+            error: 'Gagal menghapus order akibat kesalahan transaksi.'
+          });
+
+        case 31:
+          _context3.next = 37;
+          break;
+
+        case 33:
+          _context3.prev = 33;
+          _context3.t1 = _context3["catch"](2);
+          console.error('Error deleting order:', _context3.t1);
           res.status(500).json({
             error: 'Gagal menghapus order'
           });
 
-        case 21:
+        case 37:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[2, 17]]);
+  }, null, null, [[2, 33], [15, 25]]);
 };
 
 exports.deleteOrder = deleteOrder;
@@ -361,8 +402,7 @@ var updatePassword = function updatePassword(req, res) {
 exports.updatePassword = updatePassword;
 
 var startUsage = function startUsage(req, res) {
-  var orderId, order, _ref9, _ref10, gpuPackage, startDate, endDate, updateResult, updatedOrder;
-
+  var orderId, order, startDate, endDate, updateResult, updatedOrder;
   return regeneratorRuntime.async(function startUsage$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
@@ -396,106 +436,101 @@ var startUsage = function startUsage(req, res) {
           }));
 
         case 9:
-          _context6.next = 11;
-          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
+          if (!(order.status !== 'approved')) {
+            _context6.next = 11;
+            break;
+          }
+
+          return _context6.abrupt("return", res.status(400).json({
+            message: 'Pesanan belum disetujui untuk dimulai.'
+          }));
 
         case 11:
-          _context6.prev = 11;
-          _context6.next = 14;
-          return regeneratorRuntime.awrap(_db["default"].query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]));
+          _context6.next = 13;
+          return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
 
-        case 14:
-          _ref9 = _context6.sent;
-          _ref10 = _slicedToArray(_ref9, 1);
-          gpuPackage = _ref10[0];
-
-          if (!(!gpuPackage || gpuPackage.length === 0)) {
-            _context6.next = 19;
-            break;
-          }
-
-          throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
-
-        case 19:
-          if (!(gpuPackage[0].stock_available <= 0)) {
-            _context6.next = 21;
-            break;
-          }
-
-          throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
-
-        case 21:
-          _context6.next = 23;
-          return regeneratorRuntime.awrap(_db["default"].query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]));
-
-        case 23:
-          // 3. Update order
+        case 13:
+          _context6.prev = 13;
+          // --- DIHAPUS: Logika pemeriksaan dan pengurangan stok GPU ---
+          // Logika ini sekarang ditangani di fungsi verifyPayment (saat status 'verified')
+          // const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
+          // if (!gpuPackage || gpuPackage.length === 0) {
+          //   throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
+          // }
+          // if (gpuPackage[0].stock_available <= 0) {
+          //   throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
+          // }
+          // await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
+          // --- AKHIR DIHAPUS ---
+          // Perbarui detail pesanan: set tanggal mulai, tanggal berakhir, aktifkan, dan ubah status
           startDate = new Date();
-          endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
-          _context6.next = 27;
+          endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000); // Menghitung end_date
+
+          _context6.next = 18;
           return regeneratorRuntime.awrap(_Order["default"].findByIdAndUpdate(orderId, {
             start_date: startDate,
             end_date: endDate,
             is_active: 1,
+            // Set aktif
             status: 'active' // Ubah status menjadi 'active'
 
           }));
 
-        case 27:
+        case 18:
           updateResult = _context6.sent;
 
           if (!(updateResult.affectedRows === 0)) {
-            _context6.next = 30;
+            _context6.next = 21;
             break;
           }
 
           throw new Error('Gagal memperbarui status pesanan.');
 
-        case 30:
-          _context6.next = 32;
+        case 21:
+          _context6.next = 23;
           return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
 
-        case 32:
-          _context6.next = 34;
+        case 23:
+          _context6.next = 25;
           return regeneratorRuntime.awrap(_Order["default"].findById(orderId));
 
-        case 34:
+        case 25:
           updatedOrder = _context6.sent;
           return _context6.abrupt("return", res.status(200).json({
             message: 'Waktu penggunaan pesanan dimulai.',
             order: updatedOrder
           }));
 
-        case 38:
-          _context6.prev = 38;
-          _context6.t0 = _context6["catch"](11);
-          _context6.next = 42;
+        case 29:
+          _context6.prev = 29;
+          _context6.t0 = _context6["catch"](13);
+          _context6.next = 33;
           return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
 
-        case 42:
+        case 33:
           console.error("Transaction failed during startUsage:", _context6.t0);
           return _context6.abrupt("return", res.status(500).json({
             message: _context6.t0.message || 'Terjadi kesalahan saat mencatat awal penggunaan (transaksi dibatalkan).'
           }));
 
-        case 44:
-          _context6.next = 50;
+        case 35:
+          _context6.next = 41;
           break;
 
-        case 46:
-          _context6.prev = 46;
+        case 37:
+          _context6.prev = 37;
           _context6.t1 = _context6["catch"](0);
           console.error("Gagal mencatat awal penggunaan:", _context6.t1);
           return _context6.abrupt("return", res.status(500).json({
             message: 'Terjadi kesalahan saat mencatat awal penggunaan.'
           }));
 
-        case 50:
+        case 41:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 46], [11, 38]]);
+  }, null, null, [[0, 37], [13, 29]]);
 };
 
 exports.startUsage = startUsage;

@@ -88,8 +88,7 @@ var runDeactivationCronJob = function runDeactivationCronJob() {
             _context.next = 27;
             return regeneratorRuntime.awrap(_Order["default"].findByIdAndUpdate(order.id, {
               is_active: 0,
-              status: 'expired' // Menambahkan status 'expired'
-
+              status: 'completed'
             }));
 
           case 27:

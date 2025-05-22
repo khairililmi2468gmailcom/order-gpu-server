@@ -50,7 +50,7 @@ export const verifyPayment = async (req, res) => {
     const payment = paymentResult[0];
 
     // Ambil order terkait untuk mendapatkan gpu_package_id dan user_id
-    const [orderResult] = await pool.query('SELECT gpu_package_id, user_id FROM orders WHERE id = ?', [payment.order_id]);
+    const [orderResult] = await pool.query('SELECT gpu_package_id, user_id, total_cost FROM orders WHERE id = ?', [payment.order_id]);
     if (orderResult.length === 0) {
         return res.status(404).json({ error: 'Order terkait tidak ditemukan' });
     }
@@ -89,10 +89,16 @@ export const verifyPayment = async (req, res) => {
                 ['approved', gpuToken, domain, payment.order_id] // Update order status ke 'approved'
             );
 
-            // Kirim notifikasi email untuk verifikasi berhasil
-            if (user) {
-                await notifyUserWithToken(user.email, user.name, gpuToken, domain);
-            }
+            // --- KURANGI STOK GPU KARENA PEMBAYARAN DITERIMA ---
+            if (order.gpu_package_id) {
+              await pool.query(
+                  'UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?',
+                  [order.gpu_package_id]
+              );
+              console.log(`Stok GPU untuk Paket ID ${order.gpu_package_id} dikurangi karena pembayaran order ID ${payment.order_id} diterima.`);
+          }
+          // --- AKHIR PENGURANGAN STOK ---
+
 
         } else { // status === 'rejected'
             // Kalau status "rejected", ubah status order menjadi "rejected"
@@ -100,15 +106,6 @@ export const verifyPayment = async (req, res) => {
                 'UPDATE orders SET status = ? WHERE id = ?',
                 ['rejected', payment.order_id]
             );
-
-            // KEMBALIKAN STOK GPU KARENA PEMBAYARAN DITOLAK
-            if (order.gpu_package_id) {
-                await pool.query(
-                    'UPDATE gpu_packages SET stock_available = stock_available + 1 WHERE id = ?',
-                    [order.gpu_package_id]
-                );
-                console.log(`Stok GPU untuk Paket ID ${order.gpu_package_id} dikembalikan karena pembayaran order ID ${payment.order_id} ditolak.`);
-            }
 
             // Kirim notifikasi email untuk pembayaran ditolak
             if (user) {
@@ -462,38 +459,58 @@ export const updatePassword = async (req, res) => {
 
 export const sendTokenToUser = async (req, res) => {
   try {
-    const { orderId, token, domain } = req.body; // Ambil domain dari req.body
-    const order = await Order.findById(orderId);
+    const { orderId, token, domain } = req.body; // Ambil orderId, token, dan domain dari body request
 
-    // if (!order || order.is_active === 0) {
-    //   return res.status(404).json({ message: 'Pesanan tidak ditemukan atau belum aktif.' });
-    // }
-
-    // Perbarui status pesanan, set token aktif, dan set domain
-    await Order.updateOrderStatusAndToken(orderId, { status: 'approved', token, domain });
-
-    // Ambil informasi pengguna terkait pesanan ini
-    const user = await User.findById(order.user_id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
+    // Validasi input token
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ error: 'Token harus berupa string dan tidak boleh kosong' });
     }
 
-    // Kirimkan notifikasi ke pengguna dalam aplikasi (opsional: bisa ditambahkan informasi domain)
-    const message = `Token yang dikirim adalah: ${token}. Domain Anda adalah: ${domain}`;
+    // 1. Ambil detail pesanan, secara eksplisit menyertakan user_id
+    const [orderRows] = await pool.query(
+      'SELECT user_id, gpu_token, domain, status, is_active FROM orders WHERE id = ?',
+      [orderId]
+    );
+
+    if (orderRows.length === 0) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    }
+    const order = orderRows[0]; // Dapatkan detail pesanan
+
+    // 2. Ambil informasi pengguna terkait pesanan ini
+    // Menggunakan pool.query langsung untuk memastikan pengambilan email, nama, DAN ID
+    const [userRows] = await pool.query('SELECT id, email, name FROM users WHERE id = ?', [order.user_id]); // <-- Ditambahkan 'id' di sini
+    if (userRows.length === 0) {
+      console.error(`Pengguna dengan ID ${order.user_id} tidak ditemukan untuk pesanan ${orderId}. Tidak dapat mengirim notifikasi email.`);
+      return res.status(404).json({ message: 'Pengguna terkait pesanan tidak ditemukan.' });
+    }
+    const user = userRows[0]; // Dapatkan detail pengguna
+
+    // 3. Perbarui pesanan dengan token dan domain yang baru dikirim
+    // Menggunakan gpu_token karena itu nama kolom di tabel orders Anda
+    await pool.query(
+      'UPDATE orders SET token = ?, domain = ?, updated_at = NOW() WHERE id = ?',
+      [token, domain, orderId]
+    );
+
+    // 4. Kirimkan notifikasi ke pengguna dalam aplikasi (jika model Notification berfungsi dengan pool)
+    const notificationMessage = `Token akses Anda telah dikirim: ${token}. Domain: ${domain}`;
+    // Asumsi Notification.create adalah metode yang bekerja dengan pool.query
+    // Jika tidak, Anda mungkin perlu mengubahnya menjadi:
+    // await pool.query('INSERT INTO notifications (user_id, message, created_at) VALUES (?, ?, NOW())', [user.id, notificationMessage]);
     await Notification.create({
-      user_id: user.id,
-      message: message
+      user_id: user.id, // user.id sekarang akan memiliki nilai yang benar
+      message: notificationMessage
     });
 
-    // Kirimkan email ke pengguna dengan token dan domain
-    await notifyUserWithToken(user.email, user.name, token, domain); // Tambahkan domain ke fungsi email
+    // 5. Kirimkan email ke pengguna dengan token dan domain
+    await notifyUserWithToken(user.email, user.name, token, domain);
 
     return res.status(200).json({ message: 'Token dan domain telah dikirimkan kepada pengguna dan email telah dikirim.' });
+
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Terjadi kesalahan dalam mengirim token dan domain.' });
+    console.error('Error in sendTokenToUser:', error); // Log error untuk debugging
+    // Berikan pesan error yang lebih umum kepada pengguna
+    return res.status(500).json({ message: 'Terjadi kesalahan saat memproses permintaan pengiriman token.' });
   }
 };
-
-

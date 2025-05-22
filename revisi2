@@ -12,11 +12,39 @@ fetchGpuPackages @ ProductCard.js:125Understand this warningAI
             
            Failed to load resource: the server responded with a status of 429 (Too Many Requests)Understand this errorAI
 Header.js:178 Failed to fetch notifications: AxiosErrorcode: "ERR_BAD_REQUEST"config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 0, …}message: "Request failed with status code 429"name: "AxiosError"request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 0, withCredentials: false, upload: XMLHttpRequestUpload, …}response: {data: 'Too many requests from this IP, please try again later.', status: 429, statusText: 'Too Many Requests', headers: AxiosHeaders, config: {…}, …}status: 429stack: "AxiosError: Request failed with status code 429\n    at settle (http://localhost:3000/static/js/bundle.js:35198:12)\n    at XMLHttpRequest.onloadend (http://localhost:3000/static/js/bundle.js:33825:66)\n    at Axios.request (http://localhost:3000/static/js/bundle.js:34324:41)\n    at async http://localhost:3000/static/js/bundle.js:182307:26"[[Prototype]]: Error
-1. solve eror di atas kadang kadang muncul
-2. ketika di pesan, harus ada jumlah gpu yang tersedia, baik itu yang sedang dipakai, dan untuk di user nya munculkan jumlah tersedia nya
-3. harus update di start dari token atau pengaktifkan gpu nya, dimana kalau user tidak menekan tombol play selama 30 menit maka otomatis bakal start pengaktifan. 
+1. solve eror di atas kadang kadang muncul✅
+2. ketika di pesan, harus ada jumlah gpu yang tersedia, baik itu yang sedang dipakai, dan untuk di user nya munculkan jumlah tersedia nya✅
+3. harus update di start dari token atau pengaktifkan gpu nya, dimana kalau user tidak menekan tombol play selama 30 menit maka otomatis bakal start pengaktifan. ✅
 4. tambah notifikasi telah telah dimulai untuk user
-5. tambah notifikasi user sudah pesan dengan upload bukti pembayaran, jika belum upload maka tidak perlu notifikasi ke gmail admin.
+5. tambah notifikasi user sudah pesan dengan upload bukti pembayaran, jika belum upload maka tidak perlu notifikasi ke gmail admin.✅
 6. tambah notifikasi user sudah mulai menjalankan server di admin.
-7. ini untuk fmipa bukan usk, dan gambar nya di ganti dengan fmipa
+7. ini untuk fmipa bukan usk, dan gambar nya di ganti dengan fmipa✅
 8. update form pemesanan
+
+
+Error sending new order notification to admin: Error: Invalid login: 534-5.7.14 <https://accounts.google.com/signin/continue?sarp=1&scc=1&plt=AKgnsbu
+534-5.7.14 p50zvkQOe5hSZ8EoSbbTGXHS7JC8qCOBwZhDzp2y4za9cHAPqzJrx_G5HZYSqGoce3VXE
+534-5.7.14 FPMMg70qHom90EBH2NFnpbKCgKS4KOe7DyAsh8jItubAMdNMqKTFWznuhcgrhBPA>
+534-5.7.14 Please log in via your web browser and then try again.
+534-5.7.14  For more information, go to
+534 5.7.14  https://support.google.com/mail/answer/78754 d2e1a72fcca58-742a98a33c3sm11788536b3a.176 - gsmtp
+    at SMTPConnection._formatError (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
+    at SMTPConnection._actionAUTHComplete (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:1588:34)
+    at SMTPConnection.<anonymous> (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:556:26)
+    at SMTPConnection._processResponse (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:993:20)
+    at SMTPConnection._onData (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:774:14)
+    at SMTPConnection._onSocketData (/home/khairil/Documents/work/Website Order GPU ICT USK/backend/node_modules/nodemailer/lib/smtp-connection/index.js:195:44)
+    at TLSSocket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5) {
+  code: 'EAUTH',
+  response: '534-5.7.14 <https://accounts.google.com/signin/continue?sarp=1&scc=1&plt=AKgnsbu\n' +
+    '534-5.7.14 p50zvkQOe5hSZ8EoSbbTGXHS7JC8qCOBwZhDzp2y4za9cHAPqzJrx_G5HZYSqGoce3VXE\n' +
+    '534-5.7.14 FPMMg70qHom90EBH2NFnpbKCgKS4KOe7DyAsh8jItubAMdNMqKTFWznuhcgrhBPA>\n' +
+    '534-5.7.14 Please log in via your web browser and then try again.\n' +
+    '534-5.7.14  For more information, go to\n' +
+    '534 5.7.14  https://support.google.com/mail/answer/78754 d2e1a72fcca58-742a98a33c3sm11788536b3a.176 - gsmtp',
+  responseCode: 534,
+  command: 'AUTH PLAIN'
+}

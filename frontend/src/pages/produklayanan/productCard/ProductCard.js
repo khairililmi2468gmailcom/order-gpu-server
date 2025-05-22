@@ -4,7 +4,7 @@ import { CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 4; // Initial items to display
 
 const sortPackages = (packages, criteria) => {
     const sorted = [...packages];
@@ -54,31 +54,33 @@ export const useDebounce = (value, delay) => {
 };
 
 const ProductCard = React.forwardRef((props, ref) => {
-    const [gpuPackages, setGpuPackages] = useState([]);
-    const [visiblePackages, setVisiblePackages] = useState([]);
+    // Stores ALL GPU packages fetched from the API
+    const [allGpuPackages, setAllGpuPackages] = useState([]);
+    // Stores the packages currently visible to the user (a subset of allGpuPackages)
+    const [displayedPackages, setDisplayedPackages] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showMore, setShowMore] = useState(false);
+    const [showMoreButton, setShowMoreButton] = useState(false); // Renamed for clarity
     const [loadingMore, setLoadingMore] = useState(false);
-    const [loadMoreStep, setLoadMoreStep] = useState(4); // Default step
+    const [loadMoreStep, setLoadMoreStep] = useState(ITEMS_PER_PAGE);
     const [loadedCount, setLoadedCount] = useState(ITEMS_PER_PAGE);
-    const cardRefs = useRef([]);
-    const [isCardVisible, setIsCardVisible] = useState([]);
-    const [ctaRef, isCtaVisible] = useFadeInOnScroll({ threshold: 0.2 });
+
+    const cardRefs = useRef([]); // To hold refs for individual product cards
+    const [isCardVisible, setIsCardVisible] = useState([]); // To manage visibility for fade-in effect
+    const [ctaRef, isCtaVisible] = useFadeInOnScroll({ threshold: 0.2 }); // For the section's overall fade-in
+
     const [sortBy, setSortBy] = useState('created_at_desc');
     const [isFilterLoading, setIsFilterLoading] = useState(false);
-    const debouncedSortBy = useDebounce(sortBy, 500); // Tunda selama 500ms
+    const debouncedSortBy = useDebounce(sortBy, 500);
+
     const navigate = useNavigate();
     const location = useLocation();
     const token = localStorage.getItem('token');
 
-    // State untuk backoff pada fetch awal
+    // State for backoff on initial fetch
     const [fetchRetryCount, setFetchRetryCount] = useState(0);
-    const [fetchRetryDelay, setFetchRetryDelay] = useState(1000); // 1 detik awal
-
-    // State untuk backoff pada load more
-    const [loadMoreRetryCount, setLoadMoreRetryCount] = useState(0);
-    const [loadMoreRetryDelay, setLoadMoreRetryDelay] = useState(1000); // 1 detik awal
+    const [fetchRetryDelay, setFetchRetryDelay] = useState(1000);
 
     const handlePesanClick = (packageId) => {
         if (token) {
@@ -91,7 +93,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                 confirmButtonText: 'Login',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    navigate('/login', { state: { from: location.pathname } }); // Kirim info halaman asal
+                    navigate('/login', { state: { from: location.pathname } });
                 }
             });
         }
@@ -100,60 +102,101 @@ const ProductCard = React.forwardRef((props, ref) => {
     const handleSortChange = (event) => {
         setSortBy(event.target.value);
         setIsFilterLoading(true);
+        // Simulate loading to provide user feedback during debounce period
         setTimeout(() => {
             setIsFilterLoading(false);
-        }, 500); // Simulasi loading filter yang dipercepat agar terasa responsif dengan debounce
+        }, 500);
     };
 
     const handleLoadMoreStepChange = (event) => {
-        setLoadMoreStep(parseInt(event.target.value));
-        setLoadedCount(ITEMS_PER_PAGE); // Reset loaded count when step changes
-        const sortedPackages = sortPackages(gpuPackages, sortBy);
-        setVisiblePackages(sortedPackages.slice(0, ITEMS_PER_PAGE));
-        if (sortedPackages.length > ITEMS_PER_PAGE) {
-            setShowMore(true);
-        } else {
-            setShowMore(false);
-        }
+        const newStep = parseInt(event.target.value, 10);
+        setLoadMoreStep(newStep);
+        setLoadedCount(ITEMS_PER_PAGE); // Reset displayed count to initial whenever step changes
+        // Re-apply sorting and slice based on new step and initial count
+        const sortedPackages = sortPackages(allGpuPackages, sortBy);
+        setDisplayedPackages(sortedPackages.slice(0, ITEMS_PER_PAGE));
+        setShowMoreButton(sortedPackages.length > ITEMS_PER_PAGE);
     };
 
-    const fetchGpuPackages = async () => {
+    // --- Primary Data Fetching (runs ONLY ONCE on component mount) ---
+    const fetchAllGpuPackages = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/packages`);
             if (response.status === 429) {
                 console.warn('Fetch GPU Packages: Menerima 429, mencoba lagi setelah', fetchRetryDelay);
-                setTimeout(fetchGpuPackages, fetchRetryDelay);
-                setFetchRetryDelay(prevDelay => prevDelay * 2);
-                setFetchRetryCount(prevCount => prevCount + 1);
-                return;
+                if (fetchRetryCount < 5) { // Limit retry attempts to prevent infinite loops
+                    setTimeout(fetchAllGpuPackages, fetchRetryDelay);
+                    setFetchRetryDelay(prevDelay => prevDelay * 2); // Exponential backoff
+                    setFetchRetryCount(prevCount => prevCount + 1);
+                } else {
+                    throw new Error('Too many retries for 429 error. Please try again later.');
+                }
+                return; // Stop execution if 429 and retrying
             }
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            setGpuPackages(data);
-            const sortedData = sortPackages(data, debouncedSortBy);
-            setVisiblePackages(sortedData.slice(0, ITEMS_PER_PAGE));
-            setLoadedCount(ITEMS_PER_PAGE);
-            setShowMore(sortedData.length > ITEMS_PER_PAGE);
-            cardRefs.current = sortedData.map(() => React.createRef());
-            setIsCardVisible(sortedData.map(() => false));
+            setAllGpuPackages(data); // Store all fetched packages
             setLoading(false);
-            setFetchRetryCount(0);
-            setFetchRetryDelay(1000);
+            setFetchRetryCount(0); // Reset retry state on successful fetch
+            setFetchRetryDelay(1000); // Reset delay on successful fetch
         } catch (e) {
             setError(e);
             setLoading(false);
-            setFetchRetryCount(0);
-            setFetchRetryDelay(1000);
+            setFetchRetryCount(0); // Reset retry state on error
+            setFetchRetryDelay(1000); // Reset delay on error
         }
+    }, [fetchRetryCount, fetchRetryDelay]); // `useCallback` dependencies for retry logic
+
+    // Effect to run `WorkspaceAllGpuPackages` only once on mount
+    useEffect(() => {
+        fetchAllGpuPackages();
+    }, [fetchAllGpuPackages]);
+
+    // --- Effect for Sorting and Displaying (runs when data, sort criteria, or loadedCount changes) ---
+    useEffect(() => {
+        if (allGpuPackages.length > 0 || !loading) { // Ensure data is available or loading has finished
+            const sortedData = sortPackages(allGpuPackages, debouncedSortBy);
+            setDisplayedPackages(sortedData.slice(0, loadedCount));
+            setShowMoreButton(sortedData.length > loadedCount);
+
+            // Re-initialize cardRefs and visibility states for new data/order
+            cardRefs.current = sortedData.map(() => React.createRef());
+            setIsCardVisible(sortedData.map(() => false));
+        }
+    }, [allGpuPackages, debouncedSortBy, loadedCount, loading]);
+
+    // --- Load More Logic (client-side only) ---
+    const handleLoadMore = () => {
+        setLoadingMore(true);
+        setTimeout(() => { // Simulate network delay for better UX, remove if not needed
+            const sortedData = sortPackages(allGpuPackages, sortBy); // Re-sort just in case state is out of sync
+            const nextCount = loadedCount + loadMoreStep;
+            const nextPackages = sortedData.slice(0, nextCount);
+            setDisplayedPackages(nextPackages);
+            setLoadedCount(nextCount);
+            setShowMoreButton(nextPackages.length < allGpuPackages.length); // Check against allGpuPackages
+            setLoadingMore(false);
+        }, 300); // Small delay to show "Loading More..."
     };
 
-    useEffect(() => {
-        fetchGpuPackages();
-    }, [debouncedSortBy]); // Hanya fetch ketika debouncedSortBy berubah
+    const handleLoadLess = () => {
+        const newLoadedCount = Math.max(ITEMS_PER_PAGE, loadedCount - loadMoreStep);
+        const sortedData = sortPackages(allGpuPackages, sortBy);
+        setDisplayedPackages(sortedData.slice(0, newLoadedCount));
+        setLoadedCount(newLoadedCount);
+        setShowMoreButton(newLoadedCount < allGpuPackages.length);
+    };
 
+    const handleReset = () => {
+        setLoadedCount(ITEMS_PER_PAGE); // Reset count
+        setSortBy('created_at_desc'); // Reset sort order to default
+        // The useEffect for sorting/displaying will pick this up
+    };
+
+    // --- Intersection Observer for Card Visibility (for fade-in animations) ---
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -179,47 +222,25 @@ const ProductCard = React.forwardRef((props, ref) => {
             }
         });
 
-        return () => observer.disconnect();
-    }, [cardRefs, isCardVisible]);
-
-    const handleLoadMore = () => {
-        setLoadingMore(true);
-        setTimeout(() => {
-            const sortedPackages = sortPackages(gpuPackages, debouncedSortBy);
-            const nextCount = loadedCount + loadMoreStep;
-            const nextPackages = sortedPackages.slice(0, nextCount);
-            setVisiblePackages(nextPackages);
-            setLoadedCount(nextCount);
-            if (nextPackages.length >= gpuPackages.length) {
-                setShowMore(false);
+        return () => {
+            // Clean up observer when component unmounts or displayedPackages change
+            if (observer) {
+                observer.disconnect();
             }
-            setLoadingMore(false);
-        }, 500); // Simulasi loading yang dipercepat
-    };
-
-    const handleReset = () => {
-        setLoadedCount(ITEMS_PER_PAGE);
-        setSortBy('created_at_desc'); // Reset urutan ke default
-    };
-
-    const handleLoadLess = () => {
-        const newLoadedCount = Math.max(ITEMS_PER_PAGE, loadedCount - loadMoreStep);
-        setVisiblePackages(sortPackages(gpuPackages, debouncedSortBy).slice(0, newLoadedCount));
-        setLoadedCount(newLoadedCount);
-        setShowMore(newLoadedCount < gpuPackages.length);
-    };
+        };
+    }, [displayedPackages, isCardVisible]); // Re-run when displayed packages change (e.g., sorting, load more)
 
     if (loading) {
         return (
-            <div className="text-center">
-                <RocketLaunchIcon className="mr-2 h-4 w-4 animate-spin inline-block" />
-                Memuat data GPU...
+            <div className="text-center py-8">
+                <RocketLaunchIcon className="mr-2 h-6 w-6 animate-spin inline-block text-primary-500" />
+                <p className="text-lg text-gray-700">Memuat data GPU...</p>
             </div>
         );
     }
 
     if (error) {
-        return <div className="text-center text-red-500">Terjadi kesalahan saat memuat data: {error.message}</div>;
+        return <div className="text-center py-8 text-red-600">Terjadi kesalahan saat memuat data: {error.message}</div>;
     }
 
     return (
@@ -293,15 +314,12 @@ const ProductCard = React.forwardRef((props, ref) => {
                     </div>
                 </div>
             </div>
-            <div ref={ctaRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
-                {visiblePackages.map((gpu, index) => (
+            <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
+                {displayedPackages.map((gpu, index) => (
                     <div key={gpu.id}
                         ref={cardRefs.current[index]}
-                        className={`bg-white rounded-lg shadow-md p-6 sm:p-6 lg:p-6 xl:p-8 transition-all duration-700 transform translate-y-6 opacity-0 `}
-                        style={{
-                            transform: isCtaVisible ? 'translateY(0)' : '',
-                            opacity: isCtaVisible ? 1 : 0
-                        }}>
+                        className={`bg-white rounded-lg shadow-md p-6 sm:p-6 lg:p-6 xl:p-8 transition-all duration-700 transform ${isCardVisible[index] ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}
+                    >
                         <h3 className="text-primary-dark text-2xl sm:text-2xl lg:text-2xl xl:text-3xl font-semibold transition duration-300">{gpu.name.split(' ')[0]} GPU</h3>
                         <h2 className="text-md sm:text-md font-base mb-3 sm:mb-4 text-gray-700 lg:text-lg xl:text-lg">{gpu.name}</h2>
                         <div className='mb-2 sm:mb-3 flex items-center'>
@@ -367,7 +385,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                         Kurangi
                     </button>
                 )}
-                {gpuPackages.length > ITEMS_PER_PAGE && loadedCount >= gpuPackages.length && (
+                {allGpuPackages.length > ITEMS_PER_PAGE && loadedCount >= allGpuPackages.length && (
                     <button
                         onClick={handleReset}
                         className="bg-yellow-500 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-full transition duration-300 text-sm"
@@ -375,7 +393,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                         Reset Awal
                     </button>
                 )}
-                {showMore && (
+                {showMoreButton && ( // Use showMoreButton state
                     <button
                         onClick={handleLoadMore}
                         className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-full transition duration-300 text-sm"
@@ -389,7 +407,7 @@ const ProductCard = React.forwardRef((props, ref) => {
                     </button>
                 )}
             </div>
-            {gpuPackages.length > 0 && loadedCount >= gpuPackages.length && !showMore && (
+            {allGpuPackages.length > 0 && loadedCount >= allGpuPackages.length && !showMoreButton && (
                 <div className="text-center mt-4">
                     <p className="text-gray-600 text-sm italic">Semua paket GPU telah ditampilkan.</p>
                 </div>

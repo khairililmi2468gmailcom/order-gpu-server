@@ -30,10 +30,10 @@ const runDeactivationCronJob = () => {
                             continue; // Lanjutkan ke order berikutnya
                         }
 
-                        // 2. Nonaktifkan pesanan dan ubah status menjadi 'expired'
+                        // 2. Nonaktifkan pesanan dan ubah status menjadi 'completed'
                         const updateOrderResult = await Order.findByIdAndUpdate(order.id, { 
                             is_active: 0,
-                            status: 'expired' // Menambahkan status 'expired'
+                            status: 'completed' 
                         });
 
                         if (updateOrderResult.affectedRows > 0) {

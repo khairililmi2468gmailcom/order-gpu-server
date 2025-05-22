@@ -5,13 +5,22 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.notifyUserWithToken = notifyUserWithToken;
 exports.notifyPaymentRejected = notifyPaymentRejected;
+exports.notifyAdminOfNewOrder = notifyAdminOfNewOrder;
 
 var _sendEmail = _interopRequireDefault(require("./sendEmail.js"));
 
+var _db = _interopRequireDefault(require("../config/db.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-// utils/notification.js
-// Pastikan ini adalah helper untuk Nodemailer
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function notifyUserWithToken(userEmail, userName, token, domain) {
   var subject, primaryColor, secondaryColor, message;
   return regeneratorRuntime.async(function notifyUserWithToken$(_context) {
@@ -55,4 +64,110 @@ function notifyPaymentRejected(userEmail, userName, orderId, gpuPackageName, tot
       }
     }
   });
+}
+
+function notifyAdminOfNewOrder(orderId, packageData, userData, totalCost, durationHours) {
+  var subject, primaryColor, secondaryColor, _ref, _ref2, adminEmailsResult, adminEmails, message, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, email;
+
+  return regeneratorRuntime.async(function notifyAdminOfNewOrder$(_context3) {
+    while (1) {
+      switch (_context3.prev = _context3.next) {
+        case 0:
+          subject = "Pemberitahuan Pesanan Baru: #".concat(orderId, " - ").concat(packageData.name);
+          primaryColor = '#28a745'; // Warna hijau untuk notifikasi baru
+
+          secondaryColor = '#6c757d';
+          _context3.prev = 3;
+          _context3.next = 6;
+          return regeneratorRuntime.awrap(_db["default"].query("SELECT email FROM users WHERE role = 'admin'"));
+
+        case 6:
+          _ref = _context3.sent;
+          _ref2 = _slicedToArray(_ref, 1);
+          adminEmailsResult = _ref2[0];
+          adminEmails = adminEmailsResult.map(function (row) {
+            return row.email;
+          });
+
+          if (!(adminEmails.length === 0)) {
+            _context3.next = 13;
+            break;
+          }
+
+          console.warn('Tidak ada admin ditemukan untuk menerima notifikasi pesanan baru.');
+          return _context3.abrupt("return");
+
+        case 13:
+          message = "\n      <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n        <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Pesanan Baru Telah Dibuat!</h2>\n        <p style=\"margin-bottom: 15px;\">Halo Admin,</p>\n        <p style=\"margin-bottom: 15px;\">Sebuah pesanan baru telah berhasil dibuat di sistem Anda. Berikut adalah detail pesanan:</p>\n        <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n          <h3 style=\"color: ").concat(primaryColor, "; margin-top: 0; margin-bottom: 10px;\">Detail Pesanan</h3>\n          <ul style=\"list-style: none; padding: 0; margin: 0;\">\n            <li style=\"margin-bottom: 8px;\"><strong>ID Pesanan:</strong> ").concat(orderId, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Paket GPU:</strong> ").concat(packageData.name, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Durasi:</strong> ").concat(durationHours, " Jam</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Total Biaya:</strong> Rp ").concat(parseFloat(totalCost).toLocaleString('id-ID'), "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Status:</strong> Pending Pembayaran</li>\n          </ul>\n        </div>\n        <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n          <h3 style=\"color: ").concat(primaryColor, "; margin-top: 0; margin-bottom: 10px;\">Biodata Pemesan</h3>\n          <ul style=\"list-style: none; padding: 0; margin: 0;\">\n            <li style=\"margin-bottom: 8px;\"><strong>Nama:</strong> ").concat(userData.name, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Email:</strong> ").concat(userData.email, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Telepon:</strong> ").concat(userData.phone || '-', "</li>\n          </ul>\n        </div>\n        <p style=\"margin-bottom: 15px;\">Mohon segera periksa pesanan ini dan tunggu konfirmasi pembayaran dari pelanggan.</p>\n        <p style=\"margin-bottom: 20px;\">Anda dapat melihat detail pesanan dan memprosesnya melalui panel admin Anda.</p>\n        <p style=\"text-align: center; margin-bottom: 20px;\">\n          <a href=\"").concat(process.env.FRONTEND_URL, "/admin/orders\" style=\"display: inline-block; padding: 12px 25px; background-color: ").concat(primaryColor, "; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;\">Buka Panel Admin</a>\n        </p>\n        <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n        <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n        <strong style=\"color: ").concat(primaryColor, ";\">Sistem Notifikasi GPU FMIPA USK</strong>\n      </div>\n    "); // Kirim email ke semua admin
+
+          _iteratorNormalCompletion = true;
+          _didIteratorError = false;
+          _iteratorError = undefined;
+          _context3.prev = 17;
+          _iterator = adminEmails[Symbol.iterator]();
+
+        case 19:
+          if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+            _context3.next = 26;
+            break;
+          }
+
+          email = _step.value;
+          _context3.next = 23;
+          return regeneratorRuntime.awrap((0, _sendEmail["default"])(email, subject, message));
+
+        case 23:
+          _iteratorNormalCompletion = true;
+          _context3.next = 19;
+          break;
+
+        case 26:
+          _context3.next = 32;
+          break;
+
+        case 28:
+          _context3.prev = 28;
+          _context3.t0 = _context3["catch"](17);
+          _didIteratorError = true;
+          _iteratorError = _context3.t0;
+
+        case 32:
+          _context3.prev = 32;
+          _context3.prev = 33;
+
+          if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+            _iterator["return"]();
+          }
+
+        case 35:
+          _context3.prev = 35;
+
+          if (!_didIteratorError) {
+            _context3.next = 38;
+            break;
+          }
+
+          throw _iteratorError;
+
+        case 38:
+          return _context3.finish(35);
+
+        case 39:
+          return _context3.finish(32);
+
+        case 40:
+          _context3.next = 45;
+          break;
+
+        case 42:
+          _context3.prev = 42;
+          _context3.t1 = _context3["catch"](3);
+          console.error('Error sending new order notification to admin:', _context3.t1);
+
+        case 45:
+        case "end":
+          return _context3.stop();
+      }
+    }
+  }, null, null, [[3, 42], [17, 28, 32, 40], [33,, 35, 39]]);
 }

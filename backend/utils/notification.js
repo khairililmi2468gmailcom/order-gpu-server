@@ -1,5 +1,6 @@
 // utils/notification.js
 import sendEmail from './sendEmail.js'; // Pastikan ini adalah helper untuk Nodemailer
+import pool from '../config/db.js';
 
 export async function notifyUserWithToken(userEmail, userName, token, domain) {
   const subject = 'Informasi Aktivasi Layanan GPU - Universitas Syiah Kuala';
@@ -75,4 +76,66 @@ export async function notifyPaymentRejected(userEmail, userName, orderId, gpuPac
   `;
 
   await sendEmail(userEmail, subject, message);
+}
+
+
+
+
+export async function notifyAdminOfNewOrder(orderId, packageData, userData, totalCost, durationHours) {
+  const subject = `Pemberitahuan Pesanan Baru: #${orderId} - ${packageData.name}`;
+  const primaryColor = '#28a745'; // Warna hijau untuk notifikasi baru
+  const secondaryColor = '#6c757d';
+
+  try {
+    // Ambil semua email admin dari database
+    const [adminEmailsResult] = await pool.query("SELECT email FROM users WHERE role = 'admin'");
+    const adminEmails = adminEmailsResult.map(row => row.email);
+
+    if (adminEmails.length === 0) {
+      console.warn('Tidak ada admin ditemukan untuk menerima notifikasi pesanan baru.');
+      return;
+    }
+
+    const message = `
+      <div style="font-family: 'Arial', sans-serif; line-height: 1.6; color: ${secondaryColor}; margin: 20px;">
+        <h2 style="color: ${primaryColor}; margin-bottom: 20px;">Pesanan Baru Telah Dibuat!</h2>
+        <p style="margin-bottom: 15px;">Halo Admin,</p>
+        <p style="margin-bottom: 15px;">Sebuah pesanan baru telah berhasil dibuat di sistem Anda. Berikut adalah detail pesanan:</p>
+        <div style="background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+          <h3 style="color: ${primaryColor}; margin-top: 0; margin-bottom: 10px;">Detail Pesanan</h3>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="margin-bottom: 8px;"><strong>ID Pesanan:</strong> ${orderId}</li>
+            <li style="margin-bottom: 8px;"><strong>Paket GPU:</strong> ${packageData.name}</li>
+            <li style="margin-bottom: 8px;"><strong>Durasi:</strong> ${durationHours} Jam</li>
+            <li style="margin-bottom: 8px;"><strong>Total Biaya:</strong> Rp ${parseFloat(totalCost).toLocaleString('id-ID')}</li>
+            <li style="margin-bottom: 8px;"><strong>Status:</strong> Pending Pembayaran</li>
+          </ul>
+        </div>
+        <div style="background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+          <h3 style="color: ${primaryColor}; margin-top: 0; margin-bottom: 10px;">Biodata Pemesan</h3>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="margin-bottom: 8px;"><strong>Nama:</strong> ${userData.name}</li>
+            <li style="margin-bottom: 8px;"><strong>Email:</strong> ${userData.email}</li>
+            <li style="margin-bottom: 8px;"><strong>Telepon:</strong> ${userData.phone || '-'}</li>
+          </ul>
+        </div>
+        <p style="margin-bottom: 15px;">Mohon segera periksa pesanan ini dan tunggu konfirmasi pembayaran dari pelanggan.</p>
+        <p style="margin-bottom: 20px;">Anda dapat melihat detail pesanan dan memprosesnya melalui panel admin Anda.</p>
+        <p style="text-align: center; margin-bottom: 20px;">
+          <a href="${process.env.FRONTEND_URL}/admin/orders" style="display: inline-block; padding: 12px 25px; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Buka Panel Admin</a>
+        </p>
+        <hr style="border: 1px solid #e0e0e0; margin-bottom: 20px;">
+        <p style="font-size: 14px; color: ${secondaryColor};">Hormat kami,</p>
+        <strong style="color: ${primaryColor};">Sistem Notifikasi GPU FMIPA USK</strong>
+      </div>
+    `;
+
+    // Kirim email ke semua admin
+    for (const email of adminEmails) {
+      await sendEmail(email, subject, message);
+    }
+
+  } catch (error) {
+    console.error('Error sending new order notification to admin:', error);
+  }
 }

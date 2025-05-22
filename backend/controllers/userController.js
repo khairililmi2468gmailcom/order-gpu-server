@@ -78,12 +78,12 @@ export const getGpuToken = async (req, res) => {
 // src/controllers/userController.js
 export const deleteOrder = async (req, res) => {
   const orderId = req.params.id;
-  const userId = req.user.id;
+  const userId = req.user.id; // Asumsi req.user.id tersedia dari middleware autentikasi
 
   try {
-    // Periksa apakah order milik user yang sedang login
+    // Periksa apakah order milik user yang sedang login dan ambil detailnya
     const [orders] = await pool.query(
-      'SELECT * FROM orders WHERE id = ? AND user_id = ?',
+      'SELECT id, is_active, status FROM orders WHERE id = ? AND user_id = ?',
       [orderId, userId]
     );
 
@@ -91,18 +91,40 @@ export const deleteOrder = async (req, res) => {
       return res.status(404).json({ error: 'Order tidak ditemukan atau bukan milik Anda' });
     }
 
-    // Hapus pembayaran terkait jika ada
-    await pool.query('DELETE FROM payments WHERE order_id = ?', [orderId]);
+    const orderToDelete = orders[0];
 
-    // Hapus order
-    await pool.query('DELETE FROM orders WHERE id = ?', [orderId]);
+    // --- Penambahan Logika Validasi Status Aktif ---
+    // Pesanan tidak bisa dihapus jika is_active = 1 DAN status = 'active'
+    if (orderToDelete.is_active === 1 && orderToDelete.status === 'active') {
+      return res.status(400).json({ error: 'Pesanan aktif tidak dapat dihapus.' });
+    }
+    // --- Akhir Penambahan Logika Validasi ---
 
-    res.json({ message: 'Order berhasil dihapus' });
+    // Mulai transaksi untuk memastikan atomisitas penghapusan
+    await pool.query('START TRANSACTION');
+
+    try {
+      // Hapus pembayaran terkait jika ada
+      await pool.query('DELETE FROM payments WHERE order_id = ?', [orderId]);
+
+      // Hapus order
+      await pool.query('DELETE FROM orders WHERE id = ?', [orderId]);
+
+      await pool.query('COMMIT'); // Commit transaksi jika semua berhasil
+
+      res.json({ message: 'Order berhasil dihapus' });
+    } catch (transactionError) {
+      await pool.query('ROLLBACK'); // Rollback jika ada kesalahan dalam transaksi
+      console.error('Transaction Error during order deletion:', transactionError);
+      res.status(500).json({ error: 'Gagal menghapus order akibat kesalahan transaksi.' });
+    }
+
   } catch (err) {
-    console.error(err);
+    console.error('Error deleting order:', err);
     res.status(500).json({ error: 'Gagal menghapus order' });
   }
 };
+
 
 export const updateProfile = async (req, res) => {
   const userId = req.user.id;
@@ -155,42 +177,44 @@ export const updatePassword = async (req, res) => {
 export const startUsage = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId); // Mengambil detail order
 
     if (!order) {
       return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
     }
 
-    if (order.is_active === 1) { // Jika sudah aktif, kembalikan saja
+    // Periksa jika pesanan sudah aktif atau belum disetujui
+    if (order.is_active === 1) {
       return res.status(200).json({ message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.', order });
     }
+    if (order.status !== 'approved') {
+        return res.status(400).json({ message: 'Pesanan belum disetujui untuk dimulai.' });
+    }
 
-    // Mulai transaksi
+    // Mulai transaksi untuk atomisitas
     await pool.query('START TRANSACTION');
 
     try {
-      // 1. Ambil data GPU Package untuk mendapatkan id_package
-      const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
-      if (!gpuPackage || gpuPackage.length === 0) {
-        throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
-      }
+      // --- DIHAPUS: Logika pemeriksaan dan pengurangan stok GPU ---
+      // Logika ini sekarang ditangani di fungsi verifyPayment (saat status 'verified')
+      // const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
+      // if (!gpuPackage || gpuPackage.length === 0) {
+      //   throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
+      // }
+      // if (gpuPackage[0].stock_available <= 0) {
+      //   throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
+      // }
+      // await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
+      // --- AKHIR DIHAPUS ---
 
-      // Pastikan stok masih tersedia sebelum memulai
-      if (gpuPackage[0].stock_available <= 0) {
-        throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
-      }
-
-      // 2. Kurangi stok GPU
-      await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
-
-      // 3. Update order
+      // Perbarui detail pesanan: set tanggal mulai, tanggal berakhir, aktifkan, dan ubah status
       const startDate = new Date();
-      const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000);
+      const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000); // Menghitung end_date
 
       const updateResult = await Order.findByIdAndUpdate(orderId, {
         start_date: startDate,
         end_date: endDate,
-        is_active: 1,
+        is_active: 1, // Set aktif
         status: 'active' // Ubah status menjadi 'active'
       });
 
@@ -201,7 +225,7 @@ export const startUsage = async (req, res) => {
       // Commit transaksi jika semua berhasil
       await pool.query('COMMIT');
 
-      const updatedOrder = await Order.findById(orderId); // Ambil data order terbaru
+      const updatedOrder = await Order.findById(orderId); // Ambil data order terbaru setelah update
       return res.status(200).json({ message: 'Waktu penggunaan pesanan dimulai.', order: updatedOrder });
 
     } catch (transactionError) {
@@ -215,6 +239,7 @@ export const startUsage = async (req, res) => {
     return res.status(500).json({ message: 'Terjadi kesalahan saat mencatat awal penggunaan.' });
   }
 };
+
 
 export const deactivateOrder = async (req, res) => {
   try {
