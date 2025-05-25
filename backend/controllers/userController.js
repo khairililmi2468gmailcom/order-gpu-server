@@ -2,6 +2,7 @@
 import pool from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import Order from '../models/Order.js';
+import { notifyAdminOfUserManualActivation } from '../utils/notification.js';
 
 export const getMyOrders = async (req, res) => {
   if (!req.user || !req.user.id) {
@@ -178,39 +179,39 @@ export const updatePassword = async (req, res) => {
 };
 
 
+
 export const startUsage = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const order = await Order.findById(orderId); // Mengambil detail order
 
-    if (!order) {
+    // Mengambil detail order DAN informasi pengguna yang terkait dalam satu query
+    // Ini penting agar kita memiliki email dan nama pengguna untuk notifikasi admin
+    const [orderRows] = await pool.query(
+      `SELECT o.id, o.duration_hours, o.is_active, o.status, o.token, o.domain, u.id AS user_id, u.name AS user_name, u.email AS user_email
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       WHERE o.id = ?`,
+      [orderId]
+    );
+
+    if (orderRows.length === 0) {
       return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
     }
+    const order = orderRows[0]; // Dapatkan detail pesanan dan pengguna
 
-    // Periksa jika pesanan sudah aktif atau belum disetujui
+    // Periksa jika pesanan sudah aktif
     if (order.is_active === 1) {
       return res.status(200).json({ message: 'Waktu penggunaan pesanan sudah dimulai sebelumnya.', order });
     }
+    // Periksa jika pesanan belum disetujui (status harus 'approved')
     if (order.status !== 'approved') {
         return res.status(400).json({ message: 'Pesanan belum disetujui untuk dimulai.' });
     }
 
-    // Mulai transaksi untuk atomisitas
+    // Mulai transaksi untuk memastikan atomisitas operasi
     await pool.query('START TRANSACTION');
 
     try {
-      // --- DIHAPUS: Logika pemeriksaan dan pengurangan stok GPU ---
-      // Logika ini sekarang ditangani di fungsi verifyPayment (saat status 'verified')
-      // const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
-      // if (!gpuPackage || gpuPackage.length === 0) {
-      //   throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
-      // }
-      // if (gpuPackage[0].stock_available <= 0) {
-      //   throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
-      // }
-      // await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
-      // --- AKHIR DIHAPUS ---
-
       // Perbarui detail pesanan: set tanggal mulai, tanggal berakhir, aktifkan, dan ubah status
       const startDate = new Date();
       const endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000); // Menghitung end_date
@@ -229,7 +230,20 @@ export const startUsage = async (req, res) => {
       // Commit transaksi jika semua berhasil
       await pool.query('COMMIT');
 
-      const updatedOrder = await Order.findById(orderId); // Ambil data order terbaru setelah update
+      // Ambil data order terbaru setelah update (opsional, bisa juga menggunakan data 'order' yang sudah diperbarui)
+      const updatedOrder = await Order.findById(orderId);
+
+      // Kirim notifikasi ke admin bahwa pengguna telah mengaktifkan layanan secara manual
+      await notifyAdminOfUserManualActivation(
+        order.id,          // ID Pesanan
+        order.user_name,   // Nama pengguna
+        order.user_email,  // Email pengguna
+        startDate,         // Tanggal mulai aktivasi
+        endDate,           // Tanggal berakhir aktivasi
+        order.domain       // Domain (jika ada)
+      );
+      console.log(`Notifikasi admin terkirim untuk aktivasi manual pesanan ID ${order.id}.`);
+
       return res.status(200).json({ message: 'Waktu penggunaan pesanan dimulai.', order: updatedOrder });
 
     } catch (transactionError) {

@@ -8,6 +8,7 @@ exports.notifyPaymentRejected = notifyPaymentRejected;
 exports.notifyAdminOfNewOrder = notifyAdminOfNewOrder;
 exports.sendActivationEmailNotification = sendActivationEmailNotification;
 exports.sendDeactivationEmailNotification = sendDeactivationEmailNotification;
+exports.notifyAdminOfUserManualActivation = notifyAdminOfUserManualActivation;
 
 var _sendEmail = _interopRequireDefault(require("./sendEmail.js"));
 
@@ -253,4 +254,123 @@ function sendDeactivationEmailNotification(userEmail, userName, orderId, token, 
       }
     }
   });
+}
+/**
+ * Mengirim notifikasi email kepada admin ketika seorang pengguna
+ * secara manual mengaktifkan layanan GPU mereka.
+ * @param {string} orderId - ID Pesanan yang diaktifkan.
+ * @param {string} userName - Nama pengguna yang mengaktifkan.
+ * @param {string} userEmail - Email pengguna yang mengaktifkan.
+ * @param {Date} startDate - Tanggal dan waktu mulai aktivasi layanan.
+ * @param {Date} endDate - Tanggal dan waktu berakhirnya aktivasi layanan.
+ * @param {string | null} domain - Domain yang terkait dengan layanan GPU (opsional).
+ */
+
+
+function notifyAdminOfUserManualActivation(orderId, userName, userEmail, startDate, endDate, domain) {
+  var subject, primaryColor, secondaryColor, formattedStartDate, formattedEndDate, _ref3, _ref4, adminEmailsResult, adminEmails, message, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, email;
+
+  return regeneratorRuntime.async(function notifyAdminOfUserManualActivation$(_context6) {
+    while (1) {
+      switch (_context6.prev = _context6.next) {
+        case 0:
+          subject = "Pemberitahuan: Pengguna Mengaktifkan Layanan GPU Secara Manual - Pesanan #".concat(orderId);
+          primaryColor = '#28a745'; // Warna hijau untuk notifikasi
+
+          secondaryColor = '#6c757d';
+          formattedStartDate = (0, _moment["default"])(startDate).format('DD MMMM HH:mm:ss');
+          formattedEndDate = (0, _moment["default"])(endDate).format('DD MMMM HH:mm:ss');
+          _context6.prev = 5;
+          _context6.next = 8;
+          return regeneratorRuntime.awrap(_db["default"].query("SELECT email FROM users WHERE role = 'admin'"));
+
+        case 8:
+          _ref3 = _context6.sent;
+          _ref4 = _slicedToArray(_ref3, 1);
+          adminEmailsResult = _ref4[0];
+          adminEmails = adminEmailsResult.map(function (row) {
+            return row.email;
+          });
+
+          if (!(adminEmails.length === 0)) {
+            _context6.next = 15;
+            break;
+          }
+
+          console.warn('Tidak ada admin ditemukan untuk menerima notifikasi aktivasi manual pengguna.');
+          return _context6.abrupt("return");
+
+        case 15:
+          message = "\n      <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n        <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Layanan GPU Diaktifkan Secara Manual oleh Pengguna</h2>\n        <p style=\"margin-bottom: 15px;\">Halo Admin,</p>\n        <p style=\"margin-bottom: 15px;\">Seorang pengguna telah mengaktifkan layanan GPU mereka secara manual melalui tombol \"Start\". Berikut adalah detail pesanan yang diaktifkan:</p>\n        <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n          <h3 style=\"color: ").concat(primaryColor, "; margin-top: 0; margin-bottom: 10px;\">Detail Aktivasi:</h3>\n          <ul style=\"list-style: none; padding: 0; margin: 0;\">\n            <li style=\"margin-bottom: 8px;\"><strong>ID Pesanan:</strong> #").concat(orderId, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Nama Pengguna:</strong> ").concat(userName, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Email Pengguna:</strong> ").concat(userEmail, "</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Waktu Mulai:</strong> ").concat(formattedStartDate, " WIB</li>\n            <li style=\"margin-bottom: 8px;\"><strong>Waktu Berakhir:</strong> ").concat(formattedEndDate, " WIB</li>\n            ").concat(domain ? "<li style=\"margin-bottom: 8px;\"><strong>Domain:</strong> ".concat(domain, "</li>") : '', "\n          </ul>\n        </div>\n        <p style=\"margin-bottom: 15px;\">Layanan ini sekarang berstatus 'active' dan waktu penggunaan telah dimulai.</p>\n        <p style=\"margin-bottom: 20px;\">Mohon periksa detail pesanan ini di panel admin Anda jika diperlukan.</p>\n        <p style=\"text-align: center; margin-bottom: 20px;\">\n          <a href=\"").concat(process.env.FRONTEND_URL, "/admin/payments\" style=\"display: inline-block; padding: 12px 25px; background-color: ").concat(primaryColor, "; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;\">Lihat Pesanan di Admin Panel</a>\n        </p>\n        <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n        <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n        <strong style=\"color: ").concat(primaryColor, ";\">Sistem Notifikasi GPU FMIPA USK</strong>\n      </div>\n    "); // Kirim email ke semua admin
+
+          _iteratorNormalCompletion2 = true;
+          _didIteratorError2 = false;
+          _iteratorError2 = undefined;
+          _context6.prev = 19;
+          _iterator2 = adminEmails[Symbol.iterator]();
+
+        case 21:
+          if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+            _context6.next = 28;
+            break;
+          }
+
+          email = _step2.value;
+          _context6.next = 25;
+          return regeneratorRuntime.awrap((0, _sendEmail["default"])(email, subject, message));
+
+        case 25:
+          _iteratorNormalCompletion2 = true;
+          _context6.next = 21;
+          break;
+
+        case 28:
+          _context6.next = 34;
+          break;
+
+        case 30:
+          _context6.prev = 30;
+          _context6.t0 = _context6["catch"](19);
+          _didIteratorError2 = true;
+          _iteratorError2 = _context6.t0;
+
+        case 34:
+          _context6.prev = 34;
+          _context6.prev = 35;
+
+          if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+            _iterator2["return"]();
+          }
+
+        case 37:
+          _context6.prev = 37;
+
+          if (!_didIteratorError2) {
+            _context6.next = 40;
+            break;
+          }
+
+          throw _iteratorError2;
+
+        case 40:
+          return _context6.finish(37);
+
+        case 41:
+          return _context6.finish(34);
+
+        case 42:
+          _context6.next = 47;
+          break;
+
+        case 44:
+          _context6.prev = 44;
+          _context6.t1 = _context6["catch"](5);
+          console.error('Error sending user manual activation notification to admin:', _context6.t1);
+
+        case 47:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  }, null, null, [[5, 44], [19, 30, 34, 42], [35,, 37, 41]]);
 }

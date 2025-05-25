@@ -530,6 +530,15 @@ const ListOrders = () => {
 
 
     const handleDomainOrTokenInteraction = async (orderId) => {
+        // Tampilkan SweetAlert loading
+        Swal.fire({
+            title: 'Memulai Penggunaan...',
+            text: 'Mohon tunggu sebentar.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/start-usage`, {
                 method: 'PUT',
@@ -546,12 +555,23 @@ const ListOrders = () => {
             }
 
             const responseData = await response.json();
+            // Tutup SweetAlert loading dan tampilkan sukses
+            Swal.fire(
+                'Berhasil!',
+                responseData.message || 'Waktu penggunaan pesanan dimulai.',
+                'success'
+            );
             // console.log('Penggunaan dimulai:', responseData.message);
             // Mungkin perlu memicu re-fetch data pesanan di frontend
             fetchOrders(responseData.order); // Jika backend mengembalikan data pesanan yang diperbarui
         } catch (error) {
             console.error("Gagal mencatat awal penggunaan:", error);
-            Swal.fire('Error!', 'Gagal mencatat awal penggunaan.', 'error');
+             // Tutup SweetAlert loading dan tampilkan error
+            Swal.fire(
+                'Error!',
+                error.message || 'Gagal mencatat awal penggunaan.',
+                'error'
+            );
         }
     };
     const handleStartUsageConfirmation = (order) => {

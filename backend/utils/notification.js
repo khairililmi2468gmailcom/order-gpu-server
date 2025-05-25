@@ -267,3 +267,69 @@ export async function sendDeactivationEmailNotification(userEmail, userName, ord
 
   await sendEmail(userEmail, subject, message);
 }
+
+
+/**
+ * Mengirim notifikasi email kepada admin ketika seorang pengguna
+ * secara manual mengaktifkan layanan GPU mereka.
+ * @param {string} orderId - ID Pesanan yang diaktifkan.
+ * @param {string} userName - Nama pengguna yang mengaktifkan.
+ * @param {string} userEmail - Email pengguna yang mengaktifkan.
+ * @param {Date} startDate - Tanggal dan waktu mulai aktivasi layanan.
+ * @param {Date} endDate - Tanggal dan waktu berakhirnya aktivasi layanan.
+ * @param {string | null} domain - Domain yang terkait dengan layanan GPU (opsional).
+ */
+export async function notifyAdminOfUserManualActivation(orderId, userName, userEmail, startDate, endDate, domain) {
+  const subject = `Pemberitahuan: Pengguna Mengaktifkan Layanan GPU Secara Manual - Pesanan #${orderId}`;
+  const primaryColor = '#28a745'; // Warna hijau untuk notifikasi
+  const secondaryColor = '#6c757d';
+
+  const formattedStartDate = moment(startDate).format('DD MMMM HH:mm:ss');
+  const formattedEndDate = moment(endDate).format('DD MMMM HH:mm:ss');
+
+  try {
+    // Ambil semua email admin dari database
+    const [adminEmailsResult] = await pool.query("SELECT email FROM users WHERE role = 'admin'");
+    const adminEmails = adminEmailsResult.map(row => row.email);
+
+    if (adminEmails.length === 0) {
+      console.warn('Tidak ada admin ditemukan untuk menerima notifikasi aktivasi manual pengguna.');
+      return;
+    }
+
+    const message = `
+      <div style="font-family: 'Arial', sans-serif; line-height: 1.6; color: ${secondaryColor}; margin: 20px;">
+        <h2 style="color: ${primaryColor}; margin-bottom: 20px;">Layanan GPU Diaktifkan Secara Manual oleh Pengguna</h2>
+        <p style="margin-bottom: 15px;">Halo Admin,</p>
+        <p style="margin-bottom: 15px;">Seorang pengguna telah mengaktifkan layanan GPU mereka secara manual melalui tombol "Start". Berikut adalah detail pesanan yang diaktifkan:</p>
+        <div style="background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+          <h3 style="color: ${primaryColor}; margin-top: 0; margin-bottom: 10px;">Detail Aktivasi:</h3>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="margin-bottom: 8px;"><strong>ID Pesanan:</strong> #${orderId}</li>
+            <li style="margin-bottom: 8px;"><strong>Nama Pengguna:</strong> ${userName}</li>
+            <li style="margin-bottom: 8px;"><strong>Email Pengguna:</strong> ${userEmail}</li>
+            <li style="margin-bottom: 8px;"><strong>Waktu Mulai:</strong> ${formattedStartDate} WIB</li>
+            <li style="margin-bottom: 8px;"><strong>Waktu Berakhir:</strong> ${formattedEndDate} WIB</li>
+            ${domain ? `<li style="margin-bottom: 8px;"><strong>Domain:</strong> ${domain}</li>` : ''}
+          </ul>
+        </div>
+        <p style="margin-bottom: 15px;">Layanan ini sekarang berstatus 'active' dan waktu penggunaan telah dimulai.</p>
+        <p style="margin-bottom: 20px;">Mohon periksa detail pesanan ini di panel admin Anda jika diperlukan.</p>
+        <p style="text-align: center; margin-bottom: 20px;">
+          <a href="${process.env.FRONTEND_URL}/admin/payments" style="display: inline-block; padding: 12px 25px; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Lihat Pesanan di Admin Panel</a>
+        </p>
+        <hr style="border: 1px solid #e0e0e0; margin-bottom: 20px;">
+        <p style="font-size: 14px; color: ${secondaryColor};">Hormat kami,</p>
+        <strong style="color: ${primaryColor};">Sistem Notifikasi GPU FMIPA USK</strong>
+      </div>
+    `;
+
+    // Kirim email ke semua admin
+    for (const email of adminEmails) {
+      await sendEmail(email, subject, message);
+    }
+
+  } catch (error) {
+    console.error('Error sending user manual activation notification to admin:', error);
+  }
+}

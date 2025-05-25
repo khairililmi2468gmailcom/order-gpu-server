@@ -11,6 +11,8 @@ var _bcryptjs = _interopRequireDefault(require("bcryptjs"));
 
 var _Order = _interopRequireDefault(require("../models/Order.js"));
 
+var _notification = require("../utils/notification.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -405,21 +407,26 @@ var updatePassword = function updatePassword(req, res) {
 exports.updatePassword = updatePassword;
 
 var startUsage = function startUsage(req, res) {
-  var orderId, order, startDate, endDate, updateResult, updatedOrder;
+  var orderId, _ref9, _ref10, orderRows, order, startDate, endDate, updateResult, updatedOrder;
+
   return regeneratorRuntime.async(function startUsage$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          orderId = req.body.orderId;
+          orderId = req.body.orderId; // Mengambil detail order DAN informasi pengguna yang terkait dalam satu query
+          // Ini penting agar kita memiliki email dan nama pengguna untuk notifikasi admin
+
           _context6.next = 4;
-          return regeneratorRuntime.awrap(_Order["default"].findById(orderId));
+          return regeneratorRuntime.awrap(_db["default"].query("SELECT o.id, o.duration_hours, o.is_active, o.status, o.token, o.domain, u.id AS user_id, u.name AS user_name, u.email AS user_email\n       FROM orders o\n       JOIN users u ON o.user_id = u.id\n       WHERE o.id = ?", [orderId]));
 
         case 4:
-          order = _context6.sent;
+          _ref9 = _context6.sent;
+          _ref10 = _slicedToArray(_ref9, 1);
+          orderRows = _ref10[0];
 
-          if (order) {
-            _context6.next = 7;
+          if (!(orderRows.length === 0)) {
+            _context6.next = 9;
             break;
           }
 
@@ -427,9 +434,12 @@ var startUsage = function startUsage(req, res) {
             message: 'Pesanan tidak ditemukan.'
           }));
 
-        case 7:
+        case 9:
+          order = orderRows[0]; // Dapatkan detail pesanan dan pengguna
+          // Periksa jika pesanan sudah aktif
+
           if (!(order.is_active === 1)) {
-            _context6.next = 9;
+            _context6.next = 12;
             break;
           }
 
@@ -438,9 +448,9 @@ var startUsage = function startUsage(req, res) {
             order: order
           }));
 
-        case 9:
+        case 12:
           if (!(order.status !== 'approved')) {
-            _context6.next = 11;
+            _context6.next = 14;
             break;
           }
 
@@ -448,28 +458,17 @@ var startUsage = function startUsage(req, res) {
             message: 'Pesanan belum disetujui untuk dimulai.'
           }));
 
-        case 11:
-          _context6.next = 13;
+        case 14:
+          _context6.next = 16;
           return regeneratorRuntime.awrap(_db["default"].query('START TRANSACTION'));
 
-        case 13:
-          _context6.prev = 13;
-          // --- DIHAPUS: Logika pemeriksaan dan pengurangan stok GPU ---
-          // Logika ini sekarang ditangani di fungsi verifyPayment (saat status 'verified')
-          // const [gpuPackage] = await pool.query('SELECT stock_available FROM gpu_packages WHERE id = ? FOR UPDATE', [order.gpu_package_id]);
-          // if (!gpuPackage || gpuPackage.length === 0) {
-          //   throw new Error('Paket GPU tidak ditemukan atau sudah dihapus.');
-          // }
-          // if (gpuPackage[0].stock_available <= 0) {
-          //   throw new Error('Stok GPU tidak tersedia untuk memulai pesanan ini.');
-          // }
-          // await pool.query('UPDATE gpu_packages SET stock_available = stock_available - 1 WHERE id = ?', [order.gpu_package_id]);
-          // --- AKHIR DIHAPUS ---
+        case 16:
+          _context6.prev = 16;
           // Perbarui detail pesanan: set tanggal mulai, tanggal berakhir, aktifkan, dan ubah status
           startDate = new Date();
           endDate = new Date(startDate.getTime() + order.duration_hours * 60 * 60 * 1000); // Menghitung end_date
 
-          _context6.next = 18;
+          _context6.next = 21;
           return regeneratorRuntime.awrap(_Order["default"].findByIdAndUpdate(orderId, {
             start_date: startDate,
             end_date: endDate,
@@ -479,61 +478,72 @@ var startUsage = function startUsage(req, res) {
 
           }));
 
-        case 18:
+        case 21:
           updateResult = _context6.sent;
 
           if (!(updateResult.affectedRows === 0)) {
-            _context6.next = 21;
+            _context6.next = 24;
             break;
           }
 
           throw new Error('Gagal memperbarui status pesanan.');
 
-        case 21:
-          _context6.next = 23;
+        case 24:
+          _context6.next = 26;
           return regeneratorRuntime.awrap(_db["default"].query('COMMIT'));
 
-        case 23:
-          _context6.next = 25;
+        case 26:
+          _context6.next = 28;
           return regeneratorRuntime.awrap(_Order["default"].findById(orderId));
 
-        case 25:
+        case 28:
           updatedOrder = _context6.sent;
+          _context6.next = 31;
+          return regeneratorRuntime.awrap((0, _notification.notifyAdminOfUserManualActivation)(order.id, // ID Pesanan
+          order.user_name, // Nama pengguna
+          order.user_email, // Email pengguna
+          startDate, // Tanggal mulai aktivasi
+          endDate, // Tanggal berakhir aktivasi
+          order.domain // Domain (jika ada)
+          ));
+
+        case 31:
+          console.log("Notifikasi admin terkirim untuk aktivasi manual pesanan ID ".concat(order.id, "."));
           return _context6.abrupt("return", res.status(200).json({
             message: 'Waktu penggunaan pesanan dimulai.',
             order: updatedOrder
           }));
 
-        case 29:
-          _context6.prev = 29;
-          _context6.t0 = _context6["catch"](13);
-          _context6.next = 33;
+        case 35:
+          _context6.prev = 35;
+          _context6.t0 = _context6["catch"](16);
+          _context6.next = 39;
           return regeneratorRuntime.awrap(_db["default"].query('ROLLBACK'));
 
-        case 33:
+        case 39:
           console.error("Transaction failed during startUsage:", _context6.t0);
           return _context6.abrupt("return", res.status(500).json({
             message: _context6.t0.message || 'Terjadi kesalahan saat mencatat awal penggunaan (transaksi dibatalkan).'
           }));
 
-        case 35:
-          _context6.next = 41;
+        case 41:
+          _context6.next = 47;
           break;
 
-        case 37:
-          _context6.prev = 37;
+        case 43:
+          _context6.prev = 43;
           _context6.t1 = _context6["catch"](0);
           console.error("Gagal mencatat awal penggunaan:", _context6.t1);
           return _context6.abrupt("return", res.status(500).json({
             message: 'Terjadi kesalahan saat mencatat awal penggunaan.'
           }));
 
-        case 41:
+        case 47:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 37], [13, 29]]);
+  }, null, null, [[0, 43], [16, 35]]);
 };
 
 exports.startUsage = startUsage;
