@@ -6,10 +6,14 @@ Object.defineProperty(exports, "__esModule", {
 exports.notifyUserWithToken = notifyUserWithToken;
 exports.notifyPaymentRejected = notifyPaymentRejected;
 exports.notifyAdminOfNewOrder = notifyAdminOfNewOrder;
+exports.sendActivationEmailNotification = sendActivationEmailNotification;
+exports.sendDeactivationEmailNotification = sendDeactivationEmailNotification;
 
 var _sendEmail = _interopRequireDefault(require("./sendEmail.js"));
 
 var _db = _interopRequireDefault(require("../config/db.js"));
+
+var _moment = _interopRequireDefault(require("moment"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -21,18 +25,27 @@ function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) ||
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
+/**
+ * Mengirim notifikasi email kepada pengguna setelah permohonan layanan GPU disetujui
+ * dan token telah diberikan. Memberikan informasi tentang cara memulai layanan
+ * secara manual atau aktivasi otomatis.
+ * @param {string} userEmail - Email pengguna.
+ * @param {string} userName - Nama pengguna.
+ * @param {string} token - Token akses GPU.
+ * @param {string | null} domain - Domain yang terkait dengan layanan GPU (opsional).
+ */
 function notifyUserWithToken(userEmail, userName, token, domain) {
   var subject, primaryColor, secondaryColor, message;
   return regeneratorRuntime.async(function notifyUserWithToken$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          subject = 'Informasi Aktivasi Layanan GPU - Universitas Syiah Kuala';
+          subject = 'Informasi Layanan GPU Anda Telah Disetujui - Universitas Syiah Kuala';
           primaryColor = '#007bff'; // Warna biru UNSYIA atau warna primer pilihan Anda
 
           secondaryColor = '#6c757d'; // Warna abu-abu sekunder
 
-          message = "\n    <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n      <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Aktivasi Layanan GPU Anda Berhasil</h2>\n      <p style=\"margin-bottom: 15px;\">Yang terhormat Bapak/Ibu ").concat(userName, ",</p>\n      <p style=\"margin-bottom: 15px;\">Dengan hormat,</p>\n      <p style=\"margin-bottom: 15px;\">Kami informasikan bahwa permohonan Anda untuk layanan GPU telah disetujui. Berikut adalah detail akses yang diperlukan untuk mengaktifkan dan menggunakan layanan:</p>\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 10px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ").concat(primaryColor, "; font-weight: bold;\">Token Akses:</label>\n        <div style=\"display: flex; align-items: center;\">\n          <input\n            type=\"text\"\n            value=\"").concat(token, "\"\n            id=\"accessToken\"\n            style=\"flex-grow: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\"\n            readonly\n            onClick=\"this.select(); document.execCommand('copy');\"\n          />\n        </div>\n        <p style=\"font-size: 12px; color: #6c757d; margin-top: 5px;\">Sentuh pada kotak token untuk untuk menyalin token.</p>\n      </div>\n      ").concat(domain ? "\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ".concat(primaryColor, "; font-weight: bold;\">Domain Anda:</label>\n        <p style=\"padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\">").concat(domain, "</p>\n      </div>\n      ") : '', "\n      <p style=\"margin-bottom: 15px;\">Mohon simpan informasi ini dengan aman dan jangan bagikan kepada pihak yang tidak berwenang. Token ini akan diperlukan setiap kali Anda mengakses layanan GPU melalui domain yang telah ditentukan.</p>\n      <p style=\"margin-bottom: 15px;\">Apabila Anda mengalami kendala atau memiliki pertanyaan lebih lanjut terkait aktivasi maupun penggunaan layanan, jangan ragu untuk menghubungi tim dukungan teknis kami melalui email ini atau melalui kanal komunikasi resmi yang tertera pada sistem layanan.</p>\n      <p style=\"margin-bottom: 20px;\">Terima kasih atas kepercayaan Anda dalam menggunakan layanan GPU Universitas Syiah Kuala.</p>\n      <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n      <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n      <strong style=\"color: ").concat(primaryColor, ";\">Tim Pengelola Layanan GPU FMIPA USK</strong><br>\n      <strong>Universitas Syiah Kuala</strong><br>\n      <a href=\"https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id\" style=\"color: ").concat(primaryColor, "; text-decoration: none;\">https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id</a>\n    </div>\n  ");
+          message = "\n    <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n      <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Layanan GPU Anda Telah Disetujui!</h2>\n      <p style=\"margin-bottom: 15px;\">Yang terhormat Bapak/Ibu ").concat(userName, ",</p>\n      <p style=\"margin-bottom: 15px;\">Dengan hormat,</p>\n      <p style=\"margin-bottom: 15px;\">Kami informasikan bahwa permohonan Anda untuk layanan GPU telah disetujui dan token akses telah diberikan. Layanan Anda kini siap untuk diaktifkan.</p>\n      \n      <div style=\"background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; padding: 15px; margin-bottom: 20px; color: #856404;\">\n        <h3 style=\"color: #856404; margin-top: 0; margin-bottom: 10px;\">Pemberitahuan Penting:</h3>\n        <p style=\"margin-bottom: 10px;\">Untuk memulai layanan GPU Anda, Anda dapat menekan tombol <strong>\"Start\"</strong> yang tersedia pada daftar pesanan GPU Anda di halaman akun.</p>\n        <p>Jika Anda tidak menekan tombol \"Start\", sistem akan secara otomatis mengaktifkan layanan Anda <strong>30 menit</strong> setelah pesanan Anda disetujui. Setelah diaktifkan, layanan akan berjalan sesuai durasi yang Anda pilih.</p>\n      </div>\n\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 10px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ").concat(primaryColor, "; font-weight: bold;\">Token Akses:</label>\n        <div style=\"display: flex; align-items: center;\">\n          <input\n            type=\"text\"\n            value=\"").concat(token, "\"\n            id=\"accessToken\"\n            style=\"flex-grow: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\"\n            readonly\n            onClick=\"this.select(); document.execCommand('copy');\"\n          />\n        </div>\n        <p style=\"font-size: 12px; color: #6c757d; margin-top: 5px;\">Sentuh pada kotak token untuk untuk menyalin token.</p>\n      </div>\n      ").concat(domain ? "\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ".concat(primaryColor, "; font-weight: bold;\">Domain Anda:</label>\n        <p style=\"padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\">").concat(domain, "</p>\n      </div>\n      ") : '', "\n      <p style=\"margin-bottom: 15px;\">Mohon simpan informasi ini dengan aman dan jangan bagikan kepada pihak yang tidak berwenang. Token ini akan diperlukan setiap kali Anda mengakses layanan GPU melalui domain yang telah ditentukan.</p>\n      <p style=\"margin-bottom: 15px;\">Apabila Anda mengalami kendala atau memiliki pertanyaan lebih lanjut terkait aktivasi maupun penggunaan layanan, jangan ragu untuk menghubungi tim dukungan teknis kami melalui email ini atau melalui kanal komunikasi resmi yang tertera pada sistem layanan.</p>\n      <p style=\"margin-bottom: 20px;\">Terima kasih atas kepercayaan Anda dalam menggunakan layanan GPU Universitas Syiah Kuala.</p>\n      <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n      <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n      <strong style=\"color: ").concat(primaryColor, ";\">Tim Pengelola Layanan GPU FMIPA USK</strong><br>\n      <strong>Universitas Syiah Kuala</strong><br>\n      <a href=\"https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id\" style=\"color: ").concat(primaryColor, "; text-decoration: none;\">https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id</a>\n    </div>\n  ");
           _context.next = 6;
           return regeneratorRuntime.awrap((0, _sendEmail["default"])(userEmail, subject, message));
 
@@ -170,4 +183,74 @@ function notifyAdminOfNewOrder(orderId, packageData, userData, totalCost, durati
       }
     }
   }, null, null, [[3, 42], [17, 28, 32, 40], [33,, 35, 39]]);
+}
+/**
+ * Mengirim notifikasi email kepada pengguna setelah layanan GPU mereka diaktifkan secara otomatis.
+ * @param {string} userEmail - Email pengguna.
+ * @param {string} userName - Nama pengguna.
+ * @param {string} token - Token akses GPU.
+ * @param {string | null} domain - Domain yang terkait dengan layanan GPU (opsional).
+ * @param {Date} startDate - Tanggal dan waktu mulai aktivasi layanan.
+ * @param {Date} endDate - Tanggal dan waktu berakhirnya aktivasi layanan.
+ */
+
+
+function sendActivationEmailNotification(userEmail, userName, token, domain, startDate, endDate) {
+  var subject, primaryColor, secondaryColor, formattedStartDate, formattedEndDate, message;
+  return regeneratorRuntime.async(function sendActivationEmailNotification$(_context4) {
+    while (1) {
+      switch (_context4.prev = _context4.next) {
+        case 0:
+          subject = 'Informasi Aktivasi Layanan GPU - Universitas Syiah Kuala';
+          primaryColor = '#007bff'; // Warna biru UNSYIA atau warna primer pilihan Anda
+
+          secondaryColor = '#6c757d'; // Warna abu-abu sekunder
+          // Format tanggal agar lebih mudah dibaca
+
+          formattedStartDate = (0, _moment["default"])(startDate).format('DD MMMM YYYY HH:mm:ss');
+          formattedEndDate = (0, _moment["default"])(endDate).format('DD MMMM YYYY HH:mm:ss');
+          message = "\n    <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n      <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Aktivasi Layanan GPU Anda Berhasil</h2>\n      <p style=\"margin-bottom: 15px;\">Yang terhormat Bapak/Ibu ").concat(userName, ",</p>\n      <p style=\"margin-bottom: 15px;\">Dengan hormat,</p>\n      <p style=\"margin-bottom: 15px;\">Kami informasikan bahwa layanan GPU Anda telah berhasil diaktifkan secara otomatis, 30 menit setelah pesanan Anda disetujui. Berikut adalah detail akses dan periode aktivasi layanan Anda:</p>\n      \n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ").concat(primaryColor, "; font-weight: bold;\">Periode Aktivasi Layanan:</label>\n        <p style=\"margin-bottom: 5px;\"><strong>Mulai:</strong> ").concat(formattedStartDate, " WIB</p>\n        <p><strong>Berakhir:</strong> ").concat(formattedEndDate, " WIB</p>\n      </div>\n\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 10px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ").concat(primaryColor, "; font-weight: bold;\">Token Akses:</label>\n        <div style=\"display: flex; align-items: center;\">\n          <input\n            type=\"text\"\n            value=\"").concat(token, "\"\n            id=\"accessToken\"\n            style=\"flex-grow: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\"\n            readonly\n            onClick=\"this.select(); document.execCommand('copy');\"\n          />\n        </div>\n        <p style=\"font-size: 12px; color: #6c757d; margin-top: 5px;\">Sentuh pada kotak token untuk untuk menyalin token.</p>\n      </div>\n      ").concat(domain ? "\n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ".concat(primaryColor, "; font-weight: bold;\">Domain Anda:</label>\n        <p style=\"padding: 10px; border: 1px solid #ced4da; border-radius: 3px; font-size: 16px; color: ").concat(secondaryColor, ";\">").concat(domain, "</p>\n      </div>\n      ") : '', "\n      <p style=\"margin-bottom: 15px;\">Mohon simpan informasi ini dengan aman dan jangan bagikan kepada pihak yang tidak berwenang. Token ini akan diperlukan setiap kali Anda mengakses layanan GPU melalui domain yang telah ditentukan.</p>\n      <p style=\"margin-bottom: 15px;\">Apabila Anda mengalami kendala atau memiliki pertanyaan lebih lanjut terkait aktivasi maupun penggunaan layanan, jangan ragu untuk menghubungi tim dukungan teknis kami melalui email ini atau melalui kanal komunikasi resmi yang tertera pada sistem layanan.</p>\n      <p style=\"margin-bottom: 20px;\">Terima kasih atas kepercayaan Anda dalam menggunakan layanan GPU Universitas Syiah Kuala.</p>\n      <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n      <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n      <strong style=\"color: ").concat(primaryColor, ";\">Tim Pengelola Layanan GPU FMIPA USK</strong><br>\n      <strong>Universitas Syiah Kuala</strong><br>\n      <a href=\"https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id\" style=\"color: ").concat(primaryColor, "; text-decoration: none;\">https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id</a>\n    </div>\n  ");
+          _context4.next = 8;
+          return regeneratorRuntime.awrap((0, _sendEmail["default"])(userEmail, subject, message));
+
+        case 8:
+        case "end":
+          return _context4.stop();
+      }
+    }
+  });
+}
+/**
+ * Mengirim notifikasi email kepada pengguna bahwa layanan GPU mereka telah dinonaktifkan.
+ * @param {string} userEmail - Email pengguna.
+ * @param {string} userName - Nama pengguna.
+ * @param {string} orderId - ID Pesanan yang dinonaktifkan.
+ * @param {string | null} token - Token akses GPU yang dinonaktifkan.
+ * @param {string | null} domain - Domain yang terkait dengan layanan GPU yang dinonaktifkan.
+ * @param {Date} endDate - Tanggal dan waktu berakhirnya layanan.
+ */
+
+
+function sendDeactivationEmailNotification(userEmail, userName, orderId, token, domain, endDate) {
+  var subject, primaryColor, secondaryColor, formattedEndDate, message;
+  return regeneratorRuntime.async(function sendDeactivationEmailNotification$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          subject = 'Pemberitahuan Penonaktifan Layanan GPU Anda - Universitas Syiah Kuala';
+          primaryColor = '#dc3545'; // Warna merah untuk penonaktifan
+
+          secondaryColor = '#6c757d'; // Warna abu-abu sekunder
+
+          formattedEndDate = (0, _moment["default"])(endDate).format('DD MMMM HH:mm:ss');
+          message = "\n    <div style=\"font-family: 'Arial', sans-serif; line-height: 1.6; color: ".concat(secondaryColor, "; margin: 20px;\">\n      <h2 style=\"color: ").concat(primaryColor, "; margin-bottom: 20px;\">Layanan GPU Anda Telah Dinonaktifkan</h2>\n      <p style=\"margin-bottom: 15px;\">Yang terhormat Bapak/Ibu ").concat(userName, ",</p>\n      <p style=\"margin-bottom: 15px;\">Dengan hormat,</p>\n      <p style=\"margin-bottom: 15px;\">Kami informasikan bahwa layanan GPU Anda dengan ID Pesanan <strong>#").concat(orderId, "</strong> telah dinonaktifkan pada tanggal <strong>").concat(formattedEndDate, " WIB</strong> karena telah mencapai akhir periode aktifnya.</p>\n      \n      <div style=\"background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 5px; padding: 15px; margin-bottom: 20px;\">\n        <label style=\"display: block; margin-bottom: 5px; color: ").concat(primaryColor, "; font-weight: bold;\">Detail Layanan yang Dinonaktifkan:</label>\n        <p style=\"margin-bottom: 5px;\"><strong>ID Pesanan:</strong> #").concat(orderId, "</p>\n        ").concat(token ? "<p style=\"margin-bottom: 5px;\"><strong>Token Akses:</strong> ".concat(token, "</p>") : '', "\n        ").concat(domain ? "<p><strong>Domain:</strong> ".concat(domain, "</p>") : '', "\n        <p><strong>Waktu Dinonaktifkan:</strong> ").concat(formattedEndDate, " WIB</p>\n      </div>\n\n      <p style=\"margin-bottom: 15px;\">Token akses dan domain yang terkait dengan layanan ini tidak lagi aktif. Jika Anda memerlukan layanan GPU kembali, Anda dapat mengajukan pesanan baru melalui portal layanan kami.</p>\n      <p style=\"margin-bottom: 15px;\">Apabila Anda memiliki pertanyaan atau memerlukan bantuan lebih lanjut, jangan ragu untuk menghubungi tim dukungan teknis kami.</p>\n      <p style=\"margin-bottom: 20px;\">Terima kasih atas kepercayaan Anda dalam menggunakan layanan GPU Universitas Syiah Kuala.</p>\n      <hr style=\"border: 1px solid #e0e0e0; margin-bottom: 20px;\">\n      <p style=\"font-size: 14px; color: ").concat(secondaryColor, ";\">Hormat kami,</p>\n      <strong style=\"color: ").concat(primaryColor, ";\">Tim Pengelola Layanan GPU FMIPA USK</strong><br>\n      <strong>Universitas Syiah Kuala</strong><br>\n      <a href=\"https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id\" style=\"color: ").concat(primaryColor, "; text-decoration: none;\">https://support.google.com/photos/thread/202686606/apakah-foto-atau-video-yg-dihapus-secara-permanen-tidak-akan-bisa-kembali-lagi?hl=id</a>\n    </div>\n  ");
+          _context5.next = 7;
+          return regeneratorRuntime.awrap((0, _sendEmail["default"])(userEmail, subject, message));
+
+        case 7:
+        case "end":
+          return _context5.stop();
+      }
+    }
+  });
 }

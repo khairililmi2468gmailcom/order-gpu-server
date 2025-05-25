@@ -395,11 +395,11 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                         <div>
                                             <h4 className="text-2xl font-extrabold text-gray-700 mb-2">RentGPU Industry Solution</h4>
                                             <NavLink
-                                                to="/gpuusk"
+                                                to="/gpufmipausk"
                                                 className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}
 
                                             >
-                                                GpuUSK
+                                                GPU FMIPA USK
                                             </NavLink>
 
                                             <NavLink
@@ -500,9 +500,9 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                         >
                             <NavLink
                                 to="#"
-                                className={parentNavItemClass('/mengenal-rentgpuusk', [
-                                    '/mengenal-rentgpuusk',
-                                    '/mengapa-rentgpuusk',
+                                className={parentNavItemClass('/mengenal-rentgpufmipausk', [
+                                    '/mengenal-rentgpufmipausk',
+                                    '/mengapa-rentgpufmipausk',
                                     '/karir',
                                     '/csr',
                                     '/whistleblowing'
@@ -527,8 +527,8 @@ const Header = ({ toggleSidebar, isLoggedIn, onLogout, user }) => {
                                     onMouseEnter={() => setHoveredMenu('tentang')}
                                     onMouseLeave={() => setHoveredMenu(null)}
                                 >
-                                    <NavLink to="/mengenal-rentgpuusk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengenal RentGPU</NavLink>
-                                    <NavLink to="/mengapa-rentgpuusk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengapa RentGPU</NavLink>
+                                    <NavLink to="/mengenal-rentgpufmipausk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengenal RentGPU</NavLink>
+                                    <NavLink to="/mengapa-rentgpufmipausk" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Mengapa RentGPU</NavLink>
                                     <NavLink to="/karir" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Karir</NavLink>
                                     <NavLink to="/csr" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>CSR</NavLink>
                                     <NavLink to="/whistleblowing" className={({ isActive }) => `block px-4 py-2 ${isActive ? 'text-blue-500' : 'text-gray-600 hover:text-blue-500'}`}>Whistleblowing</NavLink>

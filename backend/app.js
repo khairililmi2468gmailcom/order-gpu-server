@@ -42,7 +42,7 @@ app.use('/uploads', express.static(process.env.UPLOAD_DIR));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: 'Too many requests from this IP, please try again later.',
 });
 

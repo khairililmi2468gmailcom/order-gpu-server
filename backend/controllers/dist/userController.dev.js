@@ -202,16 +202,17 @@ var deleteOrder = function deleteOrder(req, res) {
           }));
 
         case 10:
-          orderToDelete = orders[0]; // --- Penambahan Logika Validasi Status Aktif ---
+          orderToDelete = orders[0]; // --- Penambahan Logika Validasi Status Aktif, Approved, dan Completed ---
           // Pesanan tidak bisa dihapus jika is_active = 1 DAN status = 'active'
+          // ATAU jika status adalah 'approved' ATAU 'completed'
 
-          if (!(orderToDelete.is_active === 1 && orderToDelete.status === 'active')) {
+          if (!(orderToDelete.is_active === 1 && orderToDelete.status === 'active' || orderToDelete.status === 'approved' || orderToDelete.status === 'completed')) {
             _context3.next = 13;
             break;
           }
 
           return _context3.abrupt("return", res.status(400).json({
-            error: 'Pesanan aktif tidak dapat dihapus.'
+            error: 'Pesanan tidak dapat dihapus karena sudah diproses atau aktif.'
           }));
 
         case 13:
@@ -247,9 +248,10 @@ var deleteOrder = function deleteOrder(req, res) {
 
         case 29:
           // Rollback jika ada kesalahan dalam transaksi
-          console.error('Transaction Error during order deletion:', _context3.t0);
+          console.error('Transaction Error during order deletion:', _context3.t0); // Mengirim pesan kesalahan transaksi yang lebih spesifik ke frontend
+
           res.status(500).json({
-            error: 'Gagal menghapus order akibat kesalahan transaksi.'
+            error: "Gagal menghapus order akibat kesalahan transaksi: ".concat(_context3.t0.message || _context3.t0)
           });
 
         case 31:
@@ -259,9 +261,10 @@ var deleteOrder = function deleteOrder(req, res) {
         case 33:
           _context3.prev = 33;
           _context3.t1 = _context3["catch"](2);
-          console.error('Error deleting order:', _context3.t1);
+          console.error('Error deleting order:', _context3.t1); // Mengirim pesan kesalahan umum yang lebih spesifik ke frontend
+
           res.status(500).json({
-            error: 'Gagal menghapus order'
+            error: "Gagal menghapus order: ".concat(_context3.t1.message || _context3.t1)
           });
 
         case 37:

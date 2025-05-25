@@ -58,6 +58,7 @@ const ProductCard = React.forwardRef((props, ref) => {
     const [allGpuPackages, setAllGpuPackages] = useState([]);
     // Stores the packages currently visible to the user (a subset of allGpuPackages)
     const [displayedPackages, setDisplayedPackages] = useState([]);
+    const [expandedDescriptions, setExpandedDescriptions] = useState({}); // Menggunakan objek untuk melacak setiap ID GPU
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -243,6 +244,12 @@ const ProductCard = React.forwardRef((props, ref) => {
         return <div className="text-center py-8 text-red-600">Terjadi kesalahan saat memuat data: {error.message}</div>;
     }
 
+    const toggleDescription = (gpuId) => {
+        setExpandedDescriptions(prevState => ({
+            ...prevState,
+            [gpuId]: !prevState[gpuId] // Toggle status untuk GPU spesifik ini
+        }));
+    };
     return (
         <>
             <div ref={ctaRef} className="text-center mb-6 transition-all duration-700 translate-y-6 opacity-5"
@@ -363,7 +370,28 @@ const ProductCard = React.forwardRef((props, ref) => {
                                 </>
                             )}
                         </div>
-                        {gpu.description && <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">{gpu.description.substring(0, 80)}...</p>}
+                        {gpu.description && (
+                            <p className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 lg:text-sm xl:text-md">
+                                {/* Menggunakan expandedDescriptions[gpu.id] untuk menentukan apakah deskripsi penuh ditampilkan */}
+                                {expandedDescriptions[gpu.id] ? gpu.description : `${gpu.description.substring(0, 80)}...`}
+                                {/* Pastikan panjang deskripsi lebih dari 80 karakter (sesuai dengan substring) */}
+                                {gpu.description.length > 80 && (
+                                    <span
+                                        className="cursor-pointer text-blue-500 hover:text-blue-700 ml-1"
+                                        onClick={() => toggleDescription(gpu.id)} // Meneruskan ID GPU ke fungsi
+                                        title={expandedDescriptions[gpu.id] ? "Sembunyikan" : "Lihat selengkapnya"}
+                                    >
+                                        {expandedDescriptions[gpu.id] ? (
+                                            ' Sembunyikan'
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                            </svg>
+                                        )}
+                                    </span>
+                                )}
+                            </p>
+                        )}
                         <div className="flex justify-center">
                             <button
                                 onClick={() => handlePesanClick(gpu.id)}

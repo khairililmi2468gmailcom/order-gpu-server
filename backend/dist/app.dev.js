@@ -62,7 +62,7 @@ app.use('/uploads', _express["default"]["static"](process.env.UPLOAD_DIR)); // R
 
 var limiter = (0, _expressRateLimit["default"])({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter); // Routes

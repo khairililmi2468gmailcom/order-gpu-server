@@ -14,13 +14,14 @@ fetchGpuPackages @ ProductCard.js:125Understand this warningAI
 Header.js:178 Failed to fetch notifications: AxiosErrorcode: "ERR_BAD_REQUEST"config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 0, …}message: "Request failed with status code 429"name: "AxiosError"request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 0, withCredentials: false, upload: XMLHttpRequestUpload, …}response: {data: 'Too many requests from this IP, please try again later.', status: 429, statusText: 'Too Many Requests', headers: AxiosHeaders, config: {…}, …}status: 429stack: "AxiosError: Request failed with status code 429\n    at settle (http://localhost:3000/static/js/bundle.js:35198:12)\n    at XMLHttpRequest.onloadend (http://localhost:3000/static/js/bundle.js:33825:66)\n    at Axios.request (http://localhost:3000/static/js/bundle.js:34324:41)\n    at async http://localhost:3000/static/js/bundle.js:182307:26"[[Prototype]]: Error
 1. solve eror di atas kadang kadang muncul✅
 2. ketika di pesan, harus ada jumlah gpu yang tersedia, baik itu yang sedang dipakai, dan untuk di user nya munculkan jumlah tersedia nya✅
-3. harus update di start dari token atau pengaktifkan gpu nya, dimana kalau user tidak menekan tombol play selama 30 menit maka otomatis bakal start pengaktifan. ✅
+3. harus update di start dari token atau pengaktifkan gpu nya, dimana kalau user tidak menekan tombol play selama 30 menit maka otomatis bakal start pengaktifan. 
+(JADI ALUR NYA, KALAU TOKEN SUDAH DIISI DAN STATUS APPROVED MAKA AKAN DIJALANKANSECARA OTOMATIS DLAAM RENTANG WAKTU YANG DITENTUKAN✅
 4. tambah notifikasi telah telah dimulai untuk user
 5. tambah notifikasi user sudah pesan dengan upload bukti pembayaran, jika belum upload maka tidak perlu notifikasi ke gmail admin.✅
 6. tambah notifikasi user sudah mulai menjalankan server di admin.
 7. ini untuk fmipa bukan usk, dan gambar nya di ganti dengan fmipa✅
 8. update form pemesanan
-
+9. ketika user pesan, kemudian admin setujui, dan user malah delete berhasil,✅ 
 
 Error sending new order notification to admin: Error: Invalid login: 534-5.7.14 <https://accounts.google.com/signin/continue?sarp=1&scc=1&plt=AKgnsbu
 534-5.7.14 p50zvkQOe5hSZ8EoSbbTGXHS7JC8qCOBwZhDzp2y4za9cHAPqzJrx_G5HZYSqGoce3VXE
@@ -48,3 +49,5 @@ Error sending new order notification to admin: Error: Invalid login: 534-5.7.14 
   responseCode: 534,
   command: 'AUTH PLAIN'
 }
+
+

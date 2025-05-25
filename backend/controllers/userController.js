@@ -93,10 +93,13 @@ export const deleteOrder = async (req, res) => {
 
     const orderToDelete = orders[0];
 
-    // --- Penambahan Logika Validasi Status Aktif ---
+    // --- Penambahan Logika Validasi Status Aktif, Approved, dan Completed ---
     // Pesanan tidak bisa dihapus jika is_active = 1 DAN status = 'active'
-    if (orderToDelete.is_active === 1 && orderToDelete.status === 'active') {
-      return res.status(400).json({ error: 'Pesanan aktif tidak dapat dihapus.' });
+    // ATAU jika status adalah 'approved' ATAU 'completed'
+    if (orderToDelete.is_active === 1 && orderToDelete.status === 'active' ||
+        orderToDelete.status === 'approved' ||
+        orderToDelete.status === 'completed') {
+      return res.status(400).json({ error: 'Pesanan tidak dapat dihapus karena sudah diproses atau aktif.' });
     }
     // --- Akhir Penambahan Logika Validasi ---
 
@@ -116,15 +119,16 @@ export const deleteOrder = async (req, res) => {
     } catch (transactionError) {
       await pool.query('ROLLBACK'); // Rollback jika ada kesalahan dalam transaksi
       console.error('Transaction Error during order deletion:', transactionError);
-      res.status(500).json({ error: 'Gagal menghapus order akibat kesalahan transaksi.' });
+      // Mengirim pesan kesalahan transaksi yang lebih spesifik ke frontend
+      res.status(500).json({ error: `Gagal menghapus order akibat kesalahan transaksi: ${transactionError.message || transactionError}` });
     }
 
   } catch (err) {
     console.error('Error deleting order:', err);
-    res.status(500).json({ error: 'Gagal menghapus order' });
+    // Mengirim pesan kesalahan umum yang lebih spesifik ke frontend
+    res.status(500).json({ error: `Gagal menghapus order: ${err.message || err}` });
   }
 };
-
 
 export const updateProfile = async (req, res) => {
   const userId = req.user.id;

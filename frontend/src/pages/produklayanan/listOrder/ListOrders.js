@@ -316,7 +316,10 @@ const ListOrders = () => {
                         },
                     });
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        // Parse the JSON response to get the error message
+                        const errorData = await response.json();
+                        // Throw an error with the specific message from the API
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                     }
                     Swal.fire(
                         'Dihapus!',
@@ -327,7 +330,7 @@ const ListOrders = () => {
                 } catch (err) {
                     Swal.fire(
                         'Gagal!',
-                        'Terjadi kesalahan saat menghapus pesanan.',
+                        err.message || 'Terjadi kesalahan tidak terduga saat menghapus pesanan.',
                         'error'
                     );
                     console.error('Error deleting order:', err);
